@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -44,7 +45,7 @@ public abstract class GenericParser {
 				.append(DOC_TYPE, type)
 				.append(DOC_ID, UUID.randomUUID().toString())
 				.append(DOC_START_DATE, System.currentTimeMillis())
-				.append(DOC_END_DATE, -1)
+				.append(DOC_END_DATE, -1L)
 				.append(DOC_RAW, (BSONObject)com.mongodb.util.JSON.parse(obj.toString()));
 		return doc;
 	}
@@ -92,10 +93,19 @@ public abstract class GenericParser {
 		return ret;
 	}
 	
-	protected void writeJSONtoXML(String filename, Document doc){
-		File fXmlFile = new File(filename);
-		String xml = XML.toString(doc.toJson());
-	    System.out.println(xml); 
+	protected void writeJSONtoXML(String filename, JSONObject jobj){
+		String xml = XML.toString(jobj);
+
+	    //System.out.println(xml);
+		PrintWriter out;
+		try {
+			out = new PrintWriter(filename);
+			out.write(xml);
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	protected JSONObject readXMLtoJSON(String filename){

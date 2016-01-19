@@ -1,5 +1,6 @@
 package MongoConnector.MongoConnector;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
@@ -59,7 +60,7 @@ public class ArchimateParser extends GenericParser {
 				map.put(identifier, uuid);
 			}
 			// files
-//			Document doc = 
+			//			Document doc = 
 			insertFileDocument(xmlJSONObj);
 		}
 		return ret;
@@ -81,21 +82,27 @@ public class ArchimateParser extends GenericParser {
 			JSONObject rels =  mod.getJSONObject("relationships");
 			JSONArray rel = new JSONArray();
 			rels.put("relationship", rel);
+			// derive the identifiers for the standard properties
+			//LOGGER.info(prettyPrintJSON(raw));
+			addPropertyStandardTypeDefs(mod);
 			// mapping to check whether there are missing references
 			Vector<String> v = new Vector<String>();
-			
+
 			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
 			MongoCursor<Document> h = it.iterator();
 			while(h.hasNext()){
 				doc = h.next();
 				String id = doc.getString("id");
+				long start_date = doc.getLong("start_date");
+				long end_date = doc.getLong("end_date");
 				s =doc.toJson();
 				JSONObject ret1 =  new JSONObject(s);
 				JSONObject raw1 = ret1.getJSONObject("raw");
 				elm.put(raw1);
+				enrichNodeWithProperties(raw1, id, start_date, end_date);
 				v.add(id);
 			}
-			
+
 			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
 			h = it.iterator();
 			while(h.hasNext()){
@@ -110,6 +117,95 @@ public class ArchimateParser extends GenericParser {
 				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
 			}
 			LOGGER.info(ret.toString());
+			LOGGER.info(prettyPrintJSON(ret));
+			this.writeJSONtoXML(filename, raw );
+		}
+	} 
+
+	private void addPropertyStandardTypeDefs(JSONObject jobj) {
+		/**
+		 * "propertydefs": {"propertydef": [
+        {
+            "identifier": "propid-junctionType",
+            "name": "JunctionType",
+            "type": "string"
+        },
+		 */
+		JSONObject defs = null;
+		if(jobj.has("propertydefs")){
+			defs = jobj.getJSONObject("propertydefs");
+		} else {
+			defs = new JSONObject();
+		}
+		JSONArray def = null;
+		boolean flag = false;
+		if(defs.has("propertydef")){
+			Object obj = defs.get("propertydef");
+			if(obj instanceof JSONObject){
+				// if it is a single object it can not our definitions
+				def = new JSONArray();
+				def.put((JSONObject) obj);
+				defs.append("propertydef", def);
+				flag = true;
+			} else if(obj instanceof JSONArray){
+				def = (JSONArray) obj;
+				for(int i=0;i<def.length();i++){
+					if(def.getJSONObject(i).get("identifier").toString().startsWith("propid_wipro_digital_workflow_")){
+						flag = true;
+						break;
+					}
+				}
+			} else LOGGER.severe("Wrong object type!");
+		} else {
+			flag = true;
+		}
+		if(!flag){
+			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
+					"\"propid_wipro_digital_workflow_start_date\", "+
+					"\"name\": \"Wipro start date\", \"type\": \"Long\" }"));
+			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
+					"\"propid_wipro_digital_workflow_end_date\", "+
+					"\"name\": \"Wipro end date\", \"type\": \"Long\" }"));
+			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
+					"\"propid_wipro_digital_workflow_identifier\", "+
+					"\"name\": \"Wipro identifier\", \"type\": \"String\" }"));
+		}
+	}
+
+	private void enrichNodeWithProperties(JSONObject obj, String id, long start_date, long end_date) {
+		JSONObject props = null;
+		JSONObject prop = null;
+		JSONArray parr =  null;
+		if(!obj.has("properties")){
+			props = new JSONObject();
+			obj.put("properties", props);
+			parr = new JSONArray();
+			props.put("property", parr);
+		} else {
+			props = obj.getJSONObject("properties");
+			Object oobj = props.get("property");
+			if(oobj instanceof JSONObject) prop = (JSONObject) oobj;
+			else if(oobj instanceof JSONArray) parr = (JSONArray) oobj;
+			else LOGGER.severe("not the right object typoe found");
+		}
+		if(prop!=null){
+			// only a single property in the JSON
+			// remove the property and make it a JSONArray
+			props.remove("property");
+			parr = new JSONArray();
+			parr.put(prop);
+			props.append("property", parr);
+		}
+		if(parr!=null){
+			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_start_date").
+					put("value", new JSONObject().put("xml:lang","en").put("content", start_date));
+			parr.put(prop);
+			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_end_date").
+					put("value", new JSONObject().put("xml:lang","en").put("content", end_date));
+			parr.put(prop);
+			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_identifier").
+					put("value", new JSONObject().put("xml:lang","en").put("content", id));
+			parr.put(prop);
 		}
 	}
 
