@@ -80,6 +80,7 @@ public class MongoDBAccess {
 		return iterable;
 	}
 	
+	asdasd
 	public void dropCollections(){
 		MongoCollection<Document> col = getCollection(COLLECTION_NODES);
 		col.drop();
