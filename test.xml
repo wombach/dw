@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model>
+<model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate http://www.opengroup.org/xsd/archimate/archimate_v2p1.xsd">
 	<identifier>id-551cc557</identifier>
 	<relationships>
 		<relationship>
@@ -141,7 +141,6 @@
 			<target>id-203bfa92</target>
 		</relationship>
 	</relationships>
-	<xmlns>http://www.opengroup.org/xsd/archimate</xmlns>
 	<elements>
 		<element>
 			<identifier>id-5ab926a7</identifier>
@@ -927,13 +926,10 @@
 			</label>
 		</item>
 	</organization>
-	<xsi:schemaLocation>http://www.opengroup.org/xsd/archimate
-		http://www.opengroup.org/xsd/archimate/archimate_v2p1.xsd</xsi:schemaLocation>
 	<name>
 		<xml:lang>en</xml:lang>
 		OTK Sample
 	</name>
-	<xmlns:xsi>http://www.w3.org/2001/XMLSchema-instance</xmlns:xsi>
 	<propertydefs>
 		<propertydef>
 			<identifier>propid-junctionType</identifier>
