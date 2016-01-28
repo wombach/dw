@@ -96,6 +96,10 @@ public abstract class GenericParser {
 	protected void writeJSONtoXML(String filename, JSONObject jobj){
 		String xml = XML.toString(jobj);
 
+		xml = xml.replace("<xsi:schemaLocation>http://www.opengroup.org/xsd/archimate http://www.opengroup.org/xsd/archimate/archimate_v2p1.xsd</xsi:schemaLocation>", " ");
+		xml = xml.replace("<xmlns:xsi>http://www.w3.org/2001/XMLSchema-instance</xmlns:xsi>", " ");
+		xml = xml.replace("<xmlns>http://www.opengroup.org/xsd/archimate</xmlns>", " ");
+		xml = xml.replace("<model", "<model xmlns=\"http://www.opengroup.org/xsd/archimate\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.opengroup.org/xsd/archimate http://www.opengroup.org/xsd/archimate/archimate_v2p1.xsd\"" );
 	    //System.out.println(xml);
 		PrintWriter out;
 		try {

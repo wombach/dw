@@ -194,7 +194,7 @@ public class ArchimateParser extends GenericParser {
 			props.remove("property");
 			parr = new JSONArray();
 			parr.put(prop);
-			props.append("property", parr);
+			props.put("property", parr);
 		}
 		if(parr!=null){
 			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_start_date").
