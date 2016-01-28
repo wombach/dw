@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<semantic:definitions xmlns:semantic="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:triso="http://www.trisotech.com/2015/triso/modeling" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:trisobpmn="http://www.trisotech.com/2014/triso/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rss="http://purl.org/rss/2.0/" id="Definitions_1" name="Drawing 1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="W4 Web Modeler" exporterVersion="5.0.19" trisobpmn:logoChoice="Default">
+  <semantic:process id="Process_1" name="Page 1" isExecutable="false" triso:defaultName="true">
+    <semantic:documentation><![CDATA[Entering a subset of the data from the sub process specification specified in "Enter production data into excel table".]]></semantic:documentation>
+    <semantic:startEvent id="StartEvent_1" name="Start Gluehhauben process">
+      <semantic:outgoing>SequenceFlow_1748mhc</semantic:outgoing>
+    </semantic:startEvent>
+    <semantic:sequenceFlow id="SequenceFlow_1748mhc" sourceRef="StartEvent_1" targetRef="Task_0rru3s1" triso:userConstraints="true" />
+    <semantic:task id="Task_0rru3s1" name="SCM team prepares list of coils">
+      <semantic:documentation>SCM team prepares a list of coils (Production planning)</semantic:documentation>
+      <semantic:incoming>SequenceFlow_1748mhc</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_1so9zth</semantic:outgoing>
+    </semantic:task>
+    <semantic:sequenceFlow id="SequenceFlow_1so9zth" sourceRef="Task_0rru3s1" targetRef="Task_0sgs5o0" triso:userConstraints="true" />
+    <semantic:task id="Task_0sgs5o0" name="Print coil lits">
+      <semantic:documentation>The Hauben operator print the coil list and prepare the machine (Gluehhaube).</semantic:documentation>
+      <semantic:incoming>SequenceFlow_1so9zth</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_1nkj394</semantic:outgoing>
+    </semantic:task>
+    <semantic:sequenceFlow id="SequenceFlow_1nkj394" sourceRef="Task_0sgs5o0" targetRef="ExclusiveGateway_0qj72ie" triso:userConstraints="true" />
+    <semantic:parallelGateway id="ExclusiveGateway_0qj72ie">
+      <semantic:incoming>SequenceFlow_1nkj394</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_02k45sd</semantic:outgoing>
+      <semantic:outgoing>SequenceFlow_0qkcceo</semantic:outgoing>
+    </semantic:parallelGateway>
+    <semantic:task id="Task_0algvij" name="Enter production data into excel table">
+      <semantic:documentation><![CDATA[The excel table contains information about the glueh process. Times, temperatures, etc. 
+This specifies actually a sub-process which is product specific. (MES kind of process)]]></semantic:documentation>
+      <semantic:incoming>SequenceFlow_02k45sd</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_1y5ysib</semantic:outgoing>
+    </semantic:task>
+    <semantic:sequenceFlow id="SequenceFlow_02k45sd" sourceRef="ExclusiveGateway_0qj72ie" targetRef="Task_0algvij" />
+    <semantic:subProcess id="SubProcess_1v3y1g1" name="Data entry in PPS">
+      <semantic:incoming>SequenceFlow_0qkcceo</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_1100t5w</semantic:outgoing>
+    </semantic:subProcess>
+    <semantic:sequenceFlow id="SequenceFlow_0qkcceo" sourceRef="ExclusiveGateway_0qj72ie" targetRef="SubProcess_1v3y1g1" />
+    <semantic:exclusiveGateway id="ExclusiveGateway_0hdeg0e">
+      <semantic:incoming>SequenceFlow_1y5ysib</semantic:incoming>
+      <semantic:incoming>SequenceFlow_1100t5w</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_0k76jla</semantic:outgoing>
+    </semantic:exclusiveGateway>
+    <semantic:sequenceFlow id="SequenceFlow_1y5ysib" sourceRef="Task_0algvij" targetRef="ExclusiveGateway_0hdeg0e" />
+    <semantic:sequenceFlow id="SequenceFlow_1100t5w" sourceRef="SubProcess_1v3y1g1" targetRef="ExclusiveGateway_0hdeg0e" />
+    <semantic:task id="Task_16aq15k" name="Drive coils into Haube">
+      <semantic:incoming>SequenceFlow_0k76jla</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_1p0nmf8</semantic:outgoing>
+    </semantic:task>
+    <semantic:sequenceFlow id="SequenceFlow_0k76jla" sourceRef="ExclusiveGateway_0hdeg0e" targetRef="Task_16aq15k" />
+    <semantic:task id="Task_0b0hnw7" name="Coils gluehen">
+      <semantic:documentation><![CDATA[takes approximately 1 day; is based on the program defined in the task "Enter production data into excel table"]]></semantic:documentation>
+      <semantic:incoming>SequenceFlow_1p0nmf8</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_0yygyp1</semantic:outgoing>
+    </semantic:task>
+    <semantic:sequenceFlow id="SequenceFlow_1p0nmf8" sourceRef="Task_16aq15k" targetRef="Task_0b0hnw7" />
+    <semantic:task id="Task_0rf6olh" name="Cool down coils">
+      <semantic:documentation>Outside the Haube; takes about a day</semantic:documentation>
+      <semantic:incoming>SequenceFlow_0yygyp1</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_0oeb5nk</semantic:outgoing>
+    </semantic:task>
+    <semantic:sequenceFlow id="SequenceFlow_0yygyp1" sourceRef="Task_0b0hnw7" targetRef="Task_0rf6olh" />
+    <semantic:task id="Task_0zu2xs2" name="Change status of coils in PPS">
+      <semantic:incoming>SequenceFlow_0oeb5nk</semantic:incoming>
+      <semantic:outgoing>SequenceFlow_0x89kst</semantic:outgoing>
+    </semantic:task>
+    <semantic:sequenceFlow id="SequenceFlow_0oeb5nk" sourceRef="Task_0rf6olh" targetRef="Task_0zu2xs2" />
+    <semantic:intermediateThrowEvent id="IntermediateThrowEvent_16vtx16">
+      <semantic:incoming>SequenceFlow_0x89kst</semantic:incoming>
+    </semantic:intermediateThrowEvent>
+    <semantic:sequenceFlow id="SequenceFlow_0x89kst" sourceRef="Task_0zu2xs2" targetRef="IntermediateThrowEvent_16vtx16" />
+    <semantic:textAnnotation id="TextAnnotation_0qxsu6m">    <semantic:text>there must be some guidance, library, .... on how to define the process.</semantic:text>
+</semantic:textAnnotation>
+    <semantic:association id="Association_0rygowa" sourceRef="Task_0algvij" targetRef="TextAnnotation_0qxsu6m" />
+    <semantic:textAnnotation id="TextAnnotation_17t81cn">    <semantic:text>What is triggering the process?</semantic:text>
+</semantic:textAnnotation>
+    <semantic:association id="Association_0zrln3c" sourceRef="StartEvent_1" targetRef="TextAnnotation_17t81cn" />
+  </semantic:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1" di:name="Page 1">
+    <bpmndi:BPMNPlane id="BPMNDiagram_1_plane" bpmnElement="Process_1" trisobpmn:diagramWidth="1485" trisobpmn:diagramHeight="1050">
+      <di:extension />
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1" color:background-color="#ffffff" color:border-color="#000000">
+        <dc:Bounds x="173" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel labelStyle="LSBPMNDiagram_1" color:color="#000000" trisobpmn:defaultBounds="true">
+          <dc:Bounds x="144.5" y="149.25" width="93" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1748mhc_di" bpmnElement="SequenceFlow_1748mhc" color:border-color="#000000" triso:userconstraints="true">
+        <di:waypoint xsi:type="dc:Point" x="209" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="229" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="229" y="133" />
+        <di:waypoint xsi:type="dc:Point" x="249" y="133" />
+        <bpmndi:BPMNLabel labelStyle="LSBPMNDiagram_1" color:color="#000000" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_0rru3s1_di" bpmnElement="Task_0rru3s1" color:background-color="#ffffff" color:border-color="#000000">
+        <dc:Bounds x="249" y="93" width="100" height="80" />
+        <bpmndi:BPMNLabel labelStyle="LSBPMNDiagram_1" color:color="#000000" trisobpmn:defaultBounds="true">
+          <dc:Bounds x="249" y="119.5" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1so9zth_di" bpmnElement="SequenceFlow_1so9zth" color:border-color="#000000" triso:userconstraints="true">
+        <di:waypoint xsi:type="dc:Point" x="349" y="133" />
+        <di:waypoint xsi:type="dc:Point" x="360" y="133" />
+        <di:waypoint xsi:type="dc:Point" x="360" y="94" />
+        <di:waypoint xsi:type="dc:Point" x="370" y="94" />
+        <bpmndi:BPMNLabel labelStyle="LSBPMNDiagram_1" color:color="#000000" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_0sgs5o0_di" bpmnElement="Task_0sgs5o0" color:background-color="#ffffff" color:border-color="#000000">
+        <dc:Bounds x="370" y="54" width="100" height="80" />
+        <bpmndi:BPMNLabel labelStyle="LSBPMNDiagram_1" color:color="#000000" trisobpmn:defaultBounds="true">
+          <dc:Bounds x="370" y="87.5" width="100" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1nkj394_di" bpmnElement="SequenceFlow_1nkj394" color:border-color="#000000" triso:userconstraints="true">
+        <di:waypoint xsi:type="dc:Point" x="470" y="94" />
+        <di:waypoint xsi:type="dc:Point" x="518.2132034301758" y="94" />
+        <bpmndi:BPMNLabel labelStyle="LSBPMNDiagram_1" color:color="#000000" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_07bf00db-81c3-4879-a02f-13dcc4e7d5ab" bpmnElement="ExclusiveGateway_0qj72ie" color:background-color="#ffffff" color:border-color="#000000">
+        <dc:Bounds x="518.2132034301758" y="73.98780727386475" width="41.57359313964844" height="40.02438545227051" />
+        <bpmndi:BPMNLabel labelStyle="LSBPMNDiagram_1" color:color="#000000" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_0algvij_di" bpmnElement="Task_0algvij">
+        <dc:Bounds x="585" y="38" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_02k45sd_di" bpmnElement="SequenceFlow_02k45sd">
+        <di:waypoint xsi:type="dc:Point" x="560" y="94" />
+        <di:waypoint xsi:type="dc:Point" x="573" y="94" />
+        <di:waypoint xsi:type="dc:Point" x="573" y="78" />
+        <di:waypoint xsi:type="dc:Point" x="585" y="78" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="528" y="76" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SubProcess_1v3y1g1_di" bpmnElement="SubProcess_1v3y1g1" isExpanded="true">
+        <dc:Bounds x="515" y="163" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0qkcceo_di" bpmnElement="SequenceFlow_0qkcceo">
+        <di:waypoint xsi:type="dc:Point" x="539" y="114" />
+        <di:waypoint xsi:type="dc:Point" x="539" y="139" />
+        <di:waypoint xsi:type="dc:Point" x="690" y="139" />
+        <di:waypoint xsi:type="dc:Point" x="690" y="163" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="569.5" y="129" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0hdeg0e_di" bpmnElement="ExclusiveGateway_0hdeg0e" isMarkerVisible="true">
+        <dc:Bounds x="784" y="69" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="764" y="119" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1y5ysib_di" bpmnElement="SequenceFlow_1y5ysib">
+        <di:waypoint xsi:type="dc:Point" x="685" y="78" />
+        <di:waypoint xsi:type="dc:Point" x="735" y="78" />
+        <di:waypoint xsi:type="dc:Point" x="735" y="94" />
+        <di:waypoint xsi:type="dc:Point" x="784" y="94" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="690" y="76" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1100t5w_di" bpmnElement="SequenceFlow_1100t5w">
+        <di:waypoint xsi:type="dc:Point" x="690" y="163" />
+        <di:waypoint xsi:type="dc:Point" x="690" y="141" />
+        <di:waypoint xsi:type="dc:Point" x="809" y="141" />
+        <di:waypoint xsi:type="dc:Point" x="809" y="119" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="704.5" y="131" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_16aq15k_di" bpmnElement="Task_16aq15k">
+        <dc:Bounds x="855" y="38" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0k76jla_di" bpmnElement="SequenceFlow_0k76jla">
+        <di:waypoint xsi:type="dc:Point" x="834" y="94" />
+        <di:waypoint xsi:type="dc:Point" x="845" y="94" />
+        <di:waypoint xsi:type="dc:Point" x="845" y="78" />
+        <di:waypoint xsi:type="dc:Point" x="855" y="78" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="800" y="76" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_0b0hnw7_di" bpmnElement="Task_0b0hnw7">
+        <dc:Bounds x="854" y="429" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1p0nmf8_di" bpmnElement="SequenceFlow_1p0nmf8">
+        <di:waypoint xsi:type="dc:Point" x="905" y="118" />
+        <di:waypoint xsi:type="dc:Point" x="904" y="429" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="923" y="49" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_0rf6olh_di" bpmnElement="Task_0rf6olh">
+        <dc:Bounds x="658" y="429" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0yygyp1_di" bpmnElement="SequenceFlow_0yygyp1">
+        <di:waypoint xsi:type="dc:Point" x="854" y="469" />
+        <di:waypoint xsi:type="dc:Point" x="758" y="469" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="761" y="459" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_0zu2xs2_di" bpmnElement="Task_0zu2xs2">
+        <dc:Bounds x="466" y="429" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0oeb5nk_di" bpmnElement="SequenceFlow_0oeb5nk">
+        <di:waypoint xsi:type="dc:Point" x="658" y="469" />
+        <di:waypoint xsi:type="dc:Point" x="566" y="469" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="567" y="459" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_16vtx16_di" bpmnElement="IntermediateThrowEvent_16vtx16">
+        <dc:Bounds x="173" y="451" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="146" y="487" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0x89kst_di" bpmnElement="SequenceFlow_0x89kst">
+        <di:waypoint xsi:type="dc:Point" x="466" y="469" />
+        <di:waypoint xsi:type="dc:Point" x="209" y="469" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="292.5" y="459" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0qxsu6m_di" bpmnElement="TextAnnotation_0qxsu6m">
+        <dc:Bounds x="746" y="-87" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0rygowa_di" bpmnElement="Association_0rygowa">
+        <di:waypoint xsi:type="dc:Point" x="680" y="43" />
+        <di:waypoint xsi:type="dc:Point" x="746" y="-8" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_17t81cn_di" bpmnElement="TextAnnotation_17t81cn">
+        <dc:Bounds x="150" y="-43" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0zrln3c_di" bpmnElement="Association_0zrln3c">
+        <di:waypoint xsi:type="dc:Point" x="192" y="102" />
+        <di:waypoint xsi:type="dc:Point" x="197" y="37" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+    <bpmndi:BPMNLabelStyle id="LSBPMNDiagram_1">
+      <dc:Font name="Arial" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+    </bpmndi:BPMNLabelStyle>
+  </bpmndi:BPMNDiagram>
+  <semantic:relationship type="ActivityStream">
+    <semantic:extensionElements>
+      <rss version="2.0" xmlns="http://purl.org/rss/2.0/" xmlns:trisofeed="http://trisotech.com/feed">
+        <channel />
+      </rss>
+    </semantic:extensionElements>
+    <semantic:source>Definitions_1</semantic:source>
+    <semantic:target>Definitions_1</semantic:target>
+  </semantic:relationship>
+</semantic:definitions>
