@@ -66,10 +66,23 @@ public class Main {
 		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 		StreamSource source2 = new StreamSource(in);
 		result = unmarshaller2.unmarshal(source2, ModelType.class);
-		model = (ModelType) result.getValue();
+		ModelType model2 = (ModelType) result.getValue();
 
-
+		System.out.println(model.equals(model2));
 		
+//		System.out.print(model.getIdentifier()+" ! ");
+//		System.out.println(model2.getIdentifier());
+//
+//		System.out.print(model.getVersion()+" ! ");
+//		System.out.println(model2.getVersion());
+//		System.out.print(model.getName()+" ! ");
+//		System.out.println(model2.getName());
+//		System.out.print(model.getDocumentation()+" ! ");
+//		System.out.println(model2.getDocumentation());
+//		System.out.print(model+" ! ");
+//		System.out.println(model2);
+//		System.out.print(model+" ! ");
+//		System.out.println(model2);
 		
 //		JAXBContext jaxbContextBPMN = JAXBContext.newInstance(BPMN);
 //

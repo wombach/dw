@@ -45,8 +45,8 @@ public class UIControl {
 		
 		// insert an archimate file into mongoDB
 //		mongo.dropCollections();
-//		boolean r = u.parseFile("OTK Sample.xml");
-//		LOGGER.info("file parsed :"+r);
+		boolean r = u.parseFile("OTK Sample.xml");
+		LOGGER.info("file parsed :"+r);
 //		mongo.getAllDocuments();
 		
 		// retrieve an archimate file into mongoDB
