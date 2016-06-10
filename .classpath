@@ -37,6 +37,5 @@
 	<classpathentry kind="var" path="M2_REPO/xpp3/xpp3/1.1.3.4-RC8/xpp3-1.1.3.4-RC8.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/sun/xml/bind/jaxb-impl/2.2.11/jaxb-impl-2.2.11.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ModelParser"/>
-	<classpathentry kind="lib" path="bpmn-jaxb-model-4.9.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

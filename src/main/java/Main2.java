@@ -19,17 +19,19 @@ import org.json.JSONObject;
 import org.json.XML;
 import org.opengroup.xsd.archimate.ModelType;
 //import org.ow2.orchestra.jaxb.bpmn.Definitions;
+import org.omg.spec.bpmn._20100524.di.*;
+import org.omg.spec.bpmn._20100524.model.*;
 import org.xml.sax.SAXException;
 
 import com.mongodb.util.JSON;
 
-public class Main {
+public class Main2 {
 
 	private static final String ORG_OPENGROUP_XSD_ARCHIMATE = "org.opengroup.xsd.archimate";
-	private static final String BPMN = "org.ow2.orchestra.jaxb.bpmn";
+	private static final String BPMN = "org.omg.spec.bpmn._20100524.model";
 
 	public static void main(String[] args) throws JAXBException, SAXException, IOException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(ORG_OPENGROUP_XSD_ARCHIMATE);
+		JAXBContext jaxbContext = JAXBContext.newInstance(BPMN);
 
 		//		 org.reflections.Reflections reflections = new Reflections(ORG_OPENGROUP_XSD_ARCHIMATE);
 		//
@@ -39,11 +41,11 @@ public class Main {
 		//
 		//		JAXBContext jaxbContext = JAXBContext.newInstance(classes);
 
-		File file = new File("OTK Sample.xml");
+		File file = new File("gluehhaube_wo_subprocess.bpmn");
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		StreamSource source = new StreamSource(file);
-		JAXBElement<ModelType> result = unmarshaller.unmarshal(source, ModelType.class);
-		ModelType model = (ModelType) result.getValue();
+		JAXBElement<TDefinitions> result = unmarshaller.unmarshal(source, TDefinitions.class);
+		TDefinitions model = (TDefinitions) result.getValue();
 
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
@@ -65,8 +67,8 @@ public class Main {
 		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 		StreamSource source2 = new StreamSource(in);
-		result = unmarshaller2.unmarshal(source2, ModelType.class);
-		ModelType model2 = (ModelType) result.getValue();
+		result = unmarshaller2.unmarshal(source2, TDefinitions.class);
+		TDefinitions model2 = (TDefinitions) result.getValue();
 
 		System.out.println(model.equals(model2));
 		
