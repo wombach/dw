@@ -1,0 +1,25 @@
+db.nodes.find({'raw.xsi:type':"BusinessProcess"}).count()
+
+db.nodes.find({'raw.label.content':"System 2"})
+
+db.nodes.find().forEach( function(myDoc) { print( "id: " + myDoc.raw.identifier ); } );
+
+db.relations.find({'raw.source':"id-155"})
+
+var id = "id-155"; db.relations.find({'raw.source':id});
+
+db.nodes.find({'raw.xsi:type':"BusinessProcess"}).forEach( function(myDoc) { print( "id: " + myDoc.raw.identifier ); } );
+
+db.relations.find({'raw.source':"id-155"}).forEach( function(myDoc) { print( "id: " + myDoc.raw.identifier ); } );
+
+db.relations.find({$and:[{'raw.source':"id-155"},{'raw.xsi:type':"UsedByRelationship"}]}).forEach( function(myDoc2) { print( id+ " ->  " + myDoc2.raw.target ); } );
+
+
+db.relations.find({$and:[{'raw.source':"id-364"},{'raw.xsi:type':"UsedByRelationship"}]}).forEach( function(myDoc2) { print( id+ " ->  " + myDoc2.raw.target ); } );
+
+
+db.relations.find({'raw.source':"id-155"}).forEach( function(myDoc) { var id = myDoc.raw.identifier; db.relations.find({$and:[{'raw.source':"id-155"},{'raw.xsi:type':"UsedByRelationship"}]}).forEach( function(myDoc2) { print( id+ " ->  " + myDoc2.raw.target ); } );  } );
+
+db.nodes.find({'raw.xsi:type':"BusinessProcess"}).forEach( function(myDoc) { var id = myDoc.raw.identifier; db.relations.find({$and:[{'raw.source':id},{'raw.xsi:type':"UsedByRelationship"}]}).forEach( function(myDoc2) { print( id+ " ->  " + myDoc2.raw.target ); } );  } );
+
+db.nodes.find({'raw.xsi:type':"BusinessProcess"}).forEach( function(myDoc) { var id = myDoc.raw.identifier; db.relations.find({$and:[{'raw.source':id},{'raw.xsi:type':"TriggeringRelationship"}]}).forEach( function(myDoc2) { print( id+ " ->  " + myDoc2.raw.target ); } );  } );
