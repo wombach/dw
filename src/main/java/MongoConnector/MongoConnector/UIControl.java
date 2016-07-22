@@ -44,14 +44,15 @@ public class UIControl {
 		u.registerParser("bpmn", new BPMNParser());
 		
 		// insert an archimate file into mongoDB
-//		mongo.dropCollections();
-		boolean r = u.parseFile("OTK Sample.xml");
+		mongo.dropCollections();
+//		boolean r = u.parseFile("OTK Sample.xml");
+		boolean r = u.parseFile("whr_line_6.xml");
 		LOGGER.info("file parsed :"+r);
-//		mongo.getAllDocuments();
+		mongo.getAllDocuments();
 		
 		// retrieve an archimate file into mongoDB
 		Date date = new Date(System.currentTimeMillis());
-		u.deriveFile("archimate", "test.xml", date);
+		u.deriveFile("archimate", "test_whr.xml", date);
 	}
 
 }
