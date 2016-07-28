@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MM_Document version="2.0" format="XML" includeMetaModels="false" xmlns:builtins="http://www.bizzdesign.com/metamodels/builtins" xmlns:Base="http://www.bizzdesign.com/metamodels/Base" xmlns:MM_ModelPackage="http://www.bizzdesign.com/metamodels/MM_ModelPackage" xmlns:Component="http://www.bizzdesign.com/metamodels/Component" xmlns:ArchiMate="http://www.bizzdesign.com/metamodels/ArchiMate2.0" xmlns:MM_Diagram="http://www.bizzdesign.com/metamodels/MM_Diagram" xmlns:Amber="http://www.bizzdesign.com/metamodels/Amber" xmlns:BPMN="http://www.bizzdesign.com/metamodels/BPMN" xmlns:BMC="http://www.bizzdesign.com/metamodels/BMC" xmlns:UML="http://www.bizzdesign.com/metamodels/UML" xmlns:TDM="http://www.bizzdesign.com/metamodels/TDM" xmlns:Lean="http://www.bizzdesign.com/metamodels/Lean" xmlns:ERD="http://www.bizzdesign.com/metamodels/ERD">
+<MM_StorageUnit fqn="">
+<MM_ModelPackage:MM_ModelPackage id="0">
+<nm>Arcvhimate example with profile</nm>
+<MM_ModelPackage:MM_Models name="models" id="1">
+<ArchiMate:ArchiMateMM_Model id="2">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">test model</MM_Value>
+</MM_ProfileValues>
+<MM_ModelPackage:MM_Modules name="modules" id="3">
+<MM_ModelPackage:MM_Module id="4" nm="GraphicalModule" metaModel="MM_Diagram">
+<MM_Diagram:MM_Diagram name="root" id="5">
+<MM_Diagram:MM_Node name="mm_canvas" id="6" mm_graphicType="5" mm_concept="Canvas" mm_semanticObject="7">
+<MM_Diagram:MM_Graphics name="mm_graphics" id="8">
+<MM_Diagram:MM_Node id="9" mm_graphicType="5" mm_concept="BusinessProcess" mm_semanticObject="10">
+<MM_Diagram:MM_Graphics name="mm_graphics" id="11">
+<MM_Diagram:MM_Decoration id="12" mm_graphicType="2" mm_concept="icon"/>
+<MM_Diagram:MM_Decoration id="13" mm_graphicType="2" mm_concept="label"/>
+</MM_Diagram:MM_Graphics>
+<MM_Rect name="mm_rect" x="380" y="300" w="400" h="160"/>
+</MM_Diagram:MM_Node>
+<MM_Diagram:MM_Node id="14" mm_graphicType="5" mm_concept="BusinessProcess" mm_semanticObject="15">
+<MM_Diagram:MM_Graphics name="mm_graphics" id="16">
+<MM_Diagram:MM_Decoration id="17" mm_graphicType="2" mm_concept="icon"/>
+<MM_Diagram:MM_Decoration id="18" mm_graphicType="2" mm_concept="label"/>
+</MM_Diagram:MM_Graphics>
+<MM_Rect name="mm_rect" x="880" y="300" w="400" h="160"/>
+</MM_Diagram:MM_Node>
+<MM_Diagram:MM_DirectedRel id="19" mm_from="9" mm_to="14" mm_fromx="200" mm_fromy="80" mm_tox="200" mm_toy="80" mm_graphicType="7" mm_concept="BusinessProcessBusinessProcessTriggering" mm_semanticObject="20"/>
+<MM_Diagram:MM_Node id="21" mm_graphicType="5" mm_concept="ApplicationComponent" mm_semanticObject="22">
+<MM_Diagram:MM_Graphics name="mm_graphics" id="23">
+<MM_Diagram:MM_Decoration id="24" mm_graphicType="2" mm_concept="icon"/>
+<MM_Diagram:MM_Decoration id="25" mm_graphicType="2" mm_concept="label"/>
+</MM_Diagram:MM_Graphics>
+<MM_Rect name="mm_rect" x="920" y="640" w="400" h="160"/>
+</MM_Diagram:MM_Node>
+<MM_Diagram:MM_Node id="26" mm_graphicType="5" mm_concept="BusinessObject" mm_semanticObject="27">
+<MM_Diagram:MM_Graphics name="mm_graphics" id="28">
+<MM_Diagram:MM_Decoration id="29" mm_graphicType="2" mm_concept="label"/>
+</MM_Diagram:MM_Graphics>
+<MM_Rect name="mm_rect" x="400" y="640" w="400" h="160"/>
+</MM_Diagram:MM_Node>
+<MM_Diagram:MM_DirectedRel id="30" mm_from="9" mm_to="26" mm_fromx="200" mm_fromy="80" mm_tox="180" mm_toy="60" mm_graphicType="7" mm_concept="BusinessProcessBusinessObjectAccess" mm_semanticObject="31"/>
+<MM_Diagram:MM_DirectedRel id="32" mm_from="21" mm_to="14" mm_fromx="200" mm_fromy="80" mm_tox="240" mm_toy="120" mm_graphicType="7" mm_concept="UseRelation" mm_semanticObject="33"/>
+</MM_Diagram:MM_Graphics>
+<MM_Rect name="mm_rect" x="0" y="0" w="2147483647" h="2147483647"/>
+</MM_Diagram:MM_Node>
+</MM_Diagram:MM_Diagram>
+<Any name="tag"><Objectref value="7"/></Any>
+</MM_ModelPackage:MM_Module>
+<MM_ModelPackage:MM_Module id="34" nm="SemanticModule" metaModel="ArchiMate">
+<ArchiMate:ArchiMateComponent name="root" id="35">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Empty model with total view</MM_Value>
+</MM_ProfileValues>
+<ArchiMate:DomainDataSet name="domainDataSet" id="36"/>
+<ArchiMate:AbstractCommandContainers name="commandContainers" id="37"/>
+<ArchiMate:AbstractSchemes name="schemes" id="38">
+<ArchiMate:MotivationScheme id="39">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Motivation extension</MM_Value>
+</MM_ProfileValues>
+<Any name="taggedValues"><Structure><Boolean value="true" name="__defaultObject__"/></Structure></Any>
+</ArchiMate:MotivationScheme>
+<ArchiMate:TechnicalInfrastructureScheme id="40">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Technology layer</MM_Value>
+</MM_ProfileValues>
+<Any name="taggedValues"><Structure><Boolean value="true" name="__defaultObject__"/></Structure></Any>
+</ArchiMate:TechnicalInfrastructureScheme>
+<ArchiMate:ApplicationScheme id="41">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Application layer</MM_Value>
+</MM_ProfileValues>
+<ArchiMate:ApplicationComponents name="components" id="42">
+<ArchiMate:ApplicationComponent id="43">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Application component</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">44</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">444</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid  444444444444444444444444444444444444444444</MM_Value>
+</MM_ProfileValues>
+</ArchiMate:ApplicationComponent>
+</ArchiMate:ApplicationComponents>
+<ArchiMate:Relations name="relations" id="44">
+<ArchiMate:UseRelation id="45" from="43" to="46"/>
+</ArchiMate:Relations>
+<Any name="taggedValues"><Structure><Boolean value="true" name="__defaultObject__"/></Structure></Any>
+</ArchiMate:ApplicationScheme>
+<ArchiMate:BusinessScheme id="47">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Business layer</MM_Value>
+</MM_ProfileValues>
+<ArchiMate:BusinessObjects name="objects" id="48">
+<ArchiMate:BusinessObject id="49">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Business object</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">33</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">333</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid 333333333333333333333333333333333</MM_Value>
+</MM_ProfileValues>
+</ArchiMate:BusinessObject>
+</ArchiMate:BusinessObjects>
+<ArchiMate:BusinessProcesses name="processes" id="50">
+<ArchiMate:BusinessProcess id="51">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">step 1</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">11</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">22</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid11111111111111111111111111111111111111111111111111111111111111</MM_Value>
+</MM_ProfileValues>
+</ArchiMate:BusinessProcess>
+<ArchiMate:BusinessProcess id="46">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">step 2</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">22</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">222</MM_Value>
+<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid 2222222222222222222222222222222222222222222222222222222222222222222</MM_Value>
+</MM_ProfileValues>
+</ArchiMate:BusinessProcess>
+</ArchiMate:BusinessProcesses>
+<ArchiMate:Relations name="relations" id="52">
+<ArchiMate:BusinessProcessBusinessProcessTriggering id="53" from="51" to="46"/>
+<ArchiMate:BusinessProcessBusinessObjectAccess id="54" from="51" to="49"/>
+</ArchiMate:Relations>
+<Any name="taggedValues"><Structure><Boolean value="true" name="__defaultObject__"/></Structure></Any>
+</ArchiMate:BusinessScheme>
+<ArchiMate:IMScheme id="55">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Implementation and migration extension</MM_Value>
+</MM_ProfileValues>
+<Any name="taggedValues"><Structure><Boolean value="true" name="__defaultObject__"/></Structure></Any>
+</ArchiMate:IMScheme>
+</ArchiMate:AbstractSchemes>
+<ArchiMate:AbstractViews name="views" id="56"/>
+<ArchiMate:AbstractFolders name="folders" id="57">
+<ArchiMate:AbstractFolder id="58">
+<nm>Views</nm>
+<ArchiMate:AbstractSchemes name="schemes" id="59"/>
+<ArchiMate:AbstractViews name="views" id="60">
+<ArchiMate:AllView id="7">
+<MM_ProfileValues>
+<MM_Value name="nm" type="string" xml:lang="en">Total view</MM_Value>
+</MM_ProfileValues>
+<ArchiMate:RefObjects name="refObjects" id="61">
+<ArchiMate:BusinessProcessRef id="10" to="51"/>
+<ArchiMate:BusinessProcessRef id="15" to="46"/>
+<ArchiMate:BusinessProcessBusinessProcessTriggeringRef id="20" to="53"/>
+<ArchiMate:BusinessObjectRef id="27" to="49"/>
+<ArchiMate:ApplicationComponentRef id="22" to="43"/>
+<ArchiMate:BusinessProcessBusinessObjectAccessRef id="31" to="54"/>
+<ArchiMate:UseRelationRef id="33" to="45"/>
+</ArchiMate:RefObjects>
+</ArchiMate:AllView>
+</ArchiMate:AbstractViews>
+<ArchiMate:AbstractFolders name="folders" id="62"/>
+</ArchiMate:AbstractFolder>
+</ArchiMate:AbstractFolders>
+</ArchiMate:ArchiMateComponent>
+</MM_ModelPackage:MM_Module>
+</MM_ModelPackage:MM_Modules>
+<Any name="taggedValues"><Structure><String name="createdBy">Architect 4.8.1</String></Structure></Any>
+</ArchiMate:ArchiMateMM_Model>
+</MM_ModelPackage:MM_Models>
+<MM_ModelPackage:MM_Languages name="languages" id="63">
+<MM_ModelPackage:MM_Language id="64" isDefault="true">
+<nm>en</nm>
+</MM_ModelPackage:MM_Language>
+</MM_ModelPackage:MM_Languages>
+<MM_ModelPackage:MM_Users name="users" id="65">
+<MM_ModelPackage:MM_User id="66">
+<nm>an332496</nm>
+<Any name="taggedValues"><Structure><List name="viewSettings"><Structure><List name="selectedObjects"><Objectref value="22"/></List><Objectref value="7" name="diagObj"/></Structure></List></Structure></Any>
+</MM_ModelPackage:MM_User>
+</MM_ModelPackage:MM_Users>
+<Any name="taggedValues"><Structure><Structure name="grid"><Long value="20" name="x"/><Long value="20" name="y"/></Structure><String name="lastSavedWith">Architect 4.8.1</String></Structure></Any>
+</MM_ModelPackage:MM_ModelPackage>
+</MM_StorageUnit>
+</MM_Document>

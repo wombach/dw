@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -15,23 +14,18 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
-import org.json.JSONObject;
-import org.json.XML;
-import org.opengroup.xsd.archimate.ModelType;
-//import org.ow2.orchestra.jaxb.bpmn.Definitions;
-import org.omg.spec.bpmn._20100524.di.*;
-import org.omg.spec.bpmn._20100524.model.*;
 import org.xml.sax.SAXException;
 
-import com.mongodb.util.JSON;
+import disco.ProcessMapType;
 
 public class Main2 {
 
 	private static final String ORG_OPENGROUP_XSD_ARCHIMATE = "org.opengroup.xsd.archimate";
 	private static final String BPMN = "org.omg.spec.bpmn._20100524.model";
+	private static final String DISCO = "disco";
 
 	public static void main(String[] args) throws JAXBException, SAXException, IOException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(BPMN);
+		JAXBContext jaxbContext = JAXBContext.newInstance(DISCO);
 
 		//		 org.reflections.Reflections reflections = new Reflections(ORG_OPENGROUP_XSD_ARCHIMATE);
 		//
@@ -41,15 +35,16 @@ public class Main2 {
 		//
 		//		JAXBContext jaxbContext = JAXBContext.newInstance(classes);
 
-		File file = new File("gluehhaube_wo_subprocess.bpmn");
+		File file = new File("disco_demo_export.xml");
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		StreamSource source = new StreamSource(file);
-		JAXBElement<TDefinitions> result = unmarshaller.unmarshal(source, TDefinitions.class);
-		TDefinitions model = (TDefinitions) result.getValue();
+		JAXBElement<ProcessMapType> result = unmarshaller.unmarshal(source, ProcessMapType.class);
+		ProcessMapType model = (ProcessMapType) result.getValue();
 
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 //		marshaller.marshal(model, System.out);
+
 		// Set the Marshaller media type to JSON or XML
 		marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,
 				"application/json");
@@ -67,8 +62,8 @@ public class Main2 {
 		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 		StreamSource source2 = new StreamSource(in);
-		result = unmarshaller2.unmarshal(source2, TDefinitions.class);
-		TDefinitions model2 = (TDefinitions) result.getValue();
+		result = unmarshaller2.unmarshal(source2, ProcessMapType.class);
+		ProcessMapType model2 = (ProcessMapType) result.getValue();
 
 		System.out.println(model.equals(model2));
 		
@@ -94,6 +89,9 @@ public class Main2 {
 //		resultB = unmarshallerB.unmarshal(sourceB, org.ow2.orchestra.jaxb.bpmn.Definitions.class);
 //		ModelType model = (ModelType) result.getValue();
 
+		marshaller = jaxbContext.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		marshaller.marshal(model, System.out);
 		
 	}
 

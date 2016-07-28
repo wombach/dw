@@ -41,18 +41,20 @@ public class UIControl {
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		UIControl u = new UIControl();
 		u.registerParser("archimate", new ArchimateParser());
-		u.registerParser("bpmn", new BPMNParser());
+		//u.registerParser("bpmn", new BPMNParser());
+		u.registerParser("disco", new DiscoResultParser());
 		
 		// insert an archimate file into mongoDB
 		mongo.dropCollections();
-//		boolean r = u.parseFile("OTK Sample.xml");
-		boolean r = u.parseFile("whr_line_6.xml");
+		boolean r = u.parseFile("OTK Sample.xml");
+//		boolean r = u.parseFile("whr_line_6.xml");
+		//boolean r = u.parseFile("disco_demo_export.xml");
 		LOGGER.info("file parsed :"+r);
 		mongo.getAllDocuments();
 		
 		// retrieve an archimate file into mongoDB
 		Date date = new Date(System.currentTimeMillis());
-		u.deriveFile("archimate", "test_whr.xml", date);
+		u.deriveFile("archimate", "test_otk.xml", date);
 	}
 
 }

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate http://www.opengroup.org/xsd/archimate/archimate_v2p1.xsd http://purl.org/dc/elements/1.1/ http://dublincore.org/schemas/xmls/qdc/2008/02/11/dc.xsd" identifier="id-64bb6827-e261-4fd1-a705-9c0bbe7cc1f0">
+	<metadata>
+		<schema>Dublin Core</schema>
+		<schemaversion>1.1</schemaversion>
+	</metadata>
+	<name xml:lang="en">test model</name>
+	<elements>
+		<element identifier="id-43" xsi:type="ApplicationComponent">
+			<label xml:lang="en">Application component</label>
+		</element>
+		<element identifier="id-51" xsi:type="BusinessProcess">
+			<label xml:lang="en">step 1</label>
+		</element>
+		<element identifier="id-46" xsi:type="BusinessProcess">
+			<label xml:lang="en">step 2</label>
+		</element>
+		<element identifier="id-49" xsi:type="BusinessObject">
+			<label xml:lang="en">Business object</label>
+		</element>
+	</elements>
+	<relationships>
+		<relationship identifier="id-45" source="id-43" target="id-46" xsi:type="UsedByRelationship"/>
+		<relationship identifier="id-53" source="id-51" target="id-46" xsi:type="TriggeringRelationship"/>
+		<relationship identifier="id-54" source="id-51" target="id-49" xsi:type="AccessRelationship"/>
+	</relationships>
+	<organization>
+		<item>
+			<label xml:lang="en">Motivation extension</label>
+		</item>
+		<item>
+			<label xml:lang="en">Technology layer</label>
+		</item>
+		<item>
+			<label xml:lang="en">Application layer</label>
+			<item identifierref="id-43"/>
+			<item identifierref="id-45"/>
+		</item>
+		<item>
+			<label xml:lang="en">Business layer</label>
+			<item identifierref="id-51"/>
+			<item identifierref="id-46"/>
+			<item identifierref="id-53"/>
+			<item identifierref="id-54"/>
+			<item identifierref="id-49"/>
+		</item>
+		<item>
+			<label xml:lang="en">Implementation and migration extension</label>
+		</item>
+		<item>
+			<label>Views</label>
+			<item identifierref="id-7"/>
+		</item>
+	</organization>
+	<views>
+		<view identifier="id-7" viewpoint="Introductory">
+			<label xml:lang="en">Total view</label>
+			<node identifier="id-10" elementref="id-51" x="127" y="100" w="133" h="53">
+				<style lineWidth="1">
+					<fillColor r="255" g="255" b="175" a="100"/>
+					<lineColor r="0" g="0" b="0" a="100"/>
+					<font name="Arial" size="10" style="plain">
+						<color r="0" g="0" b="0" a="100"/>
+					</font>
+				</style>
+			</node>
+			<node identifier="id-15" elementref="id-46" x="293" y="100" w="133" h="53">
+				<style lineWidth="1">
+					<fillColor r="255" g="255" b="175" a="100"/>
+					<lineColor r="0" g="0" b="0" a="100"/>
+					<font name="Arial" size="10" style="plain">
+						<color r="0" g="0" b="0" a="100"/>
+					</font>
+				</style>
+			</node>
+			<node identifier="id-22" elementref="id-43" x="307" y="213" w="133" h="53">
+				<style lineWidth="1">
+					<fillColor r="175" g="255" b="255" a="100"/>
+					<lineColor r="0" g="0" b="0" a="100"/>
+					<font name="Arial" size="10" style="plain">
+						<color r="0" g="0" b="0" a="100"/>
+					</font>
+				</style>
+			</node>
+			<node identifier="id-27" elementref="id-49" x="133" y="213" w="133" h="53">
+				<style lineWidth="1">
+					<fillColor r="255" g="255" b="175" a="100"/>
+					<lineColor r="0" g="0" b="0" a="100"/>
+					<font name="Arial" size="10" style="plain">
+						<color r="0" g="0" b="0" a="100"/>
+					</font>
+				</style>
+			</node>
+			<connection identifier="id-20" relationshipref="id-53" source="id-10" target="id-15">
+				<style lineWidth="1">
+					<fillColor r="0" g="0" b="0" a="100"/>
+					<lineColor r="0" g="0" b="0" a="100"/>
+					<font name="Arial" size="10" style="plain">
+						<color r="0" g="0" b="0" a="100"/>
+					</font>
+				</style>
+			</connection>
+			<connection identifier="id-31" relationshipref="id-54" source="id-10" target="id-27">
+				<style lineWidth="1">
+					<fillColor r="0" g="0" b="0" a="100"/>
+					<lineColor r="0" g="0" b="0" a="100"/>
+					<font name="Arial" size="10" style="plain">
+						<color r="0" g="0" b="0" a="100"/>
+					</font>
+				</style>
+			</connection>
+			<connection identifier="id-33" relationshipref="id-45" source="id-22" target="id-15">
+				<style lineWidth="1">
+					<fillColor r="255" g="255" b="255" a="100"/>
+					<lineColor r="0" g="0" b="0" a="100"/>
+					<font name="Arial" size="10" style="plain">
+						<color r="0" g="0" b="0" a="100"/>
+					</font>
+				</style>
+			</connection>
+		</view>
+	</views>
+</model>
