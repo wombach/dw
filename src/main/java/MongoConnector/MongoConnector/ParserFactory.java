@@ -15,14 +15,14 @@ public class ParserFactory {
 	private final static Logger LOGGER = Logger.getLogger(ParserFactory.class.getName()); 
 
 	private HashMap<String,GenericParser> parsers = new HashMap<String,GenericParser>();
-	
+
 	public ParserFactory(){
 	}
-	
+
 	public void registerParser(String parserName, GenericParser gp){
 		parsers.put(parserName, gp);
 	}
-	
+
 	/**
 	 * find the right parser and parse a particular file.
 	 * Store to mongoDB??? 
@@ -37,7 +37,22 @@ public class ParserFactory {
 		}
 		return ret;
 	}
-	
+
+	/**
+	 * find the right parser and parse a particular file.
+	 * Store to mongoDB??? 
+	 * @param filename
+	 * @return
+	 */
+	public boolean parseString(String str){
+		boolean ret = false;
+		for(GenericParser gp: parsers.values()){
+			ret = gp.parseString(str);
+			if (ret) break;
+		}
+		return ret;
+	}
+
 	/**
 	 * derive the file from mongoDB based on the specified query
 	 * @param query
@@ -45,9 +60,23 @@ public class ParserFactory {
 	 */
 	public void deriveFile(String parserName, String filename, Date date){
 		if(parsers.containsKey(parserName)){
-		GenericParser gp = parsers.get(parserName);
+			GenericParser gp = parsers.get(parserName);
 			gp.deriveFile(filename, date);
 		}
 	}
-	
+
+/**
+ * derive the file from mongoDB based on the specified query
+ * @param query
+ * @return String with the retrieved model
+ */
+public String deriveString(String parserName, Date date){
+	String ret = null;
+	if(parsers.containsKey(parserName)){
+		GenericParser gp = parsers.get(parserName);
+		ret = gp.deriveString(date);
+	}
+	return ret;
+}
+
 }

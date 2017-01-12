@@ -16,13 +16,20 @@ import java.util.logging.Logger;
 public class UIControl {
 	
 	private final static Logger LOGGER = Logger.getLogger(UIControl.class.getName()); 
-	public final static MongoDBAccess mongo = new MongoDBAccess();
+	private static MongoDBAccess mongo = new MongoDBAccess();
 	public ParserFactory pf = new ParserFactory();
 	
 	private boolean parseFile(String filename){
 		return pf.parseFile(filename);
 	}
 
+	public static MongoDBAccess getMongo(){
+    	if(mongo==null){
+    		mongo = new MongoDBAccess();
+    	}
+    	return mongo;
+    }
+    
 	public void deriveFile(String parserName, String filename, Date date) {
 		pf.deriveFile(parserName, filename, date);
 	}
@@ -40,21 +47,23 @@ public class UIControl {
 	 */
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		UIControl u = new UIControl();
-		u.registerParser("archimate", new ArchimateParser());
+		u.registerParser("archimate3", new Archimate3Parser());
+//		u.registerParser("archimate", new ArchimateParser());
 		//u.registerParser("bpmn", new BPMNParser());
 		u.registerParser("disco", new DiscoResultParser());
 		
 		// insert an archimate file into mongoDB
-		mongo.dropCollections();
-		boolean r = u.parseFile("OTK Sample.xml");
+//		mongo.dropCollections();
+		boolean r = u.parseFile("This_example.xml");
+//		boolean r = u.parseFile("OTK Sample.xml");
 //		boolean r = u.parseFile("whr_line_6.xml");
 		//boolean r = u.parseFile("disco_demo_export.xml");
-		LOGGER.info("file parsed :"+r);
+//		LOGGER.info("file parsed :"+r);
 		mongo.getAllDocuments();
 		
 		// retrieve an archimate file into mongoDB
-		Date date = new Date(System.currentTimeMillis());
-		u.deriveFile("archimate", "test_otk.xml", date);
+//		Date date = new Date(System.currentTimeMillis());
+//		u.deriveFile("archimate", "test_otk.xml", date);
 	}
 
 }

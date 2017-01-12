@@ -213,4 +213,16 @@ public class DiscoResultParser extends GenericParser {
 		}
 	}
 
+	@Override
+	public boolean parseString(String str) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String deriveString(Date date) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

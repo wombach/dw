@@ -8,19 +8,19 @@ import java.util.logging.Logger;
 import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.opengroup.xsd.archimate.ModelType;
+import org.opengroup.xsd.archimate._3.ModelType;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
-public class ArchimateParser extends GenericParser {
+public class Archimate3Parser extends GenericParser {
 
-	private final static Logger LOGGER = Logger.getLogger(ArchimateParser.class.getName());
-	public final static String URI = "http://www.opengroup.org/xsd/archimate";
+	private final static Logger LOGGER = Logger.getLogger(Archimate3Parser.class.getName());
+	public final static String URI = "http://www.opengroup.org/xsd/archimate/3.0/";
 
-	public ArchimateParser(){
-		this.type = "archimate";
-		this.CONTEXT = "org.opengroup.xsd.archimate";
+	public Archimate3Parser(){
+		this.type = "archimate3";
+		this.CONTEXT = "org.opengroup.xsd.archimate._3";
 		this.MODELL_CLASS = ModelType.class;
 	}
 

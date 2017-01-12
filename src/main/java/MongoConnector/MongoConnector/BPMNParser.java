@@ -20,6 +20,18 @@ public class BPMNParser extends GenericParser{
 	@Override
 	public void deriveFile(String filename, Date date) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public boolean parseString(String str) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String deriveString(Date date) {
+		// TODO Auto-generated method stub
+		return null;
 	} 
 
 

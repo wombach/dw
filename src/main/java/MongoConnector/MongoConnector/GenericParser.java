@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -50,7 +51,11 @@ public abstract class GenericParser {
 
 	public abstract boolean parseFile(String filename);
 
+	public abstract boolean parseString(String str);
+
 	public abstract void deriveFile(String filename, Date date);
+
+	public abstract String deriveString(Date date);
 
 	public Document enrichDocument( JSONObject obj){
 		Document doc = new Document(DOC_NAME, DOC_NAME_NODE)
@@ -65,7 +70,8 @@ public abstract class GenericParser {
 
 	public Document insertNodeDocument(JSONObject jsonObject) {
 		Document doc = enrichDocument( jsonObject);
-		UIControl.mongo.insertDocument(MongoDBAccess.COLLECTION_NODES, doc);
+		MongoDBAccess mongo = UIControl.getMongo();
+		mongo.insertDocument(MongoDBAccess.COLLECTION_NODES, doc);
 		// missing handling of updates
 		return doc;
 	}
@@ -74,20 +80,23 @@ public abstract class GenericParser {
 		Document doc = enrichDocument( jsonObject);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
-		UIControl.mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
+		MongoDBAccess mongo = UIControl.getMongo();
+		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
 		// missing handling of updates
 		return doc;
 	}
 
 	public Document insertFileDocument(JSONObject obj) {
 		Document doc = enrichDocument( obj);
-		UIControl.mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
+		MongoDBAccess mongo = UIControl.getMongo();
+		mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
 		// missing handling of updates
 		return doc;
 	}
 
 	public FindIterable<Document> queryDocument(String col, Date date){
-		return UIControl.mongo.queryDocument(col, DOC_TYPE, type, date);
+		MongoDBAccess mongo = UIControl.getMongo();
+		return mongo.queryDocument(col, DOC_TYPE, type, date);
 	}
 
 
@@ -181,8 +190,44 @@ public abstract class GenericParser {
 			e.printStackTrace();
 		} catch (JSONException e) {
 			LOGGER.info(filename+" is not an "+CONTEXT+" file because of "+e.getMessage());
+			e.printStackTrace();
 		} catch (Exception e){
 			LOGGER.info(filename+" is not an "+CONTEXT+" file because of "+e.getMessage());
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected JSONObject convertXMLtoJSON(String xml){
+		JSONObject ret = null;
+		JAXBContext jaxbContext;
+		try{
+			jaxbContext = JAXBContext.newInstance(CONTEXT );
+			// parse XML
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			StringReader reader = new StringReader(xml);
+			StreamSource source = new StreamSource(reader);
+			JAXBElement result = unmarshaller.unmarshal(source, MODELL_CLASS);
+
+			// create JSON
+			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,"application/json");
+			// Set it to true if you need to include the JSON root element in the JSON output
+			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
+			// Set it to true if you need the JSON output to formatted
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			// Marshal the employee object to JSON and print the output to console
+			ByteArrayOutputStream st = new ByteArrayOutputStream();
+			marshaller.marshal(result, st);
+			ret = new JSONObject(st.toString());
+
+		} catch (JAXBException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			LOGGER.info("provided XML is not an "+CONTEXT+" because of "+e.getMessage());
+		} catch (Exception e){
+			LOGGER.info("provided XML is not an "+CONTEXT+" because of "+e.getMessage());
 		}
 		return ret;
 	}
