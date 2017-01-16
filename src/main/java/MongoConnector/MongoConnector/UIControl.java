@@ -34,6 +34,10 @@ public class UIControl {
 		pf.deriveFile(parserName, filename, date);
 	}
 
+	public String deriveString(String parserName, Date date) {
+		return pf.deriveString(parserName, date);
+	}
+
 	private void registerParser(String parserName, GenericParser gp) {
 		pf.registerParser(parserName, gp);
 	}
@@ -53,7 +57,7 @@ public class UIControl {
 		u.registerParser("disco", new DiscoResultParser());
 		
 		// insert an archimate file into mongoDB
-//		mongo.dropCollections();
+		mongo.dropCollections();
 		boolean r = u.parseFile("This_example.xml");
 //		boolean r = u.parseFile("OTK Sample.xml");
 //		boolean r = u.parseFile("whr_line_6.xml");
@@ -61,9 +65,11 @@ public class UIControl {
 //		LOGGER.info("file parsed :"+r);
 		mongo.getAllDocuments();
 		
+//		LOGGER.info(u.deriveString("archimate3", new Date(System.currentTimeMillis())));
 		// retrieve an archimate file into mongoDB
-//		Date date = new Date(System.currentTimeMillis());
-//		u.deriveFile("archimate", "test_otk.xml", date);
+		Date date = new Date(System.currentTimeMillis());
+//		u.deriveFile("archimate", "test_otk2.xml", date);
+		u.deriveFile("archimate3", "thijs_example_retrieved3.xml", date);
 	}
 
 }

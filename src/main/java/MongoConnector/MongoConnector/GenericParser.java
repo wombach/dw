@@ -9,8 +9,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
@@ -18,6 +21,15 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.bson.BSONObject;
@@ -27,6 +39,9 @@ import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.mongodb.client.FindIterable;
 
@@ -113,6 +128,78 @@ public abstract class GenericParser {
 		}
 		return ret;
 	}
+	protected String writeJSONtoXML(JSONObject jobj){
+		JAXBContext jaxbContext;
+		JAXBElement result = null;
+		String ret = "";
+		try {
+			jaxbContext = JAXBContext.newInstance(CONTEXT );
+			// parse JSON
+			String st = jobj.toString();
+			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+
+			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+			//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+			StreamSource source2 = new StreamSource(in);
+			result = unmarshaller2.unmarshal(source2, MODELL_CLASS );
+
+			// write XML
+			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+			StringWriter out;
+			out = new StringWriter();
+			// Create the Document
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			org.w3c.dom.Document document = db.newDocument();
+
+			//			marshaller.marshal(result, out);
+			//			out.close();
+			marshaller.marshal(result, document);
+
+			// remove elements without namespace
+			Element root = document.getDocumentElement();
+			HashMap<Node, Node> m = new HashMap<Node,Node>();
+			m.put(root, null);
+			while(!m.isEmpty()){
+				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
+				for( Node n : m.keySet()){
+					if(n instanceof Element){
+						Node nn = m.get(n);
+						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
+							if(nn !=null) nn.removeChild(n);
+						} else {
+							NodeList nodes = ((Element)n).getChildNodes();
+							for(int i=nodes.getLength()-1;i>=0;i--){
+								m2.put(nodes.item(i),n);
+							}
+						}
+					}
+				}
+				m = m2;
+			}
+			// Output the Document
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer t = tf.newTransformer();
+			DOMSource source = new DOMSource(document);
+			StreamResult result2 = new StreamResult(out);
+			t.transform(source, result2);	
+			ret = out.toString();
+		} catch (JAXBException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
 	protected void writeJSONtoXML(String filename, JSONObject jobj){
 		JAXBContext jaxbContext;
 		JAXBElement result = null;
@@ -124,20 +211,66 @@ public abstract class GenericParser {
 
 			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+			//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+
 			StreamSource source2 = new StreamSource(in);
 			result = unmarshaller2.unmarshal(source2, MODELL_CLASS );
+
+			// Create the Document
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			org.w3c.dom.Document document = db.newDocument();
 
 			// write XML
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
 			PrintWriter out;
 			out = new PrintWriter(filename);
-			marshaller.marshal(result, out);
-			out.close();
+			//			marshaller.marshal(result, out);
+			//			out.close();
+			marshaller.marshal(result, document);
+
+			// remove elements without namespace
+			Element root = document.getDocumentElement();
+			HashMap<Node, Node> m = new HashMap<Node,Node>();
+			m.put(root, null);
+			while(!m.isEmpty()){
+				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
+				for( Node n : m.keySet()){
+					if(n instanceof Element){
+						Node nn = m.get(n);
+						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
+							if(nn !=null) nn.removeChild(n);
+						} else {
+							NodeList nodes = ((Element)n).getChildNodes();
+							for(int i=nodes.getLength()-1;i>=0;i--){
+								m2.put(nodes.item(i),n);
+							}
+						}
+					}
+				}
+				m = m2;
+			}
+			// Output the Document
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer t = tf.newTransformer();
+			DOMSource source = new DOMSource(document);
+			StreamResult result2 = new StreamResult(out);
+			t.transform(source, result2);
 		} catch (JAXBException  e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch(FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -152,6 +285,7 @@ public abstract class GenericParser {
 			jaxbContext = JAXBContext.newInstance(CONTEXT );
 			// parse XML
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
 			StreamSource source = new StreamSource(file);
 			result = unmarshaller.unmarshal(source, MODELL_CLASS);
 		} catch (JAXBException e ) {
@@ -160,7 +294,7 @@ public abstract class GenericParser {
 		}
 		return result;
 	}
-		
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected JSONObject readXMLtoJSON(String filename){
 		JSONObject ret = null;
@@ -170,6 +304,8 @@ public abstract class GenericParser {
 			jaxbContext = JAXBContext.newInstance(CONTEXT );
 			// parse XML
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+
 			StreamSource source = new StreamSource(file);
 			JAXBElement result = unmarshaller.unmarshal(source, MODELL_CLASS);
 
@@ -180,6 +316,7 @@ public abstract class GenericParser {
 			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
 			// Set it to true if you need the JSON output to formatted
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			//			marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 			// Marshal the employee object to JSON and print the output to console
 			ByteArrayOutputStream st = new ByteArrayOutputStream();
 			marshaller.marshal(result, st);
@@ -205,6 +342,7 @@ public abstract class GenericParser {
 			jaxbContext = JAXBContext.newInstance(CONTEXT );
 			// parse XML
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
 			StringReader reader = new StringReader(xml);
 			StreamSource source = new StreamSource(reader);
 			JAXBElement result = unmarshaller.unmarshal(source, MODELL_CLASS);
@@ -216,6 +354,8 @@ public abstract class GenericParser {
 			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
 			// Set it to true if you need the JSON output to formatted
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+
 			// Marshal the employee object to JSON and print the output to console
 			ByteArrayOutputStream st = new ByteArrayOutputStream();
 			marshaller.marshal(result, st);
@@ -231,5 +371,5 @@ public abstract class GenericParser {
 		}
 		return ret;
 	}
-	
+
 }

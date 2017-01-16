@@ -257,8 +257,59 @@ public class Archimate3Parser extends GenericParser {
 
 	@Override
 	public String deriveString(Date date) {
-		// TODO Auto-generated method stub
-		return null;
+		JSONObject ret = null;
+		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
+		Document doc = it.first();
+		if(doc!=null){
+			String s =doc.toJson();
+			ret =  new JSONObject(s);
+			JSONObject raw = ret.getJSONObject("raw");
+			JSONObject mod = raw.getJSONObject("model");
+			JSONObject els =  mod.getJSONObject("elements");
+			JSONArray elm = new JSONArray();
+			els.put("element", elm);
+			JSONObject rels =  mod.getJSONObject("relationships");
+			JSONArray rel = new JSONArray();
+			rels.put("relationship", rel);
+			// derive the identifiers for the standard properties
+			//LOGGER.info(prettyPrintJSON(raw));
+			addPropertyStandardTypeDefs(mod);
+			// mapping to check whether there are missing references
+			Vector<String> v = new Vector<String>();
+
+			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
+			MongoCursor<Document> h = it.iterator();
+			while(h.hasNext()){
+				doc = h.next();
+				String id = doc.getString("id");
+				long start_date = doc.getLong("start_date");
+				long end_date = doc.getLong("end_date");
+				s =doc.toJson();
+				JSONObject ret1 =  new JSONObject(s);
+				JSONObject raw1 = ret1.getJSONObject("raw");
+				elm.put(raw1);
+				enrichNodeWithProperties(raw1, id, start_date, end_date);
+				v.add(id);
+			}
+
+			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
+			h = it.iterator();
+			while(h.hasNext()){
+				doc = h.next();
+				String sourceid = doc.getString("sourceUUID");
+				String targetid = doc.getString("targetUUID");
+				s =doc.toJson();
+				JSONObject ret2 =  new JSONObject(s);
+				JSONObject raw2 = ret2.getJSONObject("raw");
+				rel.put(raw2);
+				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+			}
+//			LOGGER.info(ret.toString());
+//			LOGGER.info(prettyPrintJSON(ret));
+			return this.writeJSONtoXML( raw );
+		}
+		return "";
 	}
 
 }
