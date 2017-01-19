@@ -225,4 +225,40 @@ public class DiscoResultParser extends GenericParser {
 		return null;
 	}
 
+	@Override
+	protected String getNodeComparisonString(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected int getNodeHash(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected String getRelationComparisonString(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected int getRelationHash(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected String getFileComparisonString(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected int getFileHash(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

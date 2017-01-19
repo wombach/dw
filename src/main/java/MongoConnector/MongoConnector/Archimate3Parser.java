@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import org.bson.BSONObject;
 import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.opengroup.xsd.archimate._3.DataType;
 import org.opengroup.xsd.archimate._3.ModelType;
 
 import com.mongodb.client.FindIterable;
@@ -32,38 +34,38 @@ public class Archimate3Parser extends GenericParser {
 		// check that the file is indeed an archimate file
 		if( xmlJSONObj!=null && xmlJSONObj.has("model")){
 			JSONObject obj = xmlJSONObj.getJSONObject("model");
-//			String xmlns = obj.getString("xmlns");
-//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
-				ret = true;
-				// nodes
-				JSONObject els =  obj.getJSONObject("elements");
-				JSONArray l = els.getJSONArray("element");
-				els.remove("element");
-				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i));
-					String uuid = getUUID(doc);
-					String identifier = l.getJSONObject(i).getString("identifier");
-					map.put(identifier, uuid);
-				}
-				// relations
-				JSONObject rels =  obj.getJSONObject("relationships");
-				l = rels.getJSONArray("relationship");
-				rels.remove("relationship");
-				for(int i=0;i<l.length();i++){
-					JSONObject rel = l.getJSONObject(i);
-					String identifier = rel.getString("identifier");
-					String source = rel.getString("source");
-					String target = rel.getString("target");
-					String sourceUUID = map.get(source);
-					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID);
-					String uuid = getUUID(doc);
-					map.put(identifier, uuid);
-				}
-				// files
-				//			Document doc = 
-				insertFileDocument(xmlJSONObj);
-		//	}
+			//			String xmlns = obj.getString("xmlns");
+			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
+			ret = true;
+			// nodes
+			JSONObject els =  obj.getJSONObject("elements");
+			JSONArray l = els.getJSONArray("element");
+			els.remove("element");
+			for(int i=0;i<l.length();i++){
+				Document doc = insertNodeDocument(l.getJSONObject(i));
+				String uuid = getUUID(doc);
+				String identifier = l.getJSONObject(i).getString("identifier");
+				map.put(identifier, uuid);
+			}
+			// relations
+			JSONObject rels =  obj.getJSONObject("relationships");
+			l = rels.getJSONArray("relationship");
+			rels.remove("relationship");
+			for(int i=0;i<l.length();i++){
+				JSONObject rel = l.getJSONObject(i);
+				String identifier = rel.getString("identifier");
+				String source = rel.getString("source");
+				String target = rel.getString("target");
+				String sourceUUID = map.get(source);
+				String targetUUID = map.get(target);
+				Document doc = insertRelationDocument(rel, sourceUUID, targetUUID);
+				String uuid = getUUID(doc);
+				map.put(identifier, uuid);
+			}
+			// files
+			//			Document doc = 
+			insertFileDocument(xmlJSONObj);
+			//	}
 		}
 		return ret;
 	}
@@ -118,15 +120,15 @@ public class Archimate3Parser extends GenericParser {
 				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
 				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
 			}
-//			LOGGER.info(ret.toString());
-//			LOGGER.info(prettyPrintJSON(ret));
+			//			LOGGER.info(ret.toString());
+			//			LOGGER.info(prettyPrintJSON(ret));
 			this.writeJSONtoXML(filename, raw );
 		}
 	} 
 
 	private void addPropertyStandardTypeDefs(JSONObject jobj) {
 		/**
-		 * "propertydefs": {"propertydef": [
+		 * "propertyDefinitions": {"propertyDefinitions": [
         {
             "identifier": "propid-junctionType",
             "name": "JunctionType",
@@ -134,20 +136,21 @@ public class Archimate3Parser extends GenericParser {
         },
 		 */
 		JSONObject defs = null;
-		if(jobj.has("propertydefs")){
-			defs = jobj.getJSONObject("propertydefs");
+		if(jobj.has("propertyDefinitions")){
+			defs = jobj.getJSONObject("propertyDefinitions");
 		} else {
 			defs = new JSONObject();
+			jobj.append("propertyDefinitions", defs);
 		}
 		JSONArray def = null;
 		boolean flag = false;
-		if(defs.has("propertydef")){
-			Object obj = defs.get("propertydef");
+		if(defs.has("propertyDefinition")){
+			Object obj = defs.get("propertyDefinition");
 			if(obj instanceof JSONObject){
 				// if it is a single object it can not our definitions
 				def = new JSONArray();
 				def.put((JSONObject) obj);
-				defs.append("propertydef", def);
+				defs.append("propertyDefinition", def);
 				flag = true;
 			} else if(obj instanceof JSONArray){
 				def = (JSONArray) obj;
@@ -158,19 +161,20 @@ public class Archimate3Parser extends GenericParser {
 					}
 				}
 			} else LOGGER.severe("Wrong object type!");
-		} else {
-			flag = true;
-		}
+		} 
 		if(!flag){
-			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
+			defs.append("propertyDefinition", new JSONObject(" {\"identifier\": "+
 					"\"propid_wipro_digital_workflow_start_date\", "+
-					"\"name\": \"Wipro start date\", \"type\": \"Long\" }"));
-			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
+					" \"type\": \"number\" }"));
+//		"\"name\": \"Wipro start date\", \"type\": \"number\" }"));
+			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
 					"\"propid_wipro_digital_workflow_end_date\", "+
-					"\"name\": \"Wipro end date\", \"type\": \"Long\" }"));
-			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
+					" 'type': number2 }"));
+//		"\"name\": \"Wipro end date\", \"type\": \"number\" }"));
+			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
 					"\"propid_wipro_digital_workflow_identifier\", "+
-					"\"name\": \"Wipro identifier\", \"type\": \"String\" }"));
+					" 'type': string }"));
+//		"\"name\": \"Wipro identifier\", \"type\": \"string\" }"));
 		}
 	}
 
@@ -219,38 +223,38 @@ public class Archimate3Parser extends GenericParser {
 		// check that the file is indeed an archimate file
 		if( xmlJSONObj!=null && xmlJSONObj.has("model")){
 			JSONObject obj = xmlJSONObj.getJSONObject("model");
-//			String xmlns = obj.getString("xmlns");
-//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
-				ret = true;
-				// nodes
-				JSONObject els =  obj.getJSONObject("elements");
-				JSONArray l = els.getJSONArray("element");
-				els.remove("element");
-				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i));
-					String uuid = getUUID(doc);
-					String identifier = l.getJSONObject(i).getString("identifier");
-					map.put(identifier, uuid);
-				}
-				// relations
-				JSONObject rels =  obj.getJSONObject("relationships");
-				l = rels.getJSONArray("relationship");
-				rels.remove("relationship");
-				for(int i=0;i<l.length();i++){
-					JSONObject rel = l.getJSONObject(i);
-					String identifier = rel.getString("identifier");
-					String source = rel.getString("source");
-					String target = rel.getString("target");
-					String sourceUUID = map.get(source);
-					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID);
-					String uuid = getUUID(doc);
-					map.put(identifier, uuid);
-				}
-				// files
-				//			Document doc = 
-				insertFileDocument(xmlJSONObj);
-		//	}
+			//			String xmlns = obj.getString("xmlns");
+			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
+			ret = true;
+			// nodes
+			JSONObject els =  obj.getJSONObject("elements");
+			JSONArray l = els.getJSONArray("element");
+			els.remove("element");
+			for(int i=0;i<l.length();i++){
+				Document doc = insertNodeDocument(l.getJSONObject(i));
+				String uuid = getUUID(doc);
+				String identifier = l.getJSONObject(i).getString("identifier");
+				map.put(identifier, uuid);
+			}
+			// relations
+			JSONObject rels =  obj.getJSONObject("relationships");
+			l = rels.getJSONArray("relationship");
+			rels.remove("relationship");
+			for(int i=0;i<l.length();i++){
+				JSONObject rel = l.getJSONObject(i);
+				String identifier = rel.getString("identifier");
+				String source = rel.getString("source");
+				String target = rel.getString("target");
+				String sourceUUID = map.get(source);
+				String targetUUID = map.get(target);
+				Document doc = insertRelationDocument(rel, sourceUUID, targetUUID);
+				String uuid = getUUID(doc);
+				map.put(identifier, uuid);
+			}
+			// files
+			//			Document doc = 
+			insertFileDocument(xmlJSONObj);
+			//	}
 		}
 		return ret;
 	}
@@ -305,11 +309,49 @@ public class Archimate3Parser extends GenericParser {
 				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
 				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
 			}
-//			LOGGER.info(ret.toString());
-//			LOGGER.info(prettyPrintJSON(ret));
+			//			LOGGER.info(ret.toString());
+			//			LOGGER.info(prettyPrintJSON(ret));
 			return this.writeJSONtoXML( raw );
 		}
 		return "";
+	}
+
+	@Override
+	protected String getNodeComparisonString(JSONObject jsonObject) {
+		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
+		String name = nameObj.getString("value");
+		String node_type = jsonObject.getString("type");
+		return type+"|"+node_type+"|"+name.toString();
+	}
+
+	@Override
+	protected int getNodeHash(JSONObject jsonObject) {
+		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
+		jsonDoc.removeField("identifier");
+		return jsonDoc.hashCode();
+	}
+	@Override
+	protected String getRelationComparisonString(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected String getFileComparisonString(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected int getRelationHash(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected int getFileHash(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

@@ -57,13 +57,13 @@ public class UIControl {
 		u.registerParser("disco", new DiscoResultParser());
 		
 		// insert an archimate file into mongoDB
-		mongo.dropCollections();
-		boolean r = u.parseFile("This_example.xml");
+//		mongo.dropCollections();
+//		boolean r = u.parseFile("This_example.xml");
 //		boolean r = u.parseFile("OTK Sample.xml");
 //		boolean r = u.parseFile("whr_line_6.xml");
 		//boolean r = u.parseFile("disco_demo_export.xml");
 //		LOGGER.info("file parsed :"+r);
-		mongo.getAllDocuments();
+//		mongo.getAllDocuments();
 		
 //		LOGGER.info(u.deriveString("archimate3", new Date(System.currentTimeMillis())));
 		// retrieve an archimate file into mongoDB

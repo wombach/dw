@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<xml-bindings
+    xmlns="http://www.eclipse.org/eclipselink/xsds/persistence/oxm"
+    package-name="org.opengroup.xsd.archimate._3">
+    <java-types>
+        <java-type name="PropertyDefinitionType">
+            <java-attributes>
+                <xml-attribute java-attribute="type" name="type_"/>
+            </java-attributes>
+        </java-type>
+    </java-types>
+</xml-bindings>
