@@ -4,14 +4,20 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -34,11 +40,13 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.bson.BSONObject;
 import org.bson.Document;
+import org.eclipse.persistence.jaxb.JAXBContextProperties;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
+import org.opengroup.xsd.archimate._3.ModelType;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -65,7 +73,7 @@ public abstract class GenericParser {
 
 	protected String type = null;
 	protected String CONTEXT = null;
-	protected Class MODELL_CLASS = null;
+	protected Class MODEL_CLASS = null;
 
 	public abstract boolean parseFile(String filename);
 
@@ -110,7 +118,7 @@ public abstract class GenericParser {
 			if(hash!=docHash) {
 				insert = true;
 				// update existing node by marking it as expired
-				
+
 				// check whether the update is allowed or whether there is a conflict!
 				// a version conflict exists if the end date in the document to be updated is not -1
 				if(doc.getLong(DOC_END_DATE)==-1){
@@ -129,300 +137,232 @@ public abstract class GenericParser {
 			mongo.insertDocument(MongoDBAccess.COLLECTION_NODES, doc);
 			LOGGER.info("the document has been inserted");
 		} else LOGGER.info("no update was necessary");
-	return doc;
-}
+		return doc;
+	}
 
 	abstract protected String getRelationComparisonString(JSONObject jsonObject);
 	abstract protected int getRelationHash(JSONObject jsonObject);
 
-public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID) {
-	String compStr = getRelationComparisonString(jsonObject);
-	int hash = getRelationHash(jsonObject);
-	long time = System.currentTimeMillis();
-	Document doc = enrichDocument( jsonObject,time, compStr, hash);
-	doc.append("sourceUUID", sourceUUID)
-	.append("targetUUID", targetUUID);
-	MongoDBAccess mongo = UIControl.getMongo();
-	mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
-	// missing handling of updates
-	return doc;
-}
-
-abstract protected String getFileComparisonString(JSONObject jsonObject);
-abstract protected int getFileHash(JSONObject jsonObject);
-
-public Document insertFileDocument(JSONObject obj) {
-	String compStr = getFileComparisonString(obj);
-	int hash = getFileHash(obj);
-	long time = System.currentTimeMillis();
-	Document doc = enrichDocument( obj, time, compStr, hash);
-	MongoDBAccess mongo = UIControl.getMongo();
-	mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
-	// missing handling of updates
-	return doc;
-}
-
-public FindIterable<Document> queryDocument(String col, Date date){
-	MongoDBAccess mongo = UIControl.getMongo();
-	return mongo.queryDocument(col, DOC_TYPE, type, date);
-}
-
-
-public String getUUID(Document doc){
-	return doc.getString(DOC_ID);
-}
-
-public String prettyPrintJSON(JSONObject xmlJSONObj){
-	String ret = "";
-	try {
-		ret = xmlJSONObj.toString(PRETTY_PRINT_INDENT_FACTOR);
-	} catch (JSONException je) {
-		LOGGER.severe(je.toString());
+	public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID) {
+		String compStr = getRelationComparisonString(jsonObject);
+		int hash = getRelationHash(jsonObject);
+		long time = System.currentTimeMillis();
+		Document doc = enrichDocument( jsonObject,time, compStr, hash);
+		doc.append("sourceUUID", sourceUUID)
+		.append("targetUUID", targetUUID);
+		MongoDBAccess mongo = UIControl.getMongo();
+		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
+		// missing handling of updates
+		return doc;
 	}
-	return ret;
-}
-protected String writeJSONtoXML(JSONObject jobj){
-	JAXBContext jaxbContext;
-	JAXBElement result = null;
-	String ret = "";
-	try {
-		jaxbContext = JAXBContext.newInstance(CONTEXT );
-		// parse JSON
-		String st = jobj.toString();
-		ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
 
-		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
-		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-		StreamSource source2 = new StreamSource(in);
-		result = unmarshaller2.unmarshal(source2, MODELL_CLASS );
+	abstract protected String getFileComparisonString(JSONObject jsonObject);
+	abstract protected int getFileHash(JSONObject jsonObject);
 
-		// write XML
-		Marshaller marshaller = jaxbContext.createMarshaller();
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-		StringWriter out;
-		out = new StringWriter();
-		// Create the Document
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		org.w3c.dom.Document document = db.newDocument();
+	public Document insertFileDocument(JSONObject obj) {
+		String compStr = getFileComparisonString(obj);
+		int hash = getFileHash(obj);
+		long time = System.currentTimeMillis();
+		Document doc = enrichDocument( obj, time, compStr, hash);
+		MongoDBAccess mongo = UIControl.getMongo();
+		mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
+		// missing handling of updates
+		return doc;
+	}
 
-		//			marshaller.marshal(result, out);
-		//			out.close();
-		marshaller.marshal(result, document);
+	public FindIterable<Document> queryDocument(String col, Date date){
+		MongoDBAccess mongo = UIControl.getMongo();
+		return mongo.queryDocument(col, DOC_TYPE, type, date);
+	}
 
-		// remove elements without namespace
-		Element root = document.getDocumentElement();
-		HashMap<Node, Node> m = new HashMap<Node,Node>();
-		m.put(root, null);
-		while(!m.isEmpty()){
-			HashMap<Node, Node> m2 = new HashMap<Node,Node>();
-			for( Node n : m.keySet()){
-				if(n instanceof Element){
-					Node nn = m.get(n);
-					if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
-						if(nn !=null) nn.removeChild(n);
-					} else {
-						NodeList nodes = ((Element)n).getChildNodes();
-						for(int i=nodes.getLength()-1;i>=0;i--){
-							m2.put(nodes.item(i),n);
+
+	public String getUUID(Document doc){
+		return doc.getString(DOC_ID);
+	}
+
+	public String prettyPrintJSON(JSONObject xmlJSONObj){
+		String ret = "";
+		try {
+			ret = xmlJSONObj.toString(PRETTY_PRINT_INDENT_FACTOR);
+		} catch (JSONException je) {
+			LOGGER.severe(je.toString());
+		}
+		return ret;
+	}
+	protected String writeJSONtoXML(JSONObject jobj){
+		JAXBContext jaxbContext;
+		JAXBElement result = null;
+		String ret = "";
+		try {
+			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+			Map<String, Object> properties = new HashMap<String, Object>();
+			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+
+			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
+			// parse JSON
+			String st = jobj.toString();
+			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+
+			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+			StreamSource source2 = new StreamSource(in);
+			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
+
+			// write XML
+			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+			StringWriter out;
+			out = new StringWriter();
+			// Create the Document
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			org.w3c.dom.Document document = db.newDocument();
+
+			//			marshaller.marshal(result, out);
+			//			out.close();
+			marshaller.marshal(result, document);
+
+			// remove elements without namespace
+			Element root = document.getDocumentElement();
+			HashMap<Node, Node> m = new HashMap<Node,Node>();
+			m.put(root, null);
+			while(!m.isEmpty()){
+				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
+				for( Node n : m.keySet()){
+					if(n instanceof Element){
+						Node nn = m.get(n);
+						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
+							if(nn !=null) nn.removeChild(n);
+						} else {
+							NodeList nodes = ((Element)n).getChildNodes();
+							for(int i=nodes.getLength()-1;i>=0;i--){
+								m2.put(nodes.item(i),n);
+							}
 						}
 					}
 				}
+				m = m2;
 			}
-			m = m2;
+			// Output the Document
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer t = tf.newTransformer();
+			DOMSource source = new DOMSource(document);
+			StreamResult result2 = new StreamResult(out);
+			t.transform(source, result2);	
+			ret = out.toString();
+		} catch (JAXBException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		// Output the Document
-		TransformerFactory tf = TransformerFactory.newInstance();
-		Transformer t = tf.newTransformer();
-		DOMSource source = new DOMSource(document);
-		StreamResult result2 = new StreamResult(out);
-		t.transform(source, result2);	
-		ret = out.toString();
-	} catch (JAXBException  e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (ParserConfigurationException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (TransformerException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+		return ret;
 	}
-	return ret;
-}
 
-protected void writeJSONtoXML(String filename, JSONObject jobj){
-	JAXBContext jaxbContext;
-	JAXBElement result = null;
-	try {
-		jaxbContext = JAXBContext.newInstance(CONTEXT );
-		// parse JSON
-		String st = jobj.toString();
-		ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
-
-		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
-		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-
-		StreamSource source2 = new StreamSource(in);
-		result = unmarshaller2.unmarshal(source2, MODELL_CLASS );
-
-		// Create the Document
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		org.w3c.dom.Document document = db.newDocument();
-
-		// write XML
-		Marshaller marshaller = jaxbContext.createMarshaller();
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-		PrintWriter out;
-		out = new PrintWriter(filename);
-		//			marshaller.marshal(result, out);
-		//			out.close();
-		marshaller.marshal(result, document);
-
-		// remove elements without namespace
-		Element root = document.getDocumentElement();
-		HashMap<Node, Node> m = new HashMap<Node,Node>();
-		m.put(root, null);
-		while(!m.isEmpty()){
-			HashMap<Node, Node> m2 = new HashMap<Node,Node>();
-			for( Node n : m.keySet()){
-				if(n instanceof Element){
-					Node nn = m.get(n);
-					if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
-						if(nn !=null) nn.removeChild(n);
-					} else {
-						NodeList nodes = ((Element)n).getChildNodes();
-						for(int i=nodes.getLength()-1;i>=0;i--){
-							m2.put(nodes.item(i),n);
-						}
-					}
-				}
-			}
-			m = m2;
+	protected void writeJSONtoXML(String filename, JSONObject jobj){
+		try {
+			String st =  writeJSONtoXML(jobj);
+			// Output the Document
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer t;
+			t = tf.newTransformer();
+			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+			StreamSource source = new StreamSource(in);
+			PrintWriter out;
+			out = new PrintWriter(filename);
+			StreamResult result2 = new StreamResult(out);
+			t.transform(source, result2);
+		} catch (TransformerConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		// Output the Document
-		TransformerFactory tf = TransformerFactory.newInstance();
-		Transformer t = tf.newTransformer();
-		DOMSource source = new DOMSource(document);
-		StreamResult result2 = new StreamResult(out);
-		t.transform(source, result2);
-	} catch (JAXBException  e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch(FileNotFoundException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (TransformerConfigurationException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (TransformerException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (ParserConfigurationException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
 	}
-}
 
-@SuppressWarnings({ "unchecked", "rawtypes" })
-protected JAXBElement readXMLtoJAXB(String filename){
-	JAXBContext jaxbContext;
-	JAXBElement result = null;
-	try{
-		File file = new File(filename);
-		jaxbContext = JAXBContext.newInstance(CONTEXT );
-		// parse XML
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-		//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-		StreamSource source = new StreamSource(file);
-		result = unmarshaller.unmarshal(source, MODELL_CLASS);
-	} catch (JAXBException e ) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected JAXBElement readXMLtoJAXB(String filename){
+		JAXBContext jaxbContext;
+		JAXBElement result = null;
+		try{
+			File file = new File(filename);
+			jaxbContext = JAXBContext.newInstance(CONTEXT );
+			// parse XML
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+			StreamSource source = new StreamSource(file);
+			result = unmarshaller.unmarshal(source, MODEL_CLASS);
+		} catch (JAXBException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
 	}
-	return result;
-}
 
-@SuppressWarnings({ "unchecked", "rawtypes" })
-protected JSONObject readXMLtoJSON(String filename){
-	JSONObject ret = null;
-	JAXBContext jaxbContext;
-	try{
-		File file = new File(filename);
-		jaxbContext = JAXBContext.newInstance(CONTEXT );
-		// parse XML
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-		//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-
-		StreamSource source = new StreamSource(file);
-		JAXBElement result = unmarshaller.unmarshal(source, MODELL_CLASS);
-
-		// create JSON
-		Marshaller marshaller = jaxbContext.createMarshaller();
-		marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,"application/json");
-		// Set it to true if you need to include the JSON root element in the JSON output
-		marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-		// Set it to true if you need the JSON output to formatted
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		//			marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
-		// Marshal the employee object to JSON and print the output to console
-		ByteArrayOutputStream st = new ByteArrayOutputStream();
-		marshaller.marshal(result, st);
-		ret = new JSONObject(st.toString());
-
-	} catch (JAXBException e ) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (JSONException e) {
-		LOGGER.info(filename+" is not an "+CONTEXT+" file because of "+e.getMessage());
-		e.printStackTrace();
-	} catch (Exception e){
-		LOGGER.info(filename+" is not an "+CONTEXT+" file because of "+e.getMessage());
-		e.printStackTrace();
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected JSONObject readXMLtoJSON(String filename){
+		String content;
+		try {
+			content = new String(Files.readAllBytes(Paths.get(filename)));
+			return convertXMLtoJSON(content);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
-	return ret;
-}
-@SuppressWarnings({ "unchecked", "rawtypes" })
-protected JSONObject convertXMLtoJSON(String xml){
-	JSONObject ret = null;
-	JAXBContext jaxbContext;
-	try{
-		jaxbContext = JAXBContext.newInstance(CONTEXT );
-		// parse XML
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-		//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-		StringReader reader = new StringReader(xml);
-		StreamSource source = new StreamSource(reader);
-		JAXBElement result = unmarshaller.unmarshal(source, MODELL_CLASS);
 
-		// create JSON
-		Marshaller marshaller = jaxbContext.createMarshaller();
-		marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,"application/json");
-		// Set it to true if you need to include the JSON root element in the JSON output
-		marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-		// Set it to true if you need the JSON output to formatted
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected JSONObject convertXMLtoJSON(String xml){
+		JSONObject ret = null;
+		JAXBContext jaxbContext;
+		try{
+			jaxbContext = JAXBContext.newInstance(CONTEXT );
+			// parse XML
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+			StringReader reader = new StringReader(xml);
+			StreamSource source = new StreamSource(reader);
+			JAXBElement result = unmarshaller.unmarshal(source, MODEL_CLASS);
 
-		// Marshal the employee object to JSON and print the output to console
-		ByteArrayOutputStream st = new ByteArrayOutputStream();
-		marshaller.marshal(result, st);
-		ret = new JSONObject(st.toString());
+			// create JSON
+			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+			Map<String, Object> properties = new HashMap<String, Object>();
+			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
 
-	} catch (JAXBException e ) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (JSONException e) {
-		LOGGER.info("provided XML is not an "+CONTEXT+" because of "+e.getMessage());
-	} catch (Exception e){
-		LOGGER.info("provided XML is not an "+CONTEXT+" because of "+e.getMessage());
+			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,"application/json");
+			// Set it to true if you need to include the JSON root element in the JSON output
+			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
+			// Set it to true if you need the JSON output to formatted
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+
+			// Marshal the employee object to JSON and print the output to console
+			ByteArrayOutputStream st = new ByteArrayOutputStream();
+			marshaller.marshal(result, st);
+			ret = new JSONObject(st.toString());
+
+		} catch (JAXBException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			LOGGER.info("provided XML is not an "+CONTEXT+" because of "+e.getMessage());
+		} catch (Exception e){
+			LOGGER.info("provided XML is not an "+CONTEXT+" because of "+e.getMessage());
+		}
+		return ret;
 	}
-	return ret;
-}
 
 }

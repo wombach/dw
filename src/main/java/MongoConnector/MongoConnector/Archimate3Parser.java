@@ -23,7 +23,7 @@ public class Archimate3Parser extends GenericParser {
 	public Archimate3Parser(){
 		this.type = "archimate3";
 		this.CONTEXT = "org.opengroup.xsd.archimate._3";
-		this.MODELL_CLASS = ModelType.class;
+		this.MODEL_CLASS = ModelType.class;
 	}
 
 	@Override
@@ -165,15 +165,15 @@ public class Archimate3Parser extends GenericParser {
 		if(!flag){
 			defs.append("propertyDefinition", new JSONObject(" {\"identifier\": "+
 					"\"propid_wipro_digital_workflow_start_date\", "+
-					" \"type\": \"number\" }"));
+					" \"type_\": \"number\" }"));
 //		"\"name\": \"Wipro start date\", \"type\": \"number\" }"));
 			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
 					"\"propid_wipro_digital_workflow_end_date\", "+
-					" 'type': number2 }"));
+					" 'type_': number }"));
 //		"\"name\": \"Wipro end date\", \"type\": \"number\" }"));
 			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
 					"\"propid_wipro_digital_workflow_identifier\", "+
-					" 'type': string }"));
+					" 'type_': string }"));
 //		"\"name\": \"Wipro identifier\", \"type\": \"string\" }"));
 		}
 	}

@@ -21,7 +21,7 @@ public class ArchimateParser extends GenericParser {
 	public ArchimateParser(){
 		this.type = "archimate";
 		this.CONTEXT = "org.opengroup.xsd.archimate";
-		this.MODELL_CLASS = ModelType.class;
+		this.MODEL_CLASS = ModelType.class;
 	}
 
 	@Override

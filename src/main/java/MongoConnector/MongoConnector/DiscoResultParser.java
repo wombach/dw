@@ -22,7 +22,7 @@ public class DiscoResultParser extends GenericParser {
 	public DiscoResultParser(){
 		this.type = "disco";
 		this.CONTEXT = "disco";
-		this.MODELL_CLASS = ProcessMapType.class;
+		this.MODEL_CLASS = ProcessMapType.class;
 	}
 
 	@Override

@@ -18,10 +18,19 @@ import org.eclipse.persistence.exceptions.JAXBException;
 import org.eclipse.persistence.jaxb.JAXBContextProperties;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
+import org.opengroup.xsd.archimate._3.AllowedElementTypeType;
+import org.opengroup.xsd.archimate._3.BusinessProcess;
+import org.opengroup.xsd.archimate._3.DataType;
+import org.opengroup.xsd.archimate._3.Element;
+import org.opengroup.xsd.archimate._3.ElementType;
+import org.opengroup.xsd.archimate._3.ElementsType;
+import org.opengroup.xsd.archimate._3.LangStringType;
 import org.opengroup.xsd.archimate._3.ModelType;
 import org.opengroup.xsd.archimate._3.ObjectFactory;
+import org.opengroup.xsd.archimate._3.PropertiesType;
 import org.opengroup.xsd.archimate._3.PropertyDefinitionType;
 import org.opengroup.xsd.archimate._3.PropertyDefinitionsType;
+import org.opengroup.xsd.archimate._3.PropertyType;
 
 public class Main4 {
 	//private static final String ORG_OPENGROUP_XSD_ARCHIMATE3 = "org.opengroup.xsd.archimate._3";
@@ -34,22 +43,39 @@ public class Main4 {
 		PropertyDefinitionsType defs = fac.createPropertyDefinitionsType();
 		List<PropertyDefinitionType> list = defs.getPropertyDefinition();
 		PropertyDefinitionType def = fac.createPropertyDefinitionType();
-		def.setIdentifier("hello");
-		def.setType("test");
+		String id = "hallo12";
+		def.setIdentifier(id);
+		def.setType(DataType.NUMBER);
 		list.add(def);
 		modelT.setPropertyDefinitions(defs);
-//		String path = Main4.class.getClassLoader().getResource("").getPath();
-////		File initialFile = new File("binding.xml");
-////	    InputStream iStream = new FileInputStream(initialFile);
+		
+		ElementsType elems = fac.createElementsType();
+		modelT.setElements(elems);
+		List<ElementType> elemList = elems.getElement();
+		BusinessProcess elm = fac.createBusinessProcess();
+		elemList.add(elm);
+		elm.setIdentifier("test2");
+		PropertiesType props = fac.createPropertiesType();
+		PropertyType prop = fac.createPropertyType();
+		List<PropertyType> list2 = props.getProperty();
+//		list2.add(prop);
+		elm.setProperties(props);
+		prop.setPropertyDefinitionRef(def);
+		List<LangStringType> vals = prop.getValue();
+		LangStringType val = fac.createLangStringType();
+		val.setValue("test3");
+		val.setLang("en");
+		vals.add(val);
+//		modelT.setElements(elems);
+		
 		InputStream iStream = Main4.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
-//		properties.put(JAXBContextProperties.MEDIA_TYPE, "application/json");
-//        properties.put(JAXBContextProperties.JSON_INCLUDE_ROOT, true);
         
 		JAXBContext jaxbContext = JAXBContext.newInstance(new Class[] {ModelType.class},properties);
 //		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);
 		Marshaller marshaller = jaxbContext.createMarshaller();
+		marshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 //		marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 //		marshaller.marshal(model, System.out);
@@ -76,7 +102,6 @@ public class Main4 {
 		jaxbContext =  JAXBContext.newInstance(ModelType.class);
 		marshaller = jaxbContext.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, false);
 		marshaller.marshal(model2, System.out);
 		
 
