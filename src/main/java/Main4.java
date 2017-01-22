@@ -58,7 +58,7 @@ public class Main4 {
 		PropertiesType props = fac.createPropertiesType();
 		PropertyType prop = fac.createPropertyType();
 		List<PropertyType> list2 = props.getProperty();
-//		list2.add(prop);
+		list2.add(prop);
 		elm.setProperties(props);
 		prop.setPropertyDefinitionRef(def);
 		List<LangStringType> vals = prop.getValue();
@@ -72,8 +72,8 @@ public class Main4 {
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
         
-		JAXBContext jaxbContext = JAXBContext.newInstance(new Class[] {ModelType.class},properties);
-//		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);
+//		JAXBContext jaxbContext = JAXBContext.newInstance(new Class[] {ModelType.class},properties);
+		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);

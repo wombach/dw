@@ -1,4 +1,4 @@
-package MongoConnector.MongoConnector;
+package org.idw.storage.connector;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -9,7 +9,6 @@ import org.bson.BSONObject;
 import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.opengroup.xsd.archimate._3.DataType;
 import org.opengroup.xsd.archimate._3.ModelType;
 
 import com.mongodb.client.FindIterable;
@@ -32,15 +31,15 @@ public class Archimate3Parser extends GenericParser {
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = readXMLtoJSON(filename);
 		// check that the file is indeed an archimate file
-		if( xmlJSONObj!=null && xmlJSONObj.has("model")){
-			JSONObject obj = xmlJSONObj.getJSONObject("model");
+		if( xmlJSONObj!=null && xmlJSONObj.has("ns0_model")){
+			JSONObject obj = xmlJSONObj.getJSONObject("ns0_model");
 			//			String xmlns = obj.getString("xmlns");
 			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
 			ret = true;
 			// nodes
-			JSONObject els =  obj.getJSONObject("elements");
-			JSONArray l = els.getJSONArray("element");
-			els.remove("element");
+			JSONObject els =  obj.getJSONObject("ns0_elements");
+			JSONArray l = els.getJSONArray("ns0_element");
+			els.remove("ns0_element");
 			for(int i=0;i<l.length();i++){
 				Document doc = insertNodeDocument(l.getJSONObject(i));
 				String uuid = getUUID(doc);
@@ -48,9 +47,9 @@ public class Archimate3Parser extends GenericParser {
 				map.put(identifier, uuid);
 			}
 			// relations
-			JSONObject rels =  obj.getJSONObject("relationships");
-			l = rels.getJSONArray("relationship");
-			rels.remove("relationship");
+			JSONObject rels =  obj.getJSONObject("ns0_relationships");
+			l = rels.getJSONArray("ns0_relationship");
+			rels.remove("ns0_relationship");
 			for(int i=0;i<l.length();i++){
 				JSONObject rel = l.getJSONObject(i);
 				String identifier = rel.getString("identifier");
@@ -79,13 +78,13 @@ public class Archimate3Parser extends GenericParser {
 			String s =doc.toJson();
 			ret =  new JSONObject(s);
 			JSONObject raw = ret.getJSONObject("raw");
-			JSONObject mod = raw.getJSONObject("model");
-			JSONObject els =  mod.getJSONObject("elements");
+			JSONObject mod = raw.getJSONObject("ns0_model");
+			JSONObject els =  mod.getJSONObject("ns0_elements");
 			JSONArray elm = new JSONArray();
-			els.put("element", elm);
-			JSONObject rels =  mod.getJSONObject("relationships");
+			els.put("ns0_element", elm);
+			JSONObject rels =  mod.getJSONObject("ns0_relationships");
 			JSONArray rel = new JSONArray();
-			rels.put("relationship", rel);
+			rels.put("ns0_relationship", rel);
 			// derive the identifiers for the standard properties
 			//LOGGER.info(prettyPrintJSON(raw));
 			addPropertyStandardTypeDefs(mod);
@@ -121,7 +120,7 @@ public class Archimate3Parser extends GenericParser {
 				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
 			}
 			//			LOGGER.info(ret.toString());
-			//			LOGGER.info(prettyPrintJSON(ret));
+						LOGGER.info(prettyPrintJSON(raw));
 			this.writeJSONtoXML(filename, raw );
 		}
 	} 
@@ -136,21 +135,21 @@ public class Archimate3Parser extends GenericParser {
         },
 		 */
 		JSONObject defs = null;
-		if(jobj.has("propertyDefinitions")){
-			defs = jobj.getJSONObject("propertyDefinitions");
+		if(jobj.has("ns0_propertyDefinitions")){
+			defs = jobj.getJSONObject("ns0_propertyDefinitions");
 		} else {
 			defs = new JSONObject();
-			jobj.append("propertyDefinitions", defs);
+			jobj.append("ns0_propertyDefinitions", defs);
 		}
 		JSONArray def = null;
 		boolean flag = false;
-		if(defs.has("propertyDefinition")){
-			Object obj = defs.get("propertyDefinition");
+		if(defs.has("ns0_propertyDefinition")){
+			Object obj = defs.get("ns0_propertyDefinition");
 			if(obj instanceof JSONObject){
 				// if it is a single object it can not our definitions
 				def = new JSONArray();
 				def.put((JSONObject) obj);
-				defs.append("propertyDefinition", def);
+				defs.append("ns0_propertyDefinition", def);
 				flag = true;
 			} else if(obj instanceof JSONArray){
 				def = (JSONArray) obj;
@@ -163,17 +162,17 @@ public class Archimate3Parser extends GenericParser {
 			} else LOGGER.severe("Wrong object type!");
 		} 
 		if(!flag){
-			defs.append("propertyDefinition", new JSONObject(" {\"identifier\": "+
+			defs.append("ns0_propertyDefinition", new JSONObject(" {\"identifier\": "+
 					"\"propid_wipro_digital_workflow_start_date\", "+
-					" \"type_\": \"number\" }"));
+					" \"ns1_type\": \"number\" }"));
 //		"\"name\": \"Wipro start date\", \"type\": \"number\" }"));
-			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
+			defs.append("ns0_propertyDefinition", new JSONObject(" {'identifier': "+
 					"\"propid_wipro_digital_workflow_end_date\", "+
-					" 'type_': number }"));
+					" 'ns1_type': number }"));
 //		"\"name\": \"Wipro end date\", \"type\": \"number\" }"));
-			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
+			defs.append("ns0_propertyDefinition", new JSONObject(" {'identifier': "+
 					"\"propid_wipro_digital_workflow_identifier\", "+
-					" 'type_': string }"));
+					" 'ns1_type': string }"));
 //		"\"name\": \"Wipro identifier\", \"type\": \"string\" }"));
 		}
 	}
@@ -182,14 +181,14 @@ public class Archimate3Parser extends GenericParser {
 		JSONObject props = null;
 		JSONObject prop = null;
 		JSONArray parr =  null;
-		if(!obj.has("properties")){
+		if(!obj.has("ns0_properties")){
 			props = new JSONObject();
-			obj.put("properties", props);
+			obj.put("ns0_properties", props);
 			parr = new JSONArray();
-			props.put("property", parr);
+			props.put("ns0_property", parr);
 		} else {
-			props = obj.getJSONObject("properties");
-			Object oobj = props.get("property");
+			props = obj.getJSONObject("ns0_properties");
+			Object oobj = props.get("ns0_property");
 			if(oobj instanceof JSONObject) prop = (JSONObject) oobj;
 			else if(oobj instanceof JSONArray) parr = (JSONArray) oobj;
 			else LOGGER.severe("not the right object type found");
@@ -197,20 +196,20 @@ public class Archimate3Parser extends GenericParser {
 		if(prop!=null){
 			// only a single property in the JSON
 			// remove the property and make it a JSONArray
-			props.remove("property");
+			props.remove("ns0_property");
 			parr = new JSONArray();
 			parr.put(prop);
-			props.put("property", parr);
+			props.put("ns0_property", parr);
 		}
 		if(parr!=null){
-			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_start_date").
-					put("value", new JSONObject().put("xml:lang","en").put("content", start_date));
+			prop = new JSONObject().put("ns0_propertyDefinitionRef","propid_wipro_digital_workflow_start_date").
+					put("value", new JSONObject().put("xml:lang","en").put("value", start_date));
 			parr.put(prop);
-			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_end_date").
-					put("value", new JSONObject().put("xml:lang","en").put("content", end_date));
+			prop = new JSONObject().put("ns0_propertyDefinitionRef","propid_wipro_digital_workflow_end_date").
+					put("value", new JSONObject().put("xml:lang","en").put("value", end_date));
 			parr.put(prop);
-			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_identifier").
-					put("value", new JSONObject().put("xml:lang","en").put("content", id));
+			prop = new JSONObject().put("ns0_propertyDefinitionRef","propid_wipro_digital_workflow_identifier").
+					put("value", new JSONObject().put("xml:lang","en").put("value", id));
 			parr.put(prop);
 		}
 	}
@@ -268,13 +267,13 @@ public class Archimate3Parser extends GenericParser {
 			String s =doc.toJson();
 			ret =  new JSONObject(s);
 			JSONObject raw = ret.getJSONObject("raw");
-			JSONObject mod = raw.getJSONObject("model");
-			JSONObject els =  mod.getJSONObject("elements");
+			JSONObject mod = raw.getJSONObject("ns0_model");
+			JSONObject els =  mod.getJSONObject("ns0_elements");
 			JSONArray elm = new JSONArray();
-			els.put("element", elm);
-			JSONObject rels =  mod.getJSONObject("relationships");
+			els.put("ns0_element", elm);
+			JSONObject rels =  mod.getJSONObject("ns0_relationships");
 			JSONArray rel = new JSONArray();
-			rels.put("relationship", rel);
+			rels.put("ns0_relationship", rel);
 			// derive the identifiers for the standard properties
 			//LOGGER.info(prettyPrintJSON(raw));
 			addPropertyStandardTypeDefs(mod);
@@ -318,9 +317,9 @@ public class Archimate3Parser extends GenericParser {
 
 	@Override
 	protected String getNodeComparisonString(JSONObject jsonObject) {
-		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
+		JSONObject nameObj = jsonObject.getJSONArray("ns0_name").getJSONObject(0);
 		String name = nameObj.getString("value");
-		String node_type = jsonObject.getString("type");
+		String node_type = jsonObject.getString("ns1_type");
 		return type+"|"+node_type+"|"+name.toString();
 	}
 

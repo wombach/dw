@@ -1,4 +1,4 @@
-package MongoConnector.MongoConnector;
+package org.idw.storage.connector;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -74,7 +74,14 @@ public abstract class GenericParser {
 	protected String type = null;
 	protected String CONTEXT = null;
 	protected Class MODEL_CLASS = null;
+	protected Map<String, String> namespaces;
 
+	public GenericParser(){
+		namespaces = new HashMap<String, String>();
+		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "ns1");
+		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ns0");
+	}
+	
 	public abstract boolean parseFile(String filename);
 
 	public abstract boolean parseString(String str);
@@ -189,28 +196,34 @@ public abstract class GenericParser {
 		}
 		return ret;
 	}
+	
 	protected String writeJSONtoXML(JSONObject jobj){
 		JAXBContext jaxbContext;
 		JAXBElement result = null;
 		String ret = "";
 		try {
-			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
-			Map<String, Object> properties = new HashMap<String, Object>();
-			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+//			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+//			Map<String, Object> properties = new HashMap<String, Object>();
+//			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
 
-			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
+//			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
+			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
 			// parse JSON
 			String st = jobj.toString();
 			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
 
 			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 			StreamSource source2 = new StreamSource(in);
 			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
 
 			// write XML
 			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
 			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
 			StringWriter out;
@@ -330,19 +343,24 @@ public abstract class GenericParser {
 			jaxbContext = JAXBContext.newInstance(CONTEXT );
 			// parse XML
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-			//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+			unmarshaller.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+			unmarshaller.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');		
+//			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
 			StringReader reader = new StringReader(xml);
 			StreamSource source = new StreamSource(reader);
 			JAXBElement result = unmarshaller.unmarshal(source, MODEL_CLASS);
 
 			// create JSON
-			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
-			Map<String, Object> properties = new HashMap<String, Object>();
-			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
-			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
+//			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+//			Map<String, Object> properties = new HashMap<String, Object>();
+//			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+//			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
 
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,"application/json");
+			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			
 			// Set it to true if you need to include the JSON root element in the JSON output
 			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
 			// Set it to true if you need the JSON output to formatted

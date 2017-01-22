@@ -1,4 +1,4 @@
-package MongoConnector.MongoConnector;
+package org.idw.storage.connector;
 
 import java.util.logging.Logger;
 

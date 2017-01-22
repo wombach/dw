@@ -1,4 +1,4 @@
-package MongoConnector.MongoConnector;
+package org.idw.storage.connector;
 
 import java.io.IOException;
 
@@ -59,6 +59,7 @@ public class UIControl {
 		// insert an archimate file into mongoDB
 		mongo.dropCollections();
 		boolean r = u.parseFile("This_example.xml");
+//		boolean r = u.parseFile("thijs_example_retrieved3.xml");
 //		boolean r = u.parseFile("OTK Sample.xml");
 //		boolean r = u.parseFile("whr_line_6.xml");
 		//boolean r = u.parseFile("disco_demo_export.xml");
@@ -69,7 +70,7 @@ public class UIControl {
 		// retrieve an archimate file into mongoDB
 		Date date = new Date(System.currentTimeMillis());
 //		u.deriveFile("archimate", "test_otk2.xml", date);
-		u.deriveFile("archimate3", "thijs_example_retrieved3.xml", date);
+		u.deriveFile("archimate3", "thijs_example_retrieved4.xml", date);
 	}
 
 }
