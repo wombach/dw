@@ -2,6 +2,10 @@ package org.idw.storage.connector;
 
 import static org.neo4j.driver.v1.Values.parameters;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Logger;
+
 import javax.xml.bind.JAXBElement;
 
 import org.neo4j.driver.v1.AuthTokens;
@@ -12,7 +16,8 @@ import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
 
-public class Neo4jDBAccess {
+public class Neo4jAccess {
+	private final static Logger LOGGER = Logger.getLogger(Neo4jAccess.class.getName());
 
 	private Driver driver = null;
 
@@ -25,7 +30,53 @@ public class Neo4jDBAccess {
 		return session;
 	}
 
+	public void emptyDatabase(){
+		String query = "match (n) DETACH DELETE n;";
+		try(Session session = getSession()){
+			try ( Transaction tx = session.beginTransaction() ){
+				tx.run( query);
+				tx.success();
+			}
+		}
+		LOGGER.warning("graph database has been emptied");
+	}
 
+	public void exportTransitions(String filename) throws IOException{
+		Session session = getSession();
+		FileWriter fw = new FileWriter(filename);
+		StatementResult result = session.run( "MATCH (s)-[r:archimate3_has_target]->(t) "+
+		"RETURN s.identifier as sourceUUID,s.nodeType as sourceType, s.name as sourceName ,"+
+				"t.nodeType as targetType, t.identifier as targetUUID, t.name as targetName" );
+		while ( result.hasNext() )
+		{
+		    Record record = result.next();
+		    System.out.println( record.get( "sourceUUID" ).asString() + "," + record.get( "sourceType" ).asString()+
+		    		"," + record.get( "sourceName" ).asString()+"," + record.get( "targetUUID" ).asString()+
+		    		"," + record.get( "targetType" ).asString()+"," + record.get( "targetName" ).asString());
+		    fw.write( record.get( "sourceUUID" ).asString() + "," + record.get( "sourceType" ).asString()+
+		    		"," + record.get( "sourceName" ).asString()+"," + record.get( "targetUUID" ).asString()+
+		    		"," + record.get( "targetType" ).asString()+"," + record.get( "targetName" ).asString()+"\n");
+		}
+		session.close();
+		fw.close();
+	}
+
+	public void exportNodes(String filename) throws IOException{
+		Session session = getSession();
+		FileWriter fw = new FileWriter(filename);
+		StatementResult result = session.run( "MATCH (n:archimate3) RETURN n.identifier as id, n.nodeType as type, n.name as name;" );
+		while ( result.hasNext() )
+		{
+		    Record record = result.next();
+		    System.out.println( record.get( "id" ).asString() + "," + record.get( "type" ).asString()+
+		    		"," + record.get( "name" ).asString());
+		    fw.write( record.get( "id" ).asString() + "," + record.get( "type" ).asString()+
+		    		"," + record.get( "name" ).asString()+"\n");
+		}
+		session.close();
+		fw.close();
+	}
+	
 	public void insertContent(JAXBElement content) {
 		try(Session session = getSession()){
 			try ( Transaction tx = session.beginTransaction() ){
@@ -53,6 +104,37 @@ public class Neo4jDBAccess {
 
 		driver.close();
 
+	}	
+	
+	public void insertNode(String query) {
+		try(Session session = getSession()){
+			try ( Transaction tx = session.beginTransaction() ){
+				StatementResult res = tx.run( query);
+				tx.success();
+				LOGGER.info("node inserted: "+res.toString());
+			}
+//			session.close();
+		}
+	}
+
+	public void insertRelation(String query) {
+		try(Session session = getSession()){
+			try ( Transaction tx = session.beginTransaction() ){
+				StatementResult res = tx.run( query);
+				tx.success();
+				LOGGER.info("node inserted: "+res.toString());
+			}
+		}
+	}
+
+	public StatementResult query(String query) {
+		StatementResult res = null;
+		try(Session session = getSession()){
+			res = session.run( query);
+			LOGGER.info("query executed");
+			session.close();
+		}
+		return res;
 	}
 
 }

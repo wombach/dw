@@ -10,8 +10,8 @@
 	<classpathentry kind="var" path="M2_REPO/org/mongodb/mongodb-driver-core/3.0.4/mongodb-driver-core-3.0.4.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/googlecode/json-simple/json-simple/1.1/json-simple-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/json/json/20151123/json-20151123.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/eclipse/persistence/eclipselink/2.5.0-RC1/eclipselink-2.5.0-RC1.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/eclipse/persistence/javax.persistence/2.1.0-RC1/javax.persistence-2.1.0-RC1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/eclipse/persistence/eclipselink/2.5.2/eclipselink-2.5.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/eclipse/persistence/javax.persistence/2.1.0/javax.persistence-2.1.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/reflections/reflections-maven/0.9.8/reflections-maven-0.9.8.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/reflections/reflections/0.9.8/reflections-0.9.8.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/guava/guava/11.0.2/guava-11.0.2.jar"/>

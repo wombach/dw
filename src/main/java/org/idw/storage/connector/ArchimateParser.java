@@ -56,7 +56,7 @@ public class ArchimateParser extends GenericParser {
 					String target = rel.getString("target");
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID);
+					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, null);
 					String uuid = getUUID(doc);
 					map.put(identifier, uuid);
 				}
@@ -212,7 +212,7 @@ public class ArchimateParser extends GenericParser {
 	}
 
 	@Override
-	public boolean parseString(String str) {
+	public boolean processXmlString(String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = convertXMLtoJSON(str);
@@ -243,7 +243,7 @@ public class ArchimateParser extends GenericParser {
 					String target = rel.getString("target");
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID);
+					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, null);
 					String uuid = getUUID(doc);
 					map.put(identifier, uuid);
 				}
@@ -256,7 +256,7 @@ public class ArchimateParser extends GenericParser {
 	}
 
 	@Override
-	public String deriveString(Date date) {
+	public String deriveXmlString(Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -295,6 +295,19 @@ public class ArchimateParser extends GenericParser {
 	protected int getFileHash(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public boolean processJsonString(String str) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+	@Override
+	public String deriveJsonString(Date date) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

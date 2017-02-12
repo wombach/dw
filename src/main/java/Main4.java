@@ -1,7 +1,5 @@
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -10,18 +8,16 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
-import org.eclipse.persistence.exceptions.JAXBException;
 import org.eclipse.persistence.jaxb.JAXBContextProperties;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
-import org.opengroup.xsd.archimate._3.AllowedElementTypeType;
 import org.opengroup.xsd.archimate._3.BusinessProcess;
 import org.opengroup.xsd.archimate._3.DataType;
-import org.opengroup.xsd.archimate._3.Element;
 import org.opengroup.xsd.archimate._3.ElementType;
 import org.opengroup.xsd.archimate._3.ElementsType;
 import org.opengroup.xsd.archimate._3.LangStringType;
@@ -45,6 +41,10 @@ public class Main4 {
 		PropertyDefinitionType def = fac.createPropertyDefinitionType();
 		String id = "hallo12";
 		def.setIdentifier(id);
+		def.setType(DataType.NUMBER);
+		list.add(def);
+		def = fac.createPropertyDefinitionType();
+		def.setIdentifier("hallo13");
 		def.setType(DataType.NUMBER);
 		list.add(def);
 		modelT.setPropertyDefinitions(defs);
@@ -71,12 +71,19 @@ public class Main4 {
 		InputStream iStream = Main4.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
-        
+		Map<String, String> namespaces = new HashMap<String, String>();
+		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "ns1");
+		namespaces.put("namespace2", "ns2");
+//		jsonMarshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+//		jsonUnmarshaller.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+		
 //		JAXBContext jaxbContext = JAXBContext.newInstance(new Class[] {ModelType.class},properties);
 		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+		marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 //		marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 //		marshaller.marshal(model, System.out);
 		// Set the Marshaller media type to JSON or XML
@@ -93,6 +100,8 @@ public class Main4 {
 		ByteArrayInputStream in = new ByteArrayInputStream(st.toByteArray());
 //		JSONObject jobj = XML.toJSONObject(st.toString());
 		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 //		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 		StreamSource source2 = new StreamSource(in);
@@ -102,11 +111,11 @@ public class Main4 {
 		jaxbContext =  JAXBContext.newInstance(ModelType.class);
 		marshaller = jaxbContext.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		marshaller.marshal(model2, System.out);
-		
-
-		System.out.println(model.equals(model2));
-
+		marshaller.marshal(model, System.out);
+//		
+//
+////		System.out.println(model.equals(model2));
+//
 	}
 
 }

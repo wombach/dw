@@ -60,21 +60,22 @@ public abstract class GenericParser {
 
 	private final static Logger LOGGER = Logger.getLogger(GenericParser.class.getName()); 
 	public final static int PRETTY_PRINT_INDENT_FACTOR = 4;
-	private final static String DOC_NAME = "name";
-	private final static String DOC_NAME_NODE = "node";
-	private final static String DOC_TYPE = "type";
-	private final static String DOC_START_DATE = "start_date";
-	private final static String DOC_END_DATE = "end_date";
-	private final static String DOC_RAW = "raw";
-	private final static String DOC_RAW_ELEMENT = "element";
-	private final static String DOC_ID = "id";
-	private final static String DOC_COMPARISON_STRING = "comparison_string";
-	private static final String DOC_HASH = "hash";
+	public final static String DOC_NAME = "name";
+	public final static String DOC_NAME_NODE = "node";
+	public final static String DOC_TYPE = "type";
+	public final static String DOC_START_DATE = "start_date";
+	public final static String DOC_END_DATE = "end_date";
+	public final static String DOC_RAW = "raw";
+	public final static String DOC_RAW_ELEMENT = "element";
+	public final static String DOC_ID = "id";
+	public final static String DOC_COMPARISON_STRING = "comparison_string";
+	public static final String DOC_HASH = "hash";
 
 	protected String type = null;
 	protected String CONTEXT = null;
 	protected Class MODEL_CLASS = null;
 	protected Map<String, String> namespaces;
+	protected ParserFactory factory;
 
 	public GenericParser(){
 		namespaces = new HashMap<String, String>();
@@ -84,16 +85,40 @@ public abstract class GenericParser {
 	
 	public abstract boolean parseFile(String filename);
 
-	public abstract boolean parseString(String str);
+	public abstract Object parseXmlString(String str);
+	public abstract Object parseJsonString(String str);
+	public abstract boolean storeObject(Object elm);
+	
+	public boolean processXmlString(String str){
+		boolean ret = false;
+		Object elm = parseXmlString(str);
+		if(elm!=null){
+			ret = storeObject(elm);
+		}
+		return ret;	
+	};
+	
+	public abstract  boolean processJsonString(String str);
+//		boolean ret = false;
+////		Object elm = parseJsonString(str);
+////		if(elm!=null){
+//			ret = processJson();
+////		}		
+//		return ret;
+//	}
 
 	public abstract void deriveFile(String filename, Date date);
 
-	public abstract String deriveString(Date date);
+	public abstract String deriveXmlString(Date date);
+	public abstract String deriveJsonString(Date date);
 
 	public Document enrichDocument( JSONObject obj, long time, String compStr, int hash){
+		String uuid = UUID.randomUUID().toString();
+		obj.remove("identifier");
+		obj.put("identifier", uuid);
 		Document doc = new Document(DOC_NAME, DOC_NAME_NODE)
 				.append(DOC_TYPE, type)
-				.append(DOC_ID, UUID.randomUUID().toString())
+				.append(DOC_ID, uuid)
 				.append(DOC_START_DATE, time)
 				.append(DOC_END_DATE, -1L)
 				.append(DOC_COMPARISON_STRING, compStr)
@@ -105,13 +130,13 @@ public abstract class GenericParser {
 	abstract protected String getNodeComparisonString(JSONObject jsonObject);
 	abstract protected int getNodeHash(JSONObject jsonObject);
 
-	public Document insertNodeDocument(JSONObject jsonObject) {
+	public Document insertNodeDocument(JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
 		MongoDBAccess mongo = UIControl.getMongo();
 		int hash = getNodeHash(jsonObject);
 		Document doc = null;
 		boolean insert = false;
-		long time = System.currentTimeMillis();
+//		long time = System.currentTimeMillis();
 		FindIterable<Document> docs = mongo.queryDocument(MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
 		if(docs !=null && docs.iterator()!=null && docs.iterator().hasNext()){
 			LOGGER.warning("the document to be inserted has at least one element in the collection with the same comparison string");
@@ -150,10 +175,9 @@ public abstract class GenericParser {
 	abstract protected String getRelationComparisonString(JSONObject jsonObject);
 	abstract protected int getRelationHash(JSONObject jsonObject);
 
-	public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID) {
+	public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
-		long time = System.currentTimeMillis();
 		Document doc = enrichDocument( jsonObject,time, compStr, hash);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
@@ -166,10 +190,9 @@ public abstract class GenericParser {
 	abstract protected String getFileComparisonString(JSONObject jsonObject);
 	abstract protected int getFileHash(JSONObject jsonObject);
 
-	public Document insertFileDocument(JSONObject obj) {
+	public Document insertFileDocument(JSONObject obj, long time) {
 		String compStr = getFileComparisonString(obj);
 		int hash = getFileHash(obj);
-		long time = System.currentTimeMillis();
 		Document doc = enrichDocument( obj, time, compStr, hash);
 		MongoDBAccess mongo = UIControl.getMongo();
 		mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
@@ -344,7 +367,7 @@ public abstract class GenericParser {
 			// parse XML
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 			unmarshaller.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
-			unmarshaller.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');		
+//			unmarshaller.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');		
 //			unmarshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
 			StringReader reader = new StringReader(xml);
 			StreamSource source = new StreamSource(reader);
@@ -358,8 +381,8 @@ public abstract class GenericParser {
 
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE,"application/json");
-			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
-			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 			
 			// Set it to true if you need to include the JSON root element in the JSON output
 			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
@@ -383,4 +406,12 @@ public abstract class GenericParser {
 		return ret;
 	}
 
+	public String getType(){
+		return type;
+	}
+
+	public void setFactory(ParserFactory parserFactory) {
+		this.factory = parserFactory; 
+	}
+	
 }

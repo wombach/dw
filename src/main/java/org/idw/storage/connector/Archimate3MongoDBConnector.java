@@ -16,7 +16,8 @@ import org.json.JSONObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
-public class Archimate3MongoDBConnector extends GenericParserStorageConnector {
+public class Archimate3MongoDBConnector extends GenericParserStorageConnector 
+	implements GenericParserStorageConnectorManager {
 	private final static Logger LOGGER = Logger.getLogger(Archimate3MongoDBConnector.class.getName());
 
 	public final static int PRETTY_PRINT_INDENT_FACTOR = 4;
@@ -61,11 +62,12 @@ public class Archimate3MongoDBConnector extends GenericParserStorageConnector {
 
 
 	@Override
-	public Document insertNodeDocument(JSONObject jsonObject, long time) {
+	public GenericStorageResult insertNodeDocument(JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
 		MongoDBAccess mongo = UIControl.getMongo();
 		int hash = parser.getNodeHash(jsonObject);
 		Document doc = null;
+		GenericStorageResult ret = new GenericStorageResult();
 		boolean insert = false;
 //		long time = System.currentTimeMillis();
 		FindIterable<Document> docs = mongo.queryDocument(MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
@@ -81,7 +83,7 @@ public class Archimate3MongoDBConnector extends GenericParserStorageConnector {
 			if(hash!=docHash) {
 				insert = true;
 				// update existing node by marking it as expired
-
+				ret.setStatusUpdated();
 				// check whether the update is allowed or whether there is a conflict!
 				// a version conflict exists if the end date in the document to be updated is not -1
 				if(doc.getLong(DOC_END_DATE)==-1){
@@ -94,13 +96,18 @@ public class Archimate3MongoDBConnector extends GenericParserStorageConnector {
 		} else {
 			LOGGER.warning("the document to be inserted is not known to the collection");
 			insert = true;
+			ret.setStatusInserted();
 		}
 		if (insert){
 			doc = enrichDocument( jsonObject, time, compStr, hash);
 			mongo.insertDocument(MongoDBAccess.COLLECTION_NODES, doc);
 			LOGGER.info("the document has been inserted");
-		} else LOGGER.info("no update was necessary");
-		return doc;
+		} else {
+			LOGGER.info("no update was necessary");
+			ret.setStatusUnchanged();
+		}
+		ret.setDoc(doc);
+		return ret;
 	}
 
 	protected String getRelationComparisonString(JSONObject jsonObject) {
@@ -109,20 +116,29 @@ public class Archimate3MongoDBConnector extends GenericParserStorageConnector {
 	}
 
 	@Override
-	public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public GenericStorageResult insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
+		GenericStorageResult ret = new GenericStorageResult();
 		Document doc = enrichDocument( jsonObject,time, compStr, hash);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
 		MongoDBAccess mongo = UIControl.getMongo();
 		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
-		// missing handling of updates
-		return doc;
+		ret.setDoc(doc);
+		ret.setStatusInserted();
+		//
+		// TODO missing handling of updates
+		// 
+		return ret;
 	}
 
 	private int getRelationHash(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	public void updateNodeDocument(JSONObject jsonObject, long time) {
+		// TODO Auto-generated method stub
 	} 
 }

@@ -58,7 +58,7 @@ public class DiscoResultParser extends GenericParser {
 					String target = Integer.toString(rel.getInt("targetIndex"));
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID);
+					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, null);
 					String uuid = getUUID(doc);
 					//map.put(identifier, uuid);
 				}
@@ -214,18 +214,6 @@ public class DiscoResultParser extends GenericParser {
 	}
 
 	@Override
-	public boolean parseString(String str) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public String deriveString(Date date) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	protected String getNodeComparisonString(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
 		return null;
@@ -259,6 +247,30 @@ public class DiscoResultParser extends GenericParser {
 	protected int getFileHash(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public boolean processXmlString(String str) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean processJsonString(String str) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String deriveXmlString(Date date) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String deriveJsonString(Date date) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

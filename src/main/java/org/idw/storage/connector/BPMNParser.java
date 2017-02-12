@@ -24,17 +24,6 @@ public class BPMNParser extends GenericParser{
 		// TODO Auto-generated method stub
 	}
 
-	@Override
-	public boolean parseString(String str) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public String deriveString(Date date) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	protected String getNodeComparisonString(JSONObject jsonObject) {
@@ -70,6 +59,30 @@ public class BPMNParser extends GenericParser{
 	protected int getFileHash(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public boolean processXmlString(String str) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean processJsonString(String str) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String deriveXmlString(Date date) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String deriveJsonString(Date date) {
+		// TODO Auto-generated method stub
+		return null;
 	} 
 
 

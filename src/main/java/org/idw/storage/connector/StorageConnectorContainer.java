@@ -20,15 +20,39 @@ public class StorageConnectorContainer {
 		this.managingIDs = managingIDs;
 	}
 
-	public Document insertNodeDocument(JSONObject jsonObject, long time){
-		return connector.insertNodeDocument(jsonObject, time);
+	public GenericStorageResult insertNodeDocumentManager(JSONObject jsonObject, long time){
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).insertNodeDocument(jsonObject, time);
+		} 
+		return null;
 	}
 
-	public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
-		return connector.insertRelationDocument(jsonObject, sourceUUID, targetUUID, time);
+	public void insertNodeDocumentFollower(JSONObject jsonObject, long time){
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).insertNodeDocument(jsonObject, time);
+		} 
+	}
+
+	public GenericStorageResult insertRelationDocumentManager(JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).insertRelationDocument(jsonObject, sourceUUID, targetUUID, time);
+		} 
+		return null;
+	}
+
+	public void insertRelationDocumentFollower(JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(jsonObject, sourceUUID, targetUUID, time);
+		} 
 	}
 
 	boolean isManagingIDs(){
 		return this.managingIDs;
+	}
+
+	public void updateNodeDocument(JSONObject jsonObject, long time) {
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).updateNodeDocument(jsonObject, time);
+		} 
 	}
 }

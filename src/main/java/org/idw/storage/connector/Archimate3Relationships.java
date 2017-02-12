@@ -6,6 +6,9 @@ public enum Archimate3Relationships {
 	ASSIGNMENT (2, "assignment"), 
 	TRIGGERING (3, "triggering"), 
 	FLOW (3, "flow"), 
+	ACCESS (3,"access"),
+	INFLUENCE (3,"influence"),
+	SERVING (3,"serving"),
 	AGGREGATION (3, "aggregation") , 
 	REALIZATION (3, "realization"),
 	SPECIALIZATION (4, "specialization");

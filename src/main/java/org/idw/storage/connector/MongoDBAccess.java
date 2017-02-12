@@ -2,6 +2,8 @@ package org.idw.storage.connector;
 
 import java.util.logging.Logger;
 
+import javax.xml.bind.JAXBElement;
+
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
