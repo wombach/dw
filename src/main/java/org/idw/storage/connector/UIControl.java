@@ -110,7 +110,9 @@ public class UIControl {
 		graph.emptyDatabase();
 		
 //		Neo4jAccess ne = new Neo4jAccess();
-//		ne.exportTransitions("export_transitions.csv");
+//		ne.exportTransitionClass("export_transition_class.csv");
+//		ne.exportNodeClass("export_node_class.csv");
+//		ne.exportTransitions("export_transitions.csv");+
 //		ne.exportNodes("export_nodes.csv");
 		
 //		boolean r = u.parseFile("This_example.xml");
@@ -121,9 +123,9 @@ public class UIControl {
 //		LOGGER.info("file parsed :"+r);
 //		boolean r = u.parseJsonString(jsonStr);
 		
-		String json = u.readFile("demo_model_v3_corrected.json");
+		String json = u.readFile("demo_model_v3_20170220.json");
 		u.parseJsonString(json);
-//		
+		
 		//mongo.getAllDocuments();
 		
 //		LOGGER.info(u.deriveString("archimate3", new Date(System.currentTimeMillis())));

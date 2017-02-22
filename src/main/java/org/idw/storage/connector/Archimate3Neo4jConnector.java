@@ -11,13 +11,14 @@ import javax.xml.bind.JAXBElement;
 import org.bson.BSONObject;
 import org.bson.Document;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
 public class Archimate3Neo4jConnector extends GenericParserStorageConnector 
-   implements GenericParserStorageConnectorFollower {
+implements GenericParserStorageConnectorFollower {
 	private final static Logger LOGGER = Logger.getLogger(Archimate3Neo4jConnector.class.getName());
 
 	public final static int PRETTY_PRINT_INDENT_FACTOR = 4;
@@ -32,7 +33,7 @@ public class Archimate3Neo4jConnector extends GenericParserStorageConnector
 	public final static String DOC_COMPARISON_STRING = "comparison_string";
 	public static final String DOC_HASH = "hash";
 
-	
+
 	protected String getNodeComparisonString(JSONObject jsonObject) {
 		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
 		String name = nameObj.getString("value");
@@ -53,18 +54,23 @@ public class Archimate3Neo4jConnector extends GenericParserStorageConnector
 	 * @return
 	 */
 	protected String createNodeCreationQuery(JSONObject jsonObject, String type, long time){
-		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
-		String name = nameObj.getString("value");
 		String uuid = jsonObject.getString("identifier");
+		String name = "";
+		try{
+			JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
+			name = nameObj.getString("value");
+		} catch ( JSONException e){
+			LOGGER.info("node "+uuid+" does not have a name!");
+		}
 		String node_type = jsonObject.getString("type");
 		String ret = "CREATE (n:"+parser.type+":"+parser.type+"_"+type+":"+node_type+
-					"{name:'"+name.toString()+"', "+
-					"identifier:'"+uuid+"', "+
-				    "modelType:'"+parser.getType()+"', "+
-					"nodeType:'"+node_type+"',"+
-					"startDate:"+time+", "+
-					"endDate: -1 }"+
-					")";
+				"{name:'"+name+"', "+
+				"identifier:'"+uuid+"', "+
+				"modelType:'"+parser.getType()+"', "+
+				"nodeType:'"+node_type+"',"+
+				"startDate:"+time+", "+
+				"endDate: -1 }"+
+				")";
 		return ret;
 	}
 
@@ -74,13 +80,13 @@ public class Archimate3Neo4jConnector extends GenericParserStorageConnector
 		String uuid = jsonObject.getString("identifier");
 		String node_type = jsonObject.getString("type");
 		String ret = "CREATE (n:"+parser.type+":"+parser.type+"_"+type+":"+node_type+
-					"{name:'"+name.toString()+"' , "+
-					"identifier:'"+uuid+"', "+
-				    "modelType:'"+parser.getType()+"', "+
-					"nodeType:'"+node_type+"',"+
-					"startDate:"+time+", "+
-					"endDate: -1 }"+
-					")";
+				"{name:'"+name.toString()+"' , "+
+				"identifier:'"+uuid+"', "+
+				"modelType:'"+parser.getType()+"', "+
+				"nodeType:'"+node_type+"',"+
+				"startDate:"+time+", "+
+				"endDate: -1 }"+
+				")";
 		return ret;
 	}
 
@@ -98,29 +104,34 @@ public class Archimate3Neo4jConnector extends GenericParserStorageConnector
 	}
 
 	@Override
-	public void insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public void insertRelationDocument(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		Neo4jAccess graph = UIControl.getGraph();
 		String nodeQuery = createNodeCreationQuery(jsonObject, "relation", time);
 		graph.insertNode(nodeQuery);
-		String query = createRelationCreationQuery(jsonObject, sourceUUID, targetUUID, time);
+		String query = createRelationCreationQuery(uuid, jsonObject, sourceUUID, targetUUID, time);
 		graph.insertRelation(query);
-		
+
 		// missing handling of updates
 	}
 
-	protected String createRelationCreationQuery(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	protected String createRelationCreationQuery(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		/**
-		* create a relationship
-		* MATCH (a:Person),(b:Person)
-		* WHERE a.name = 'Node A' AND b.name = 'Node B'
-		* CREATE (a)-[r:RELTYPE { name: a.name + '<->' + b.name }]->(b)
-		* RETURN r
-		*/
-		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
-		String name = nameObj.getString("value");
-		String uuid = jsonObject.getString("identifier");
+		 * create a relationship
+		 * MATCH (a:Person),(b:Person)
+		 * WHERE a.name = 'Node A' AND b.name = 'Node B'
+		 * CREATE (a)-[r:RELTYPE { name: a.name + '<->' + b.name }]->(b)
+		 * RETURN r
+		 */
+//		String uuid = jsonObject.getString("identifier");
+		String name = "";
+		try{
+			JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
+			name = nameObj.getString("value");
+		} catch ( JSONException e){
+			LOGGER.info("node "+uuid+" does not have a name!");
+		}
 		String rel_type = jsonObject.getString("type");
 		int rel_weight = Archimate3Relationships.getWeight(rel_type);
 		String query = "MATCH (s), (t)," +
@@ -131,9 +142,9 @@ public class Archimate3Neo4jConnector extends GenericParserStorageConnector
 				" AND (t:"+parser.getType()+"_node OR t:"+parser.getType()+"_relation) " +
 				"CREATE r = (s)-[r1:"+parser.getType()+"_is_source] ->(rn)  "+
 				" -[r2:"+parser.getType()+"_has_target] -> (t) return r;";
-//		String query = "MATCH (s:archimate3_node),(rn:archimate3_relation) "+
-//				"WHERE s.identifier = '"+sourceUUID+"' AND  rn.identifier = '"+uuid+"' " +
-//				"CREATE (s)-[r:"+parser.getType()+"_is_source] ->(rn) return r;";
+		//		String query = "MATCH (s:archimate3_node),(rn:archimate3_relation) "+
+		//				"WHERE s.identifier = '"+sourceUUID+"' AND  rn.identifier = '"+uuid+"' " +
+		//				"CREATE (s)-[r:"+parser.getType()+"_is_source] ->(rn) return r;";
 		return query;
 	}
 
@@ -153,6 +164,6 @@ public class Archimate3Neo4jConnector extends GenericParserStorageConnector
 	@Override
 	public void updateRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		// TODO Auto-generated method stub
-		
+
 	} 
 }

@@ -132,8 +132,8 @@ public class ParserFactory {
 		return storage.insertNodeDocument(parser, n, time);
 	}
 
-	public Document insertRelationDocument(GenericParser parser, JSONObject rel, String sourceUUID, String targetUUID, long time) {
-		return storage.insertRelationDocument(parser, rel, sourceUUID, targetUUID, time) ;
+	public Document insertRelationDocument(GenericParser parser, String uuid, JSONObject rel, String sourceUUID, String targetUUID, long time) {
+		return storage.insertRelationDocument(parser, uuid, rel, sourceUUID, targetUUID, time) ;
 	}
 
 }

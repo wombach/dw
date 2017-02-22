@@ -76,7 +76,40 @@ public class Neo4jAccess {
 		session.close();
 		fw.close();
 	}
-	
+
+	public void exportTransitionClass(String filename) throws IOException{
+		Session session = getSession();
+		FileWriter fw = new FileWriter(filename);
+		StatementResult result = session.run( "MATCH (s)-[r1:archimate3_is_source]->(r)-[r2:archimate3_has_target]->(t)"+
+			"RETURN s.nodeType as sourceNode,r.nodeType as relationNode,t.nodeType as targetNode, count(*) as cnt" );
+		while ( result.hasNext() )
+		{
+		    Record record = result.next();
+		    System.out.println( record.get( "sourceNode" ).asString() + "," + record.get( "relationNode" ).asString()+
+		    		"," + record.get( "targetNode" ).asString()+"," + record.get( "cnt" ).asInt());
+		    fw.write( record.get( "sourceNode" ).asString() + "," + record.get( "targetNode" ).asString()+
+		    		"," + record.get( "relationNode" ).asString()+"," + record.get( "cnt" ).asInt()+"\n");
+		}
+		session.close();
+		fw.close();
+	}
+
+	public void exportNodeClass(String filename) throws IOException{
+		Session session = getSession();
+		FileWriter fw = new FileWriter(filename);
+		StatementResult result = session.run( "MATCH (n:archimate3) RETURN n.nodeType as type, count(*) as cnt;" );
+		while ( result.hasNext() )
+		{
+		    Record record = result.next();
+		    System.out.println( record.get( "type" ).asString()+
+		    		"," + record.get( "cnt" ).asInt());
+		    fw.write( record.get( "type" ).asString()+
+		    		"," + record.get( "cnt" ).asInt()+"\n");
+		}
+		session.close();
+		fw.close();
+	}
+
 	public void insertContent(JAXBElement content) {
 		try(Session session = getSession()){
 			try ( Transaction tx = session.beginTransaction() ){

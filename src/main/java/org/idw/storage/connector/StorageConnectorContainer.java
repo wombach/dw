@@ -33,16 +33,16 @@ public class StorageConnectorContainer {
 		} 
 	}
 
-	public GenericStorageResult insertRelationDocumentManager(JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
+	public GenericStorageResult insertRelationDocumentManager(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
 			return ((GenericParserStorageConnectorManager) connector).insertRelationDocument(jsonObject, sourceUUID, targetUUID, time);
 		} 
 		return null;
 	}
 
-	public void insertRelationDocumentFollower(JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
+	public void insertRelationDocumentFollower(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(jsonObject, sourceUUID, targetUUID, time);
+			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(uuid, jsonObject, sourceUUID, targetUUID, time);
 		} 
 	}
 

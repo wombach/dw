@@ -1,0 +1,33 @@
+"Facility A Historian"
+"Plant Monitoring"
+
+db.nodes.find({'raw.name.value': "Facility A Historian"})
+afd0ee7d-5365-4d24-a985-89da40424734
+
+db.nodes.find({'raw.name.value': "Plant Monitoring"})
+a9c1ac88-76c5-49cb-b37b-aad473917a07
+
+db.nodes.find({'raw.name.value': "Time-series Data"})
+aac8a16b-bbff-43a1-bba0-e45bf25acc8e
+
+MATCH (start:archimate3_node {identifier:"afd0ee7d-5365-4d24-a985-89da40424734"})--> (r:archimate3_relation)--> (test:archimate3_node {identifier:"aac8a16b-bbff-43a1-bba0-e45bf25acc8e"})
+RETURN start,r,test
+3ms
+
+same query as above but then as shortest path query
+MATCH path=shortestPath((s:archimate3_node {identifier:"afd0ee7d-5365-4d24-a985-89da40424734"})-[*0..12]-(t:archimate3_node {identifier:"aac8a16b-bbff-43a1-bba0-e45bf25acc8e"}))
+RETURN path
+28ms
+
+MATCH path=shortestPath((s:archimate3_node {identifier:"afd0ee7d-5365-4d24-a985-89da40424734"})-[*0..12]-(t:archimate3_node {identifier:"a9c1ac88-76c5-49cb-b37b-aad473917a07"}))
+RETURN path
+5ms 
+delivers the wrong shortest path: using the path via the platteau!
+Thus, I have to exclude certain relations that should not be considered OR add a numerical value per relation....
+
+considering direction delivers the right result
+MATCH path=shortestPath((s:archimate3_node {identifier:"afd0ee7d-5365-4d24-a985-89da40424734"})-[*0..12]->(t:archimate3_node {identifier:"a9c1ac88-76c5-49cb-b37b-aad473917a07"}))
+RETURN path
+6ms
+
+lessons learned: add the names of the nodes to the archimate3_node nodes; thus there is no need to query id's first in mongoDB
