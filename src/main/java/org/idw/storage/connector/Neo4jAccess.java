@@ -15,6 +15,8 @@ import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.summary.ResultSummary;
+import org.neo4j.driver.v1.summary.SummaryCounters;
 
 public class Neo4jAccess {
 	private final static Logger LOGGER = Logger.getLogger(Neo4jAccess.class.getName());
@@ -39,6 +41,23 @@ public class Neo4jAccess {
 			}
 		}
 		LOGGER.warning("graph database has been emptied");
+	}
+
+	public int createQuery(String query){
+		int ret = 0;
+		try(Session session = getSession()){
+			try ( Transaction tx = session.beginTransaction() ){
+				StatementResult res = tx.run( query);
+//				ResultSummary resSum = res.consume();
+//				SummaryCounters cnts = resSum.counters();
+//				ret = cnts.nodesCreated();
+//				LOGGER.info("created relations: "+ret);
+
+				tx.success();
+			}
+		}
+		LOGGER.warning("graph database has been emptied");
+		return ret;
 	}
 
 	public void exportTransitions(String filename) throws IOException{

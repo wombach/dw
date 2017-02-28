@@ -73,6 +73,15 @@ public class ParserFactory {
 		return ret;
 	}
 
+	public Object parseJsonString(String str){
+		Object ret = null;
+		for(GenericParser gp: parsers.values()){
+			ret = gp.parseJsonString(str);
+			if (ret!=null) break;
+		}
+		return ret;
+	}
+
 	/**
 	 * derive the file from mongoDB based on the specified query
 	 * @param query

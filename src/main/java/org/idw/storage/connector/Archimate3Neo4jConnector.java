@@ -55,23 +55,7 @@ implements GenericParserStorageConnectorFollower {
 	 */
 	protected String createNodeCreationQuery(JSONObject jsonObject, String type, long time){
 		String uuid = jsonObject.getString("identifier");
-		String name = "";
-		try{
-			JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
-			name = nameObj.getString("value");
-		} catch ( JSONException e){
-			LOGGER.info("node "+uuid+" does not have a name!");
-		}
-		String node_type = jsonObject.getString("type");
-		String ret = "CREATE (n:"+parser.type+":"+parser.type+"_"+type+":"+node_type+
-				"{name:'"+name+"', "+
-				"identifier:'"+uuid+"', "+
-				"modelType:'"+parser.getType()+"', "+
-				"nodeType:'"+node_type+"',"+
-				"startDate:"+time+", "+
-				"endDate: -1 }"+
-				")";
-		return ret;
+		return createNodeCreationQuery(uuid, jsonObject, type, time);
 	}
 
 	protected String createNodeUpdateQuery(JSONObject jsonObject, String type, long time){
@@ -108,12 +92,37 @@ implements GenericParserStorageConnectorFollower {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		Neo4jAccess graph = UIControl.getGraph();
-		String nodeQuery = createNodeCreationQuery(jsonObject, "relation", time);
+		String nodeQuery = createNodeCreationQuery(uuid, jsonObject, "relation", time);
 		graph.insertNode(nodeQuery);
 		String query = createRelationCreationQuery(uuid, jsonObject, sourceUUID, targetUUID, time);
 		graph.insertRelation(query);
 
 		// missing handling of updates
+	}
+
+	private String createNodeCreationQuery(String uuid, JSONObject jsonObject, String type, long time) {
+		String name = "";
+		try{
+			JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
+			name = nameObj.getString("value");
+		} catch ( JSONException e){
+			LOGGER.info("node "+uuid+" does not have a name!");
+		}
+		String node_type = jsonObject.getString("type");
+		int rel_weight = Archimate3Relationships.getWeight(node_type);
+
+		String ret = "CREATE (n:"+parser.type+":"+parser.type+"_"+type+":"+node_type+
+				"{name:'"+name+"', "+
+				"identifier:'"+uuid+"', "+
+				"modelType:'"+parser.getType()+"', "+
+				"nodeType:'"+node_type+"',"+
+				"startDate:"+time+", "+
+				"endDate: -1 , ";
+		if(rel_weight > -1){
+			ret+= "relationWeight: "+rel_weight+", ";
+		}
+		ret += "derived: false } )";
+		return ret;
 	}
 
 	protected String createRelationCreationQuery(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
@@ -132,8 +141,6 @@ implements GenericParserStorageConnectorFollower {
 		} catch ( JSONException e){
 			LOGGER.info("node "+uuid+" does not have a name!");
 		}
-		String rel_type = jsonObject.getString("type");
-		int rel_weight = Archimate3Relationships.getWeight(rel_type);
 		String query = "MATCH (s), (t)," +
 				"(rn:"+parser.getType()+"_relation) "+
 				"WHERE s.identifier = '"+sourceUUID+"' AND t.identifier = '"+targetUUID+"' "+

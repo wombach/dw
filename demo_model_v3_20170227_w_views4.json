@@ -1,0 +1,30 @@
+{"model":{"documentation":[{"value":"Part of the Enterprise Architecture exported to XML", "xml_lang":"en"}], "elements"
+:{"element":[{"identifier":"element-8ca01c6d-22ea-e611-9bf8-b808cf3659bc", "name":[{"value":"Business process (2)", 
+"xml_lang":"en"}], "properties":[{"propertyDefinitionRef":"propidWiproDigitalWorkflowStartDate", "value":{"value":0, 
+"xml:lang":"en"}}, {"propertyDefinitionRef":"propidWiproDigitalWorkflowEndDate", "value":{"value":-1, "xml:lang":"en"}}, 
+{"propertyDefinitionRef":"propidWiproDigitalWorkflowIdentifier", "value":{"value":"3d3ffdcf-a5ae-4610-adac-6e80fc33f1bf",
+ "xml:lang":"en"}}], "type":"BusinessProcess"}, {"identifier":"element-8da01c6d-22ea-e611-9bf8-b808cf3659bc", "name":[{
+"value":"Business process", "xml_lang":"en"}], "properties":[{"propertyDefinitionRef":
+"propidWiproDigitalWorkflowStartDate", "value":{"value":0, "xml:lang":"en"}}, {"propertyDefinitionRef":
+"propidWiproDigitalWorkflowEndDate", "value":{"value":-1, "xml:lang":"en"}}, {"propertyDefinitionRef":
+"propidWiproDigitalWorkflowIdentifier", "value":{"value":"239d5600-f793-4b9f-8e1c-9da76da97573", "xml:lang":"en"}}], 
+"type":"BusinessProcess"}]}, "identifier":"model-1", "name":[{"value":"Empty model with total view", "xml_lang":"en"}], 
+"propertyDefinitions":[{"propertyDefinition":[{"identifier":"propidWiproDigitalWorkflowStartDate","propertyType":"number"
+},{"identifier":"propidWiproDigitalWorkflowEndDate","propertyType":"number"},{"identifier":
+"propidWiproDigitalWorkflowIdentifier","propertyType": "string"}]}], "relationships":{"relationship":[{"identifier":
+"relation-94a01c6d-22ea-e611-9bf8-b808cf3659bc", "name":{"value":"", "xml_lang":"en"}, "source":
+"element-8da01c6d-22ea-e611-9bf8-b808cf3659bc", "target":"element-8ca01c6d-22ea-e611-9bf8-b808cf3659bc", "type":"Flow"}, 
+{"identifier":"relation-95a01c6d-22ea-e611-9bf8-b808cf3659bc", "name":{"value":"", "xml_lang":"en"}, "source":
+"element-8da01c6d-22ea-e611-9bf8-b808cf3659bc", "target":"element-8ca01c6d-22ea-e611-9bf8-b808cf3659bc", "type":
+"Triggering"}]}, "version":"1.0", "views":{"diagrams":{"view":[{"connections":[{"identifier":
+"connection-92409c62-fdfc-e611-9bff-28f10e1200c6", "label":"Triggering relation (Business process - Business process 
+(2))", "relationshipRef":"relation-95a01c6d-22ea-e611-9bf8-b808cf3659bc", "source":
+"element-8da01c6d-22ea-e611-9bf8-b808cf3659bc", "target":"element-8ca01c6d-22ea-e611-9bf8-b808cf3659bc"},{"identifier":
+"connection-94409c62-fdfc-e611-9bff-28f10e1200c6", "label":"Flow relation (Business process - Business process (2))", 
+"relationshipRef":"relation-94a01c6d-22ea-e611-9bf8-b808cf3659bc", "source":
+"element-8da01c6d-22ea-e611-9bf8-b808cf3659bc", "target":"element-8ca01c6d-22ea-e611-9bf8-b808cf3659bc"}], "identifier":
+"view-988454a0-23d8-e611-9bf6-b808cf3659bc", "name":"Total view", "nodes":[{"elementRef":
+"element-8da01c6d-22ea-e611-9bf8-b808cf3659bc", "h":159.000, "identifier":"node-82409c62-fdfc-e611-9bff-28f10e1200c6", 
+"label":"Business process", "w":398.995, "x":165.502, "y":491.000}, {"elementRef":
+"element-8ca01c6d-22ea-e611-9bf8-b808cf3659bc", "h":159.000, "identifier":"node-6e409c62-fdfc-e611-9bff-28f10e1200c6", 
+"label":"Business process (2)", "w":398.995, "x":165.502, "y":164.000}], "viewpointRef":"Total view"}]}}}}
