@@ -2,10 +2,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>MongoConnector</groupId>
+	<groupId>iea</groupId>
 	<artifactId>MongoConnector</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
 
 	<name>MongoConnector</name>
 	<url>http://maven.apache.org</url>
@@ -16,11 +15,6 @@
 
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
-		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>eclipselink</artifactId>
-			<version>2.6.0-M3</version>
-		</dependency>
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver</artifactId>
@@ -49,8 +43,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>eclipselink</artifactId>
-			<version>2.5.2</version>
+			<artifactId>org.eclipse.persistence.moxy</artifactId>
+			<version>2.6.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.eclipse.persistence</groupId>
@@ -75,9 +69,9 @@
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.mapdb/mapdb -->
 		<dependency>
-			<groupId>org.mapdb</groupId>
-			<artifactId>mapdb</artifactId>
-			<version>3.0.3</version>
+			<groupId>iea</groupId>
+			<artifactId>ModelParser</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<repositories>

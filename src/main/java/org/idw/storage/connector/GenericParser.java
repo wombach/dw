@@ -1,14 +1,10 @@
 package org.idw.storage.connector;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -17,9 +13,7 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.UUID;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
@@ -40,21 +34,16 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.bson.BSONObject;
 import org.bson.Document;
-import org.eclipse.persistence.jaxb.JAXBContextProperties;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.XML;
-import org.opengroup.xsd.archimate._3.ModelType;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
-
-import disco.ProcessMapType;
 
 public abstract class GenericParser {
 
