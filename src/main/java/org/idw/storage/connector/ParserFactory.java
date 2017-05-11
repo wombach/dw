@@ -73,6 +73,15 @@ public class ParserFactory {
 		return ret;
 	}
 
+	public Object parseJsonString(String str){
+		Object ret = null;
+		for(GenericParser gp: parsers.values()){
+			ret = gp.parseJsonString(str);
+			if (ret!=null) break;
+		}
+		return ret;
+	}
+
 	/**
 	 * derive the file from mongoDB based on the specified query
 	 * @param query
@@ -132,8 +141,8 @@ public class ParserFactory {
 		return storage.insertNodeDocument(parser, n, time);
 	}
 
-	public Document insertRelationDocument(GenericParser parser, JSONObject rel, String sourceUUID, String targetUUID, long time) {
-		return storage.insertRelationDocument(parser, rel, sourceUUID, targetUUID, time) ;
+	public Document insertRelationDocument(GenericParser parser, String uuid, JSONObject rel, String sourceUUID, String targetUUID, long time) {
+		return storage.insertRelationDocument(parser, uuid, rel, sourceUUID, targetUUID, time) ;
 	}
 
 }

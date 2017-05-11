@@ -3,6 +3,7 @@ package org.idw.storage.connector;
 import java.io.ByteArrayInputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -543,6 +544,7 @@ public class Archimate3Parser extends GenericParser {
 			// nodes
 			JSONObject els =  obj.getJSONObject("elements");
 			JSONArray l = els.getJSONArray("element");
+			LOGGER.info("number of lements: "+l.length());
 			els.remove("element");
 			for(int i=0;i<l.length();i++){
 				JSONObject n = l.getJSONObject(i);
@@ -554,36 +556,57 @@ public class Archimate3Parser extends GenericParser {
 			// relations
 			JSONObject rels =  obj.getJSONObject("relationships");
 			l = rels.getJSONArray("relationship");
-			rels.remove("relationship");
-			Vector<JSONObject> v = new Vector<JSONObject>();
-			Vector<String> relIds = new Vector<String>();
+			LOGGER.info("number of relationships: "+l.length());
+			rels.remove("relationship"); 
+			Vector<JSONObject> v;
+			Vector<JSONObject> v2 = new Vector<JSONObject>();
+			HashMap<String,String> relIds = new HashMap<String,String>();
 			for(int i=0;i<l.length();i++){
 				JSONObject rel = l.getJSONObject(i);
 				String identifier = rel.getString("identifier");
-				relIds.add(identifier);
-				v.add(rel);
+//				if (identifier.equals("relation-fcdb1ce9-89c7-e611-8309-5ce0c5d8efd6")){
+//					LOGGER.info("found it");
+//				}
+				relIds.put(identifier, UUID.randomUUID().toString());
+				v2.add(rel);
 			}
-			while(!v.isEmpty()){
-				int i = (int) (Math.random() * v.size());
-				JSONObject rel = v.remove(i);
-				String identifier = rel.getString("identifier");
-				String source = rel.getString("source");
-				String target = rel.getString("target");
-				String sourceUUID = map.get(source);
-				String targetUUID = map.get(target);
-				if (sourceUUID==null || sourceUUID.isEmpty() || 
-						targetUUID==null || targetUUID.isEmpty()){
-					if(sourceUUID == null && !relIds.contains(source)){
-						retMsg += "Relation "+identifier+" related source ID can not be found: "+source+"\n";
-					} else if(targetUUID==null && !relIds.contains(target)){
-						retMsg += "Relation "+identifier+" related target ID can not be found: "+target+"\n";
+			while(!v2.isEmpty()){
+				v = v2;
+				v2 = new Vector<JSONObject>();
+				while(!v.isEmpty()){
+					int i = (int) (Math.random() * v.size());
+					JSONObject rel = v.remove(i);
+					String identifier = rel.getString("identifier");
+//					if (identifier.equals("relation-f41438e9-89c7-e611-8309-5ce0c5d8efd6")){
+//						LOGGER.info("found it");
+//					}
+						String source = rel.getString("source");
+					String target = rel.getString("target");
+					String sourceUUID = map.get(source);
+					if(sourceUUID==null){
+						if(relIds.containsKey(source)){
+							sourceUUID = relIds.get(source);
+						}
+					}
+					String targetUUID = map.get(target);
+					if(targetUUID==null){
+						if(relIds.containsKey(target)){
+							targetUUID = relIds.get(target);
+						}
+					}
+					if (sourceUUID==null || sourceUUID.isEmpty() || 
+							targetUUID==null || targetUUID.isEmpty()){
+						String type = rel.getString("type");
+						if(sourceUUID == null){
+							retMsg += "Relation "+identifier+" ("+type+") related source ID can not be found: "+source+"\n";
+						} else if(targetUUID==null){
+							retMsg += "Relation "+identifier+" ("+type+") related target ID can not be found: "+target+"\n";
+						} 
 					} else {
-						v.add(rel);
-					} 
-				} else {
-					Document doc = factory.insertRelationDocument(this, rel, sourceUUID, targetUUID, time);
-					String uuid = getUUID(doc);
-					map.put(identifier, uuid);
+						String uuid = relIds.get(identifier);
+						Document doc = factory.insertRelationDocument(this, uuid, rel, sourceUUID, targetUUID, time);
+//						map.put(identifier, uuid);
+					}
 				}
 			}
 			// files

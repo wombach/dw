@@ -15,6 +15,8 @@ import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.summary.ResultSummary;
+import org.neo4j.driver.v1.summary.SummaryCounters;
 
 public class Neo4jAccess {
 	private final static Logger LOGGER = Logger.getLogger(Neo4jAccess.class.getName());
@@ -39,6 +41,23 @@ public class Neo4jAccess {
 			}
 		}
 		LOGGER.warning("graph database has been emptied");
+	}
+
+	public int createQuery(String query){
+		int ret = 0;
+		try(Session session = getSession()){
+			try ( Transaction tx = session.beginTransaction() ){
+				StatementResult res = tx.run( query);
+//				ResultSummary resSum = res.consume();
+//				SummaryCounters cnts = resSum.counters();
+//				ret = cnts.nodesCreated();
+//				LOGGER.info("created relations: "+ret);
+
+				tx.success();
+			}
+		}
+		LOGGER.warning("graph database has been emptied");
+		return ret;
 	}
 
 	public void exportTransitions(String filename) throws IOException{
@@ -76,7 +95,40 @@ public class Neo4jAccess {
 		session.close();
 		fw.close();
 	}
-	
+
+	public void exportTransitionClass(String filename) throws IOException{
+		Session session = getSession();
+		FileWriter fw = new FileWriter(filename);
+		StatementResult result = session.run( "MATCH (s)-[r1:archimate3_is_source]->(r)-[r2:archimate3_has_target]->(t)"+
+			"RETURN s.nodeType as sourceNode,r.nodeType as relationNode,t.nodeType as targetNode, count(*) as cnt" );
+		while ( result.hasNext() )
+		{
+		    Record record = result.next();
+		    System.out.println( record.get( "sourceNode" ).asString() + "," + record.get( "relationNode" ).asString()+
+		    		"," + record.get( "targetNode" ).asString()+"," + record.get( "cnt" ).asInt());
+		    fw.write( record.get( "sourceNode" ).asString() + "," + record.get( "targetNode" ).asString()+
+		    		"," + record.get( "relationNode" ).asString()+"," + record.get( "cnt" ).asInt()+"\n");
+		}
+		session.close();
+		fw.close();
+	}
+
+	public void exportNodeClass(String filename) throws IOException{
+		Session session = getSession();
+		FileWriter fw = new FileWriter(filename);
+		StatementResult result = session.run( "MATCH (n:archimate3) RETURN n.nodeType as type, count(*) as cnt;" );
+		while ( result.hasNext() )
+		{
+		    Record record = result.next();
+		    System.out.println( record.get( "type" ).asString()+
+		    		"," + record.get( "cnt" ).asInt());
+		    fw.write( record.get( "type" ).asString()+
+		    		"," + record.get( "cnt" ).asInt()+"\n");
+		}
+		session.close();
+		fw.close();
+	}
+
 	public void insertContent(JAXBElement content) {
 		try(Session session = getSession()){
 			try ( Transaction tx = session.beginTransaction() ){

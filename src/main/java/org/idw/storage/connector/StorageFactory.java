@@ -57,14 +57,14 @@ public class StorageFactory {
 		return ret.getDoc();
 	}
 
-	public Document insertRelationDocument(GenericParser parser, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public Document insertRelationDocument(GenericParser parser, String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertRelationDocumentManager(jsonObject, sourceUUID, targetUUID, time);
+				ret = v.insertRelationDocumentManager(uuid, jsonObject, sourceUUID, targetUUID, time);
 			} else { 
-				v.insertRelationDocumentFollower(jsonObject, sourceUUID, targetUUID, time);
+				v.insertRelationDocumentFollower(uuid, jsonObject, sourceUUID, targetUUID, time);
 			}
 		}
 		return ret.getDoc();
