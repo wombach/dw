@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser;
 
 import java.util.Date;
 import java.util.logging.Logger;
@@ -9,6 +9,7 @@ public class BPMNParser extends GenericParser{
 	private final static Logger LOGGER = Logger.getLogger(BPMNParser.class.getName());
 	public final static String URI = "http://org.omg.spec.bpmn._20100524.model";
 
+	public final long TIME = 0;
 	public BPMNParser(){
 		type = "bpmn";
 	}
@@ -83,6 +84,24 @@ public class BPMNParser extends GenericParser{
 	public String deriveJsonString(Date date) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Object parseXmlString(String str) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object parseJsonString(String str) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean storeObject(Object elm) {
+		// TODO Auto-generated method stub
+		return false;
 	} 
 
 

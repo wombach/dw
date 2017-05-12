@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser.storage;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -11,11 +11,14 @@ import javax.xml.bind.JAXBElement;
 
 import org.bson.BSONObject;
 import org.bson.Document;
+import org.iea.connector.storage.MongoDBAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+
+import UIControl;
 
 public class Archimate3MongoDBConnector extends GenericParserStorageConnector 
 implements GenericParserStorageConnectorManager {
@@ -32,7 +35,11 @@ implements GenericParserStorageConnectorManager {
 	public final static String DOC_ID = "id";
 	public final static String DOC_COMPARISON_STRING = "comparison_string";
 	public static final String DOC_HASH = "hash";
-
+	private MongoDBAccess mongo ;
+	
+	public Archimate3MongoDBConnector(){
+		MongoDBAccess mongo = new MongoDBAccess();
+	}
 	public Document enrichDocument( JSONObject obj, long time, String compStr, int hash){
 		String uuid = UUID.randomUUID().toString();
 		obj.remove("identifier");
@@ -59,7 +66,7 @@ implements GenericParserStorageConnectorManager {
 		}
 
 		Document doc = new Document(DOC_NAME, DOC_NAME_NODE)
-				.append(DOC_TYPE, parser.type)
+				.append(DOC_TYPE, parser.getType())
 				.append(DOC_ID, uuid)
 				.append(DOC_START_DATE, time)
 				.append(DOC_END_DATE, -1L)
@@ -73,7 +80,7 @@ implements GenericParserStorageConnectorManager {
 		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
 		String name = nameObj.getString("value");
 		String node_type = jsonObject.getString("type");
-		return parser.type+"|"+node_type+"|"+name.toString();
+		return parser.getType()+"|"+node_type+"|"+name.toString();
 	}
 
 	protected int getNodeHash(JSONObject jsonObject) {
@@ -86,7 +93,7 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public GenericStorageResult insertNodeDocument(JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
-		MongoDBAccess mongo = UIControl.getMongo();
+		
 		int hash = parser.getNodeHash(jsonObject);
 		Document doc = null;
 		GenericStorageResult ret = new GenericStorageResult();

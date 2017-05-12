@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,6 +36,8 @@ import org.bson.BSONObject;
 import org.bson.Document;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
+import org.iea.connector.storage.MongoDBAccess;
+import org.iea.connector.storage.MongoDBSingleton;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Element;
@@ -121,12 +123,12 @@ public abstract class GenericParser {
 
 	public Document insertNodeDocument(JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
-		MongoDBAccess mongo = UIControl.getMongo();
+		//MongoDBAccess mongo = new MongoDBAccess();
 		int hash = getNodeHash(jsonObject);
 		Document doc = null;
 		boolean insert = false;
 //		long time = System.currentTimeMillis();
-		FindIterable<Document> docs = mongo.queryDocument(MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
+		FindIterable<Document> docs = mongo.queryDocument(org.iea.connector.storage.MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
 		if(docs !=null && docs.iterator()!=null && docs.iterator().hasNext()){
 			LOGGER.warning("the document to be inserted has at least one element in the collection with the same comparison string");
 			MongoCursor<Document> it = docs.iterator();
@@ -170,7 +172,6 @@ public abstract class GenericParser {
 		Document doc = enrichDocument( jsonObject,time, compStr, hash);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
-		MongoDBAccess mongo = UIControl.getMongo();
 		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
 		// missing handling of updates
 		return doc;
@@ -183,14 +184,14 @@ public abstract class GenericParser {
 		String compStr = getFileComparisonString(obj);
 		int hash = getFileHash(obj);
 		Document doc = enrichDocument( obj, time, compStr, hash);
-		MongoDBAccess mongo = UIControl.getMongo();
+//		MongoDBAccess mongo = UIControl.getMongo();
 		mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
 		// missing handling of updates
 		return doc;
 	}
 
 	public FindIterable<Document> queryDocument(String col, Date date){
-		MongoDBAccess mongo = UIControl.getMongo();
+//		MongoDBAccess mongo = UIControl.getMongo();
 		return mongo.queryDocument(col, DOC_TYPE, type, date);
 	}
 

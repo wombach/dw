@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.storage;
 
 import static org.neo4j.driver.v1.Values.parameters;
 
@@ -21,15 +21,8 @@ import org.neo4j.driver.v1.summary.SummaryCounters;
 public class Neo4jAccess {
 	private final static Logger LOGGER = Logger.getLogger(Neo4jAccess.class.getName());
 
-	private Driver driver = null;
-
 	public Session getSession(){
-		Session session = null;
-		if(driver==null){
-			driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "wipro@123" ) );
-		}
-		session = driver.session();
-		return session;
+		return Neo4jSingleton.getSession();
 	}
 
 	public void emptyDatabase(){
@@ -154,7 +147,7 @@ public class Neo4jAccess {
 			}
 		}
 
-		driver.close();
+		//driver.close();
 
 	}	
 	

@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser.storage;
 
 public enum Archimate3Relationships {
 	INFLUENCE (1,"influence"),

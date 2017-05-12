@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser.storage;
 
 import org.bson.Document;
 

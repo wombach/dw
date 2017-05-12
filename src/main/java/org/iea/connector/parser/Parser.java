@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser;
 
 import java.io.BufferedReader;
 import java.io.File;

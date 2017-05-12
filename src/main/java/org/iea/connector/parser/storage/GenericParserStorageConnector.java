@@ -1,10 +1,11 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser.storage;
 
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBElement;
 
 import org.bson.Document;
+import org.iea.connector.parser.GenericParser;
 import org.json.JSONObject;
 
 public abstract class GenericParserStorageConnector {
@@ -12,11 +13,11 @@ public abstract class GenericParserStorageConnector {
 
 	protected GenericParser parser;
 		
-	protected GenericParser getParser(){
+	public GenericParser getParser(){
 		return parser;
 	}
 	
-	protected void setParser(GenericParser parser){
+	public void setParser(GenericParser parser){
 		this.parser = parser;
 	}
 	

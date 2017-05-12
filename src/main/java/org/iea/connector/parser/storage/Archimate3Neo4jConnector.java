@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser.storage;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -10,12 +10,15 @@ import javax.xml.bind.JAXBElement;
 
 import org.bson.BSONObject;
 import org.bson.Document;
+import org.iea.connector.storage.Neo4jAccess;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+
+import UIControl;
 
 public class Archimate3Neo4jConnector extends GenericParserStorageConnector 
 implements GenericParserStorageConnectorFollower {

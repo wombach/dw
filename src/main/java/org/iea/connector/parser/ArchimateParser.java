@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -6,6 +6,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import org.bson.Document;
+import org.iea.connector.storage.MongoDBAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.opengroup.xsd.archimate.ModelType;
@@ -40,7 +41,7 @@ public class ArchimateParser extends GenericParser {
 				JSONArray l = els.getJSONArray("element");
 				els.remove("element");
 				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i));
+					Document doc = insertNodeDocument(l.getJSONObject(i),0);
 					String uuid = getUUID(doc);
 					String identifier = l.getJSONObject(i).getString("identifier");
 					map.put(identifier, uuid);
@@ -56,13 +57,13 @@ public class ArchimateParser extends GenericParser {
 					String target = rel.getString("target");
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, null);
+					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, 0);
 					String uuid = getUUID(doc);
 					map.put(identifier, uuid);
 				}
 				// files
 				//			Document doc = 
-				insertFileDocument(xmlJSONObj);
+				insertFileDocument(xmlJSONObj,0);
 		//	}
 		}
 		return ret;
@@ -227,7 +228,7 @@ public class ArchimateParser extends GenericParser {
 				JSONArray l = els.getJSONArray("element");
 				els.remove("element");
 				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i));
+					Document doc = insertNodeDocument(l.getJSONObject(i),0);
 					String uuid = getUUID(doc);
 					String identifier = l.getJSONObject(i).getString("identifier");
 					map.put(identifier, uuid);
@@ -243,13 +244,13 @@ public class ArchimateParser extends GenericParser {
 					String target = rel.getString("target");
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, null);
+					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, 0);
 					String uuid = getUUID(doc);
 					map.put(identifier, uuid);
 				}
 				// files
 				//			Document doc = 
-				insertFileDocument(xmlJSONObj);
+				insertFileDocument(xmlJSONObj,0);
 		//	}
 		}
 		return ret;
@@ -308,6 +309,24 @@ public class ArchimateParser extends GenericParser {
 	public String deriveJsonString(Date date) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Object parseXmlString(String str) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object parseJsonString(String str) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean storeObject(Object elm) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -6,6 +6,9 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import org.bson.Document;
+import org.iea.connector.parser.storage.GenericParserStorageConnector;
+import org.iea.connector.storage.StorageFactory;
+import org.iea.connector.storage.StorageRegistrationException;
 import org.json.JSONObject;
 
 /**

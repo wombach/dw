@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+package org.iea.connector.parser;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -6,6 +6,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import org.bson.Document;
+import org.iea.connector.storage.MongoDBAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -18,7 +19,8 @@ public class DiscoResultParser extends GenericParser {
 
 	private final static Logger LOGGER = Logger.getLogger(DiscoResultParser.class.getName());
 	public final static String URI = "http://fluxicon.com";
-
+	public final long TIME = 0;
+	
 	public DiscoResultParser(){
 		this.type = "disco";
 		this.CONTEXT = "disco";
@@ -42,7 +44,7 @@ public class DiscoResultParser extends GenericParser {
 				JSONArray l = els.getJSONArray("Node");
 				els.remove("Node");
 				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i));
+					Document doc = insertNodeDocument(l.getJSONObject(i),TIME);
 					String uuid = getUUID(doc);
 					String identifier = Integer.toString(l.getJSONObject(i).getInt("index"));
 					map.put(identifier, uuid);
@@ -58,13 +60,13 @@ public class DiscoResultParser extends GenericParser {
 					String target = Integer.toString(rel.getInt("targetIndex"));
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, null);
+					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, TIME);
 					String uuid = getUUID(doc);
 					//map.put(identifier, uuid);
 				}
 				// files
 				//			Document doc = 
-				insertFileDocument(xmlJSONObj);
+				insertFileDocument(xmlJSONObj,TIME);
 			}
 		}
 		return ret;
@@ -271,6 +273,24 @@ public class DiscoResultParser extends GenericParser {
 	public String deriveJsonString(Date date) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Object parseXmlString(String str) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object parseJsonString(String str) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean storeObject(Object elm) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

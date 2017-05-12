@@ -1,8 +1,12 @@
-package org.idw.storage.connector;
+package org.iea.connector.storage;
 
 import java.util.logging.Logger;
 
 import org.bson.Document;
+import org.iea.connector.parser.storage.GenericParserStorageConnector;
+import org.iea.connector.parser.storage.GenericParserStorageConnectorFollower;
+import org.iea.connector.parser.storage.GenericParserStorageConnectorManager;
+import org.iea.connector.parser.storage.GenericStorageResult;
 import org.json.JSONObject;
 
 public class StorageConnectorContainer {

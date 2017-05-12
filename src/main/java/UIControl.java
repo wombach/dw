@@ -1,4 +1,4 @@
-package org.idw.storage.connector;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,6 +7,14 @@ import java.nio.file.Paths;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.bson.Document;
+import org.iea.connector.parser.Archimate3Parser;
+import org.iea.connector.parser.GenericParser;
+import org.iea.connector.parser.ParserFactory;
+import org.iea.connector.parser.storage.Archimate3MongoDBConnector;
+import org.iea.connector.parser.storage.GenericParserStorageConnector;
+import org.iea.connector.storage.MongoDBAccess;
+import org.iea.connector.storage.Neo4jAccess;
+import org.iea.connector.storage.StorageRegistrationException;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.summary.ResultSummary;
 import org.neo4j.driver.v1.summary.SummaryCounters;
@@ -103,7 +111,7 @@ public class UIControl {
 					"(r2:archimate3_relation)-->(c:archimate3_node)) where a.nodeType <> 'Plateau' AND b.nodeType <> 'Plateau' AND c.nodeType <> 'Plateau' AND r1.relationWeight < 99 AND r2.relationWeight < 99 "+ 
 					"create d = (a)-[dr1:archimate3_is_source]->(dn:archimate3_relation {modelType:'archimate3',"+
 					"nodeType:case when r1.relationWeight< r2.relationWeight then r1.nodeType else r2.nodeType end,"+
-					"relationWeight: case when r1.relationWeight< r2.relationWeight then r1.relationWeight else r2.relationWeight end, derived:true}) –[dr2:archimate3_has_target]->(c);";
+					"relationWeight: case when r1.relationWeight< r2.relationWeight then r1.relationWeight else r2.relationWeight end, derived:true}) ï¿½[dr2:archimate3_has_target]->(c);";
 			String query2 = "match p=((a:archimate3_node)-->(r1:archimate3_relation)-->(b:archimate3_node)--> "+
 					"(r2:archimate3_relation)-->(c:archimate3_node)) where a.nodeType <> 'Plateau' AND b.nodeType <> 'Plateau' AND c.nodeType <> 'Plateau' AND r1.relationWeight < 99 AND r2.relationWeight < 99 "+ 
 					"create (dn:archimate3_relation_derived {modelType:'archimate3',"+
@@ -147,7 +155,7 @@ public class UIControl {
 		//		u.registerParser("disco", new DiscoResultParser());
 
 		// insert an archimate file into mongoDB
-		//		mongo.dropCollections();
+				mongo.dropCollections();
 		//		graph.emptyDatabase();
 
 		//		Neo4jAccess ne = new Neo4jAccess();
@@ -165,12 +173,12 @@ public class UIControl {
 		//				boolean r = u.parseJsonString(jsonStr);
 
 
-		String json = u.readFile("demo_model_v3_20170227_w_views4.json");
+		// String json = u.readFile("demo_model_v3_20170227_w_views4.json");
 		//		String json = u.readFile("demo_model_v3_20170222.json");
-		u.parseJsonString(json);
+		// u.parseJsonString(json);
 
-		//		String json = u.readFile("demo_model_v3_20170222.json");
-		//		u.processJsonString(json);
+				String json = u.readFile("demo_model_v3_20170222.json");
+				u.processJsonString(json);
 
 		//		u.deriveRelations();
 
