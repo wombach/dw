@@ -27,13 +27,13 @@ public class BPMNParser extends GenericParser{
 
 
 	@Override
-	protected String getNodeComparisonString(JSONObject jsonObject) {
+	public String getNodeComparisonString(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected int getNodeHash(JSONObject jsonObject) {
+	public int getNodeHash(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

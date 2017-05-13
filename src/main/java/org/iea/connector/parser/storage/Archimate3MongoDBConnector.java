@@ -18,8 +18,6 @@ import org.json.JSONObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
-import UIControl;
-
 public class Archimate3MongoDBConnector extends GenericParserStorageConnector 
 implements GenericParserStorageConnectorManager {
 	private final static Logger LOGGER = Logger.getLogger(Archimate3MongoDBConnector.class.getName());
@@ -40,6 +38,7 @@ implements GenericParserStorageConnectorManager {
 	public Archimate3MongoDBConnector(){
 		MongoDBAccess mongo = new MongoDBAccess();
 	}
+	
 	public Document enrichDocument( JSONObject obj, long time, String compStr, int hash){
 		String uuid = UUID.randomUUID().toString();
 		obj.remove("identifier");
@@ -155,7 +154,6 @@ implements GenericParserStorageConnectorManager {
 		Document doc = enrichDocument( jsonObject,time, compStr, hash);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
-		MongoDBAccess mongo = UIControl.getMongo();
 		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();

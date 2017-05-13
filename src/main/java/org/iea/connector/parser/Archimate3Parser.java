@@ -338,7 +338,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	protected String getNodeComparisonString(JSONObject jsonObject) {
+	public String getNodeComparisonString(JSONObject jsonObject) {
 		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
 		String name = nameObj.getString("value");
 		String node_type = jsonObject.getString("type");
@@ -346,7 +346,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	protected int getNodeHash(JSONObject jsonObject) {
+	public int getNodeHash(JSONObject jsonObject) {
 		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
 		jsonDoc.removeField("identifier");
 		return jsonDoc.hashCode();

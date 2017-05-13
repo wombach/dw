@@ -118,81 +118,85 @@ public abstract class GenericParser {
 		return doc;
 	}
 
-	abstract protected String getNodeComparisonString(JSONObject jsonObject);
-	abstract protected int getNodeHash(JSONObject jsonObject);
+	abstract public String getNodeComparisonString(JSONObject jsonObject);
+	abstract public int getNodeHash(JSONObject jsonObject);
 
 	public Document insertNodeDocument(JSONObject jsonObject, long time) {
-		String compStr = getNodeComparisonString(jsonObject);
-		//MongoDBAccess mongo = new MongoDBAccess();
-		int hash = getNodeHash(jsonObject);
-		Document doc = null;
-		boolean insert = false;
-//		long time = System.currentTimeMillis();
-		FindIterable<Document> docs = mongo.queryDocument(org.iea.connector.storage.MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
-		if(docs !=null && docs.iterator()!=null && docs.iterator().hasNext()){
-			LOGGER.warning("the document to be inserted has at least one element in the collection with the same comparison string");
-			MongoCursor<Document> it = docs.iterator();
-			doc = it.next();
-			if(it.hasNext()) {
-				LOGGER.severe("Comparison strings are supposed to be unique! The database is corrupted!");
-			}
-			String uuid = doc.getString(DOC_ID);
-			int docHash = doc.getInteger(DOC_HASH, 0);
-			if(hash!=docHash) {
-				insert = true;
-				// update existing node by marking it as expired
-
-				// check whether the update is allowed or whether there is a conflict!
-				// a version conflict exists if the end date in the document to be updated is not -1
-				if(doc.getLong(DOC_END_DATE)==-1){
-					mongo.updateDocument(MongoDBAccess.COLLECTION_NODES, DOC_ID, uuid, DOC_END_DATE, time);
-				} else {
-					LOGGER.severe("there is a conflict in the versions); the update has not been completed.");
-				}
-			}
-
-		} else {
-			LOGGER.warning("the document to be inserted is not known to the collection");
-			insert = true;
-		}
-		if (insert){
-			doc = enrichDocument( jsonObject, time, compStr, hash);
-			mongo.insertDocument(MongoDBAccess.COLLECTION_NODES, doc);
-			LOGGER.info("the document has been inserted");
-		} else LOGGER.info("no update was necessary");
-		return doc;
+//		String compStr = getNodeComparisonString(jsonObject);
+//		//MongoDBAccess mongo = new MongoDBAccess();
+//		int hash = getNodeHash(jsonObject);
+//		Document doc = null;
+//		boolean insert = false;
+////		long time = System.currentTimeMillis();
+//		FindIterable<Document> docs = mongo.queryDocument(org.iea.connector.storage.MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
+//		if(docs !=null && docs.iterator()!=null && docs.iterator().hasNext()){
+//			LOGGER.warning("the document to be inserted has at least one element in the collection with the same comparison string");
+//			MongoCursor<Document> it = docs.iterator();
+//			doc = it.next();
+//			if(it.hasNext()) {
+//				LOGGER.severe("Comparison strings are supposed to be unique! The database is corrupted!");
+//			}
+//			String uuid = doc.getString(DOC_ID);
+//			int docHash = doc.getInteger(DOC_HASH, 0);
+//			if(hash!=docHash) {
+//				insert = true;
+//				// update existing node by marking it as expired
+//
+//				// check whether the update is allowed or whether there is a conflict!
+//				// a version conflict exists if the end date in the document to be updated is not -1
+//				if(doc.getLong(DOC_END_DATE)==-1){
+//					mongo.updateDocument(MongoDBAccess.COLLECTION_NODES, DOC_ID, uuid, DOC_END_DATE, time);
+//				} else {
+//					LOGGER.severe("there is a conflict in the versions); the update has not been completed.");
+//				}
+//			}
+//
+//		} else {
+//			LOGGER.warning("the document to be inserted is not known to the collection");
+//			insert = true;
+//		}
+//		if (insert){
+//			doc = enrichDocument( jsonObject, time, compStr, hash);
+//			mongo.insertDocument(MongoDBAccess.COLLECTION_NODES, doc);
+//			LOGGER.info("the document has been inserted");
+//		} else LOGGER.info("no update was necessary");
+//		return doc;
+		return null;
 	}
 
 	abstract protected String getRelationComparisonString(JSONObject jsonObject);
 	abstract protected int getRelationHash(JSONObject jsonObject);
 
 	public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
-		String compStr = getRelationComparisonString(jsonObject);
-		int hash = getRelationHash(jsonObject);
-		Document doc = enrichDocument( jsonObject,time, compStr, hash);
-		doc.append("sourceUUID", sourceUUID)
-		.append("targetUUID", targetUUID);
-		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
-		// missing handling of updates
-		return doc;
+//		String compStr = getRelationComparisonString(jsonObject);
+//		int hash = getRelationHash(jsonObject);
+//		Document doc = enrichDocument( jsonObject,time, compStr, hash);
+//		doc.append("sourceUUID", sourceUUID)
+//		.append("targetUUID", targetUUID);
+//		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
+//		// missing handling of updates
+//		return doc;
+		return null;
 	}
 
 	abstract protected String getFileComparisonString(JSONObject jsonObject);
 	abstract protected int getFileHash(JSONObject jsonObject);
 
 	public Document insertFileDocument(JSONObject obj, long time) {
-		String compStr = getFileComparisonString(obj);
-		int hash = getFileHash(obj);
-		Document doc = enrichDocument( obj, time, compStr, hash);
-//		MongoDBAccess mongo = UIControl.getMongo();
-		mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
-		// missing handling of updates
-		return doc;
+//		String compStr = getFileComparisonString(obj);
+//		int hash = getFileHash(obj);
+//		Document doc = enrichDocument( obj, time, compStr, hash);
+////		MongoDBAccess mongo = UIControl.getMongo();
+//		mongo.insertDocument(MongoDBAccess.COLLECTION_FILES, doc);
+//		// missing handling of updates
+//		return doc;
+		return null;
 	}
 
 	public FindIterable<Document> queryDocument(String col, Date date){
-//		MongoDBAccess mongo = UIControl.getMongo();
-		return mongo.queryDocument(col, DOC_TYPE, type, date);
+////		MongoDBAccess mongo = UIControl.getMongo();
+//		return mongo.queryDocument(col, DOC_TYPE, type, date);
+		return null;
 	}
 
 

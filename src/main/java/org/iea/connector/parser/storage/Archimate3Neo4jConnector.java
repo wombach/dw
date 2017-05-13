@@ -18,8 +18,6 @@ import org.json.JSONObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
-import UIControl;
-
 public class Archimate3Neo4jConnector extends GenericParserStorageConnector 
 implements GenericParserStorageConnectorFollower {
 	private final static Logger LOGGER = Logger.getLogger(Archimate3Neo4jConnector.class.getName());
@@ -36,12 +34,17 @@ implements GenericParserStorageConnectorFollower {
 	public final static String DOC_COMPARISON_STRING = "comparison_string";
 	public static final String DOC_HASH = "hash";
 
-
+	Neo4jAccess graph = null;
+	
+	public Archimate3Neo4jConnector(){
+		graph = new Neo4jAccess();
+	}
+	
 	protected String getNodeComparisonString(JSONObject jsonObject) {
 		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
 		String name = nameObj.getString("value");
 		String node_type = jsonObject.getString("type");
-		return parser.type+"|"+node_type+"|"+name.toString();
+		return parser.getType()+"|"+node_type+"|"+name.toString();
 	}
 
 	protected int getNodeHash(JSONObject jsonObject) {
@@ -66,7 +69,7 @@ implements GenericParserStorageConnectorFollower {
 		String name = nameObj.getString("value");
 		String uuid = jsonObject.getString("identifier");
 		String node_type = jsonObject.getString("type");
-		String ret = "CREATE (n:"+parser.type+":"+parser.type+"_"+type+":"+node_type+
+		String ret = "CREATE (n:"+parser.getType()+":"+parser.getType()+"_"+type+":"+node_type+
 				"{name:'"+name.toString()+"' , "+
 				"identifier:'"+uuid+"', "+
 				"modelType:'"+parser.getType()+"', "+
@@ -80,7 +83,7 @@ implements GenericParserStorageConnectorFollower {
 	@Override
 	public void insertNodeDocument(JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
-		Neo4jAccess graph = UIControl.getGraph();
+//		Neo4jAccess graph = UIControl.getGraph();
 		String query = createNodeCreationQuery(jsonObject, "node", time);
 		graph.insertNode(query);
 	}
@@ -94,7 +97,6 @@ implements GenericParserStorageConnectorFollower {
 	public void insertRelationDocument(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
-		Neo4jAccess graph = UIControl.getGraph();
 		String nodeQuery = createNodeCreationQuery(uuid, jsonObject, "relation", time);
 		graph.insertNode(nodeQuery);
 		String query = createRelationCreationQuery(uuid, jsonObject, sourceUUID, targetUUID, time);
@@ -114,7 +116,7 @@ implements GenericParserStorageConnectorFollower {
 		String node_type = jsonObject.getString("type");
 		int rel_weight = Archimate3Relationships.getWeight(node_type);
 
-		String ret = "CREATE (n:"+parser.type+":"+parser.type+"_"+type+":"+node_type+
+		String ret = "CREATE (n:"+parser.getType()+":"+parser.getType()+"_"+type+":"+node_type+
 				"{name:'"+name+"', "+
 				"identifier:'"+uuid+"', "+
 				"modelType:'"+parser.getType()+"', "+
