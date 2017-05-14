@@ -1,5 +1,6 @@
 package org.iea.connector.storage;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
@@ -71,6 +72,15 @@ public class StorageFactory {
 			}
 		}
 		return ret.getDoc();
+	}
+
+	public void dropDB() {
+		Collection<Vector<StorageConnectorContainer>> vec = storage.values();
+		for(Vector<StorageConnectorContainer> vv:vec){
+			for(StorageConnectorContainer v:vv ){
+				v.dropDB();
+			}
+		}
 	} 	
 	
 }

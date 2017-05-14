@@ -36,7 +36,7 @@ implements GenericParserStorageConnectorManager {
 	private MongoDBAccess mongo ;
 	
 	public Archimate3MongoDBConnector(){
-		MongoDBAccess mongo = new MongoDBAccess();
+		mongo = new MongoDBAccess();
 	}
 	
 	public Document enrichDocument( JSONObject obj, long time, String compStr, int hash){
@@ -170,5 +170,10 @@ implements GenericParserStorageConnectorManager {
 
 	public void updateNodeDocument(JSONObject jsonObject, long time) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void dropDB() {
+		mongo.dropCollections();
 	} 
 }

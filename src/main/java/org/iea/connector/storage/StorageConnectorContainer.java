@@ -59,4 +59,14 @@ public class StorageConnectorContainer {
 			((GenericParserStorageConnectorFollower) connector).updateNodeDocument(jsonObject, time);
 		} 
 	}
+
+	public void dropDB() {
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).dropDB();
+		} else 
+			if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+				((GenericParserStorageConnectorManager) connector).dropDB();
+			} 
+			
+	}
 }

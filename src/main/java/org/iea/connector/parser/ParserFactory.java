@@ -31,6 +31,10 @@ public class ParserFactory {
 		gp.setFactory(this);
 	}
 
+	public void dropDB(){
+		storage.dropDB();
+	}
+	
 	/**
 	 * find the right parser and parse a particular file.
 	 * Store to mongoDB??? 

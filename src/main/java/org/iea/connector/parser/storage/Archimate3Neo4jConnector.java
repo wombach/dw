@@ -177,5 +177,10 @@ implements GenericParserStorageConnectorFollower {
 	public void updateRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void dropDB() {
+		graph.emptyDatabase();
 	} 
 }

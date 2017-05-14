@@ -13,4 +13,6 @@ public interface GenericParserStorageConnectorFollower  {
 
 	public void updateRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) ;
 
+	public void dropDB();
+
 }

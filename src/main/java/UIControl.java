@@ -29,8 +29,8 @@ import java.util.logging.Logger;
 public class UIControl {
 
 	private final static Logger LOGGER = Logger.getLogger(UIControl.class.getName());
-	private static MongoDBAccess mongo = new MongoDBAccess();
-	private static Neo4jAccess graph = new Neo4jAccess();
+	//private static MongoDBAccess mongo = new MongoDBAccess();
+	//private static Neo4jAccess graph = new Neo4jAccess();
 	public ParserFactory pf = new ParserFactory();
 	//	private static final String jsonStr = "{\"ns0_model\" : {\"identifier\" : \"test\",\"ns0_elements\" : {\"ns0_element\" : [ "+
 	//			"{\"identifier\" : \"test2\", \"ns1_type\" : \"ns0_BusinessProcess\", \"ns0_properties\" : { \"ns0_property\" : [ {"+
@@ -63,23 +63,23 @@ public class UIControl {
 		return pf.parseJsonString(json);
 	}
 
-	private boolean processJsonString(String json){
-		return pf.processJsonString(json);
-	}
+//	private boolean processJsonString(String json){
+//		return pf.processJsonString(json);
+//	}
 
-	public static MongoDBAccess getMongo(){
-		if(mongo==null){
-			mongo = new MongoDBAccess();
-		}
-		return mongo;
-	}
+//	public static MongoDBAccess getMongo(){
+//		if(mongo==null){
+//			mongo = new MongoDBAccess();
+//		}
+//		return mongo;
+//	}
 
-	public static Neo4jAccess getGraph() {
-		if(graph==null){
-			graph = new Neo4jAccess();
-		}
-		return graph;
-	}
+//	public static Neo4jAccess getGraph() {
+//		if(graph==null){
+//			graph = new Neo4jAccess();
+//		}
+//		return graph;
+//	}
 
 
 	public void deriveFile(String parserName, String filename, Date date) {
@@ -94,49 +94,61 @@ public class UIControl {
 		return pf.deriveJsonString(parserName, date);
 	}
 
-	private void registerParser(String parserName, GenericParser gp) {
-		pf.registerParser(parserName, gp);
-	}
+//	private void registerParser(String parserName, GenericParser gp) {
+//		pf.registerParser(parserName, gp);
+//	}
 
 	public boolean  registerStorage(String storageName, GenericParserStorageConnector gs, boolean managingIDs) {
 		return pf.registerStorage(storageName, gs, managingIDs);
 	}
 
 	public void deriveRelations(){
-		graph = getGraph();
-		int ii = 1;
-		boolean flag = true;
-		while (flag){
-			String query = "match p=((a:archimate3_node)-->(r1:archimate3_relation)-->(b:archimate3_node)--> "+
-					"(r2:archimate3_relation)-->(c:archimate3_node)) where a.nodeType <> 'Plateau' AND b.nodeType <> 'Plateau' AND c.nodeType <> 'Plateau' AND r1.relationWeight < 99 AND r2.relationWeight < 99 "+ 
-					"create d = (a)-[dr1:archimate3_is_source]->(dn:archimate3_relation {modelType:'archimate3',"+
-					"nodeType:case when r1.relationWeight< r2.relationWeight then r1.nodeType else r2.nodeType end,"+
-					"relationWeight: case when r1.relationWeight< r2.relationWeight then r1.relationWeight else r2.relationWeight end, derived:true}) �[dr2:archimate3_has_target]->(c);";
-			String query2 = "match p=((a:archimate3_node)-->(r1:archimate3_relation)-->(b:archimate3_node)--> "+
-					"(r2:archimate3_relation)-->(c:archimate3_node)) where a.nodeType <> 'Plateau' AND b.nodeType <> 'Plateau' AND c.nodeType <> 'Plateau' AND r1.relationWeight < 99 AND r2.relationWeight < 99 "+ 
-					"create (dn:archimate3_relation_derived {modelType:'archimate3',"+
-					"nodeType:case when r1.relationWeight< r2.relationWeight then r1.nodeType else r2.nodeType end,"+
-					"relationWeight: case when r1.relationWeight< r2.relationWeight then r1.relationWeight else r2.relationWeight end, derived:true, "+
-					"source:a.identifier, target:c.identifier});";
-			String query3 = "match (s), (t), (rn:archimate3_relation_derived) "+ 
-					"WHERE s.identifier = rn.source AND t.identifier = rn.target "+ 
-					"AND (s:archimate3_node OR s:archimate3_relation) "+
-					"AND (t:archimate3_node OR t:archimate3_relation) "+ 
-					"create r = (s)-[r1:archimate3_is_source] ->(rn)"+  
-					"-[r2:archimate3_has_target] -> (t) return r;";
-			String query4 = "match (rn:archimate3_relation_derived) "+ 
-					"REMOVE rn:archimate3_relation_derived "+
-					"SET rn:archimate3_relation "+
-					"return count(*);";
-			LOGGER.info("round "+ii);
-			int nodes = graph.createQuery(query2);
-			nodes = graph.createQuery(query3);
-			nodes = graph.createQuery(query4);
-			flag = nodes>0;
-			ii++;
-		}
+//		graph = getGraph();
+//		
+//		int ii = 1;
+//		boolean flag = true;
+//		while (flag){
+//			String query = "match p=((a:archimate3_node)-->(r1:archimate3_relation)-->(b:archimate3_node)--> "+
+//					"(r2:archimate3_relation)-->(c:archimate3_node)) where a.nodeType <> 'Plateau' AND b.nodeType <> 'Plateau' AND c.nodeType <> 'Plateau' AND r1.relationWeight < 99 AND r2.relationWeight < 99 "+ 
+//					"create d = (a)-[dr1:archimate3_is_source]->(dn:archimate3_relation {modelType:'archimate3',"+
+//					"nodeType:case when r1.relationWeight< r2.relationWeight then r1.nodeType else r2.nodeType end,"+
+//					"relationWeight: case when r1.relationWeight< r2.relationWeight then r1.relationWeight else r2.relationWeight end, derived:true}) �[dr2:archimate3_has_target]->(c);";
+//			String query2 = "match p=((a:archimate3_node)-->(r1:archimate3_relation)-->(b:archimate3_node)--> "+
+//					"(r2:archimate3_relation)-->(c:archimate3_node)) where a.nodeType <> 'Plateau' AND b.nodeType <> 'Plateau' AND c.nodeType <> 'Plateau' AND r1.relationWeight < 99 AND r2.relationWeight < 99 "+ 
+//					"create (dn:archimate3_relation_derived {modelType:'archimate3',"+
+//					"nodeType:case when r1.relationWeight< r2.relationWeight then r1.nodeType else r2.nodeType end,"+
+//					"relationWeight: case when r1.relationWeight< r2.relationWeight then r1.relationWeight else r2.relationWeight end, derived:true, "+
+//					"source:a.identifier, target:c.identifier});";
+//			String query3 = "match (s), (t), (rn:archimate3_relation_derived) "+ 
+//					"WHERE s.identifier = rn.source AND t.identifier = rn.target "+ 
+//					"AND (s:archimate3_node OR s:archimate3_relation) "+
+//					"AND (t:archimate3_node OR t:archimate3_relation) "+ 
+//					"create r = (s)-[r1:archimate3_is_source] ->(rn)"+  
+//					"-[r2:archimate3_has_target] -> (t) return r;";
+//			String query4 = "match (rn:archimate3_relation_derived) "+ 
+//					"REMOVE rn:archimate3_relation_derived "+
+//					"SET rn:archimate3_relation "+
+//					"return count(*);";
+//			LOGGER.info("round "+ii);
+//			int nodes = graph.createQuery(query2);
+//			nodes = graph.createQuery(query3);
+//			nodes = graph.createQuery(query4);
+//			flag = nodes>0;
+//			ii++;
+//		}
 	}
 
+	public void test1(){
+		pf.registerParser("archimate3", new Archimate3Parser());
+		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
+		//		pf.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
+		//		pf.registerParser("archimate", new ArchimateParser());
+		pf.dropDB();
+		String json = readFile("demo_model_v3_20170222.json");
+		pf.processJsonString(json);
+		
+	}
+	
 	/**
 	 * static UI; later to be replaced by a web based interface
 	 * @param args
@@ -147,15 +159,16 @@ public class UIControl {
 	 */
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException, StorageRegistrationException {
 		UIControl u = new UIControl();
-		u.registerParser("archimate3", new Archimate3Parser());
-		u.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
+		u.test1();
+//		pf.registerParser("archimate3", new Archimate3Parser());
+//		u.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		u.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
 		//		u.registerParser("archimate", new ArchimateParser());
 		//u.registerParser("bpmn", new BPMNParser());
 		//		u.registerParser("disco", new DiscoResultParser());
 
 		// insert an archimate file into mongoDB
-				mongo.dropCollections();
+//				mongo.dropCollections();
 		//		graph.emptyDatabase();
 
 		//		Neo4jAccess ne = new Neo4jAccess();
@@ -177,8 +190,8 @@ public class UIControl {
 		//		String json = u.readFile("demo_model_v3_20170222.json");
 		// u.parseJsonString(json);
 
-				String json = u.readFile("demo_model_v3_20170222.json");
-				u.processJsonString(json);
+//				String json = u.readFile("demo_model_v3_20170222.json");
+//				u.processJsonString(json);
 
 		//		u.deriveRelations();
 
