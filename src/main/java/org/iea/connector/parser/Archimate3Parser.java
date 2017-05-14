@@ -565,9 +565,9 @@ public class Archimate3Parser extends GenericParser {
 			for(int i=0;i<l.length();i++){
 				JSONObject rel = l.getJSONObject(i);
 				String identifier = rel.getString("identifier");
-//				if (identifier.equals("relation-fcdb1ce9-89c7-e611-8309-5ce0c5d8efd6")){
-//					LOGGER.info("found it");
-//				}
+				//				if (identifier.equals("relation-fcdb1ce9-89c7-e611-8309-5ce0c5d8efd6")){
+				//					LOGGER.info("found it");
+				//				}
 				relIds.put(identifier, UUID.randomUUID().toString());
 				v2.add(rel);
 			}
@@ -578,10 +578,10 @@ public class Archimate3Parser extends GenericParser {
 					int i = (int) (Math.random() * v.size());
 					JSONObject rel = v.remove(i);
 					String identifier = rel.getString("identifier");
-//					if (identifier.equals("relation-f41438e9-89c7-e611-8309-5ce0c5d8efd6")){
-//						LOGGER.info("found it");
-//					}
-						String source = rel.getString("source");
+					//					if (identifier.equals("relation-f41438e9-89c7-e611-8309-5ce0c5d8efd6")){
+					//						LOGGER.info("found it");
+					//					}
+					String source = rel.getString("source");
 					String target = rel.getString("target");
 					String sourceUUID = map.get(source);
 					if(sourceUUID==null){
@@ -606,10 +606,59 @@ public class Archimate3Parser extends GenericParser {
 					} else {
 						String uuid = relIds.get(identifier);
 						Document doc = factory.insertRelationDocument(this, uuid, rel, sourceUUID, targetUUID, time);
-//						map.put(identifier, uuid);
+						map.put(identifier, uuid);
 					}
 				}
 			}
+			// views
+			JSONObject views =  obj.getJSONObject("views");
+			JSONObject diags = views.getJSONObject("diagrams");
+			//			for( int ii=0;ii<diags.length();ii++){
+			JSONArray lo = diags.getJSONArray("view");
+			LOGGER.info("number of views: "+lo.length());
+			for( int ii=0;ii<lo.length();ii++){
+				JSONObject view = lo.getJSONObject(ii);
+				String id = view.getString("identifier");
+				String uuid = UUID.randomUUID().toString();
+				view.put("identifier", uuid);
+				map.put(id,  uuid);
+				JSONArray cons = view.getJSONArray("connections");
+				for(int jj=0;jj<cons.length();jj++){
+					JSONObject ob = cons.getJSONObject(jj);
+					String ref = ob.getString("relationshipRef");
+					uuid = map.get(ref);
+					ob.put("relationshipRef", uuid);
+					String src = ob.getString("source");
+					uuid = map.get(src);
+					ob.put("source", uuid);
+					String trg = ob.getString("target");
+					uuid = map.get(trg);
+					ob.put("target", uuid);
+					id = ob.getString("identifier");
+					uuid = UUID.randomUUID().toString();
+					ob.put("identifier", uuid);
+					map.put(id,  uuid);
+//					LOGGER.info(ob.toString());
+				}
+				JSONArray nods = view.getJSONArray("nodes");
+				for(int jj=0;jj<nods.length();jj++){
+					JSONObject ob = nods.getJSONObject(jj);
+					String ref = ob.getString("elementRef");
+					uuid = map.get(ref);
+					ob.put("elementRef", uuid);
+					id = ob.getString("identifier");
+					uuid = UUID.randomUUID().toString();
+					ob.put("identifier", uuid);
+					map.put(id,  uuid);
+				}
+				uuid = view.getString("identifier");
+				Document doc = factory.insertViewDocument(this, uuid, view, time);
+				map.put("identifier", uuid);
+			}
+			//			rels.remove("relationship"); 
+			//			Vector<JSONObject> v;
+			//			Vector<JSONObject> v2 = new Vector<JSONObject>();
+
 			// files
 			//			Document doc = 
 			insertFileDocument(xmlJSONObj, time);

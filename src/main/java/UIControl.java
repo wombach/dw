@@ -145,10 +145,18 @@ public class UIControl {
 		//		pf.registerParser("archimate", new ArchimateParser());
 		pf.dropDB();
 		String json = readFile("demo_model_v3_20170222.json");
-		pf.processJsonString(json);
-		
+		pf.processJsonString(json);		
 	}
 	
+	public void test2(){
+		pf.registerParser("archimate3", new Archimate3Parser());
+		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
+		//		pf.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
+		//		pf.registerParser("archimate", new ArchimateParser());
+		pf.dropDB();
+		String json = readFile("demo_model_v3_20170227_w_views4.json");
+		pf.processJsonString(json);		
+	}
 	/**
 	 * static UI; later to be replaced by a web based interface
 	 * @param args
@@ -159,7 +167,7 @@ public class UIControl {
 	 */
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException, StorageRegistrationException {
 		UIControl u = new UIControl();
-		u.test1();
+		u.test2();
 //		pf.registerParser("archimate3", new Archimate3Parser());
 //		u.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		u.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);

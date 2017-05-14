@@ -162,6 +162,21 @@ implements GenericParserStorageConnectorManager {
 		// 
 		return ret;
 	}
+	
+	@Override
+	public GenericStorageResult insertViewDocument(JSONObject jsonObject, long time) {
+		String compStr = getRelationComparisonString(jsonObject);
+		int hash = getRelationHash(jsonObject);
+		GenericStorageResult ret = new GenericStorageResult();
+		Document doc = enrichDocument( jsonObject,time, compStr, hash);
+		mongo.insertDocument(MongoDBAccess.COLLECTION_VIEWS, doc);
+		ret.setDoc(doc);
+		ret.setStatusInserted();
+		//
+		// TODO missing handling of updates
+		// 
+		return ret;
+	} 
 
 	private int getRelationHash(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
@@ -175,5 +190,6 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public void dropDB() {
 		mongo.dropCollections();
-	} 
+	}
+
 }

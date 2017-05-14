@@ -69,4 +69,17 @@ public class StorageConnectorContainer {
 			} 
 			
 	}
+
+	public GenericStorageResult insertViewDocumentManager(String uuid, JSONObject jsonObject, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).insertViewDocument(jsonObject, time);
+		} 
+		return null;
+	}
+
+	public void insertViewDocumentFollower(String uuid, JSONObject jsonObject, long time) {
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).insertViewDocument(uuid, jsonObject, time);
+		} 
+	}
 }

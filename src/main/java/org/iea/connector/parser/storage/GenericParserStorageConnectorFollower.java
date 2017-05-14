@@ -15,4 +15,6 @@ public interface GenericParserStorageConnectorFollower  {
 
 	public void dropDB();
 
+	public void insertViewDocument(String uuid, JSONObject jsonObject, long time);
+
 }

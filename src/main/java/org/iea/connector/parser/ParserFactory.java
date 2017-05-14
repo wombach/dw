@@ -152,4 +152,8 @@ public class ParserFactory {
 		return storage.insertRelationDocument(parser, uuid, rel, sourceUUID, targetUUID, time) ;
 	}
 
+	public Document insertViewDocument(Archimate3Parser archimate3Parser, String uuid, JSONObject view, long time) {
+		return storage.insertViewDocument(archimate3Parser, uuid, view, time);
+	}
+
 }

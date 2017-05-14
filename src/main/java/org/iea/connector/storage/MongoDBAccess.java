@@ -28,6 +28,7 @@ public class MongoDBAccess {
 	private final static Logger LOGGER = Logger.getLogger(MongoDBAccess.class.getName()); 
 	private final static String DATABASE = "test";
 	public final static String COLLECTION_NODES = "nodes";
+	public final static String COLLECTION_VIEWS = "views";
 	public final static String COLLECTION_RELATIONS = "relations";
 	public final static String COLLECTION_FILES = "files";
 	

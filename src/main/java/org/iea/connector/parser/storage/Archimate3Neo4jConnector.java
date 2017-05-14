@@ -87,6 +87,7 @@ implements GenericParserStorageConnectorFollower {
 		String query = createNodeCreationQuery(jsonObject, "node", time);
 		graph.insertNode(query);
 	}
+	
 
 	protected String getRelationComparisonString(JSONObject jsonObject) {
 		// TODO Auto-generated method stub
@@ -105,6 +106,11 @@ implements GenericParserStorageConnectorFollower {
 		// missing handling of updates
 	}
 
+	@Override
+	public void insertViewDocument(String uuid, JSONObject jsonObject, long time) {
+		// TODO Auto-generated method stub
+	} 
+	
 	private String createNodeCreationQuery(String uuid, JSONObject jsonObject, String type, long time) {
 		String name = "";
 		try{
@@ -182,5 +188,7 @@ implements GenericParserStorageConnectorFollower {
 	@Override
 	public void dropDB() {
 		graph.emptyDatabase();
-	} 
+	}
+
+
 }

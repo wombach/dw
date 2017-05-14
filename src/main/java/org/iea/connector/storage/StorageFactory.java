@@ -7,6 +7,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import org.bson.Document;
+import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.parser.GenericParser;
 import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.parser.storage.GenericStorageResult;
@@ -81,6 +82,19 @@ public class StorageFactory {
 				v.dropDB();
 			}
 		}
+	}
+
+	public Document insertViewDocument(GenericParser parser, String uuid, JSONObject jsonObject, long time) {
+		GenericStorageResult ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.insertViewDocumentManager(uuid, jsonObject, time);
+			} else { 
+				v.insertViewDocumentFollower(uuid, jsonObject, time);
+			}
+		}
+		return ret.getDoc();
 	} 	
 	
 }

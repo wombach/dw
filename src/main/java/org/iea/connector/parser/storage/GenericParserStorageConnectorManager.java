@@ -11,4 +11,6 @@ public interface GenericParserStorageConnectorManager {
 
 	public void dropDB();
 
+	public GenericStorageResult insertViewDocument(JSONObject jsonObject, long time);
+
 }
