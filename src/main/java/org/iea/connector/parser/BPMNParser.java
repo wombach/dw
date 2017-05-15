@@ -102,6 +102,12 @@ public class BPMNParser extends GenericParser{
 	public boolean storeObject(Object elm) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public String retrieveJsonString(String project, String branch, Date date) {
+		// TODO Auto-generated method stub
+		return null;
 	} 
 
 

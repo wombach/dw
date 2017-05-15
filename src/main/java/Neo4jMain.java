@@ -11,7 +11,7 @@
 public class Neo4jMain {
 
 	public static void main(String[] args) {
-		Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "wipro@123" ) );
+		Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "iea@123" ) );
 
 		try ( Session session = driver.session() ){
 			try ( Transaction tx = session.beginTransaction() ){

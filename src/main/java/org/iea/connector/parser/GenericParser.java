@@ -214,111 +214,112 @@ public abstract class GenericParser {
 		return ret;
 	}
 	
-	protected String writeJSONtoXML(JSONObject jobj){
-		JAXBContext jaxbContext;
-		JAXBElement result = null;
-		String ret = "";
-		try {
-//			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
-//			Map<String, Object> properties = new HashMap<String, Object>();
-//			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
-
-//			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
-			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
-			// parse JSON
-			String st = jobj.toString();
-			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
-
-			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
-			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
-			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
-			StreamSource source2 = new StreamSource(in);
-			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
-
-			// write XML
-			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
-			Marshaller marshaller = jaxbContext.createMarshaller();
-			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
-			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-			StringWriter out;
-			out = new StringWriter();
-			// Create the Document
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			org.w3c.dom.Document document = db.newDocument();
-
-			//			marshaller.marshal(result, out);
-			//			out.close();
-			marshaller.marshal(result, document);
-
-			// remove elements without namespace
-			Element root = document.getDocumentElement();
-			HashMap<Node, Node> m = new HashMap<Node,Node>();
-			m.put(root, null);
-			while(!m.isEmpty()){
-				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
-				for( Node n : m.keySet()){
-					if(n instanceof Element){
-						Node nn = m.get(n);
-						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
-							if(nn !=null) nn.removeChild(n);
-						} else {
-							NodeList nodes = ((Element)n).getChildNodes();
-							for(int i=nodes.getLength()-1;i>=0;i--){
-								m2.put(nodes.item(i),n);
-							}
-						}
-					}
-				}
-				m = m2;
-			}
-			// Output the Document
-			TransformerFactory tf = TransformerFactory.newInstance();
-			Transformer t = tf.newTransformer();
-			DOMSource source = new DOMSource(document);
-			StreamResult result2 = new StreamResult(out);
-			t.transform(source, result2);	
-			ret = out.toString();
-		} catch (JAXBException  e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return ret;
-	}
-
-	protected void writeJSONtoXML(String filename, JSONObject jobj){
-		try {
-			String st =  writeJSONtoXML(jobj);
-			// Output the Document
-			TransformerFactory tf = TransformerFactory.newInstance();
-			Transformer t;
-			t = tf.newTransformer();
-			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
-			StreamSource source = new StreamSource(in);
-			PrintWriter out;
-			out = new PrintWriter(filename);
-			StreamResult result2 = new StreamResult(out);
-			t.transform(source, result2);
-		} catch (TransformerConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+	public abstract String writeJSONtoXML(String st);
+//	protected String writeJSONtoXML(JSONObject jobj){
+//		JAXBContext jaxbContext;
+//		JAXBElement result = null;
+//		String ret = "";
+//		try {
+////			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+////			Map<String, Object> properties = new HashMap<String, Object>();
+////			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+//
+////			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
+//			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+//			// parse JSON
+//			String st = jobj.toString();
+//			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+//
+//			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+//			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+//			StreamSource source2 = new StreamSource(in);
+//			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
+//
+//			// write XML
+//			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+//			Marshaller marshaller = jaxbContext.createMarshaller();
+//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+//			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+//			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+//			StringWriter out;
+//			out = new StringWriter();
+//			// Create the Document
+//			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+//			DocumentBuilder db = dbf.newDocumentBuilder();
+//			org.w3c.dom.Document document = db.newDocument();
+//
+//			//			marshaller.marshal(result, out);
+//			//			out.close();
+//			marshaller.marshal(result, document);
+//
+//			// remove elements without namespace
+//			Element root = document.getDocumentElement();
+//			HashMap<Node, Node> m = new HashMap<Node,Node>();
+//			m.put(root, null);
+//			while(!m.isEmpty()){
+//				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
+//				for( Node n : m.keySet()){
+//					if(n instanceof Element){
+//						Node nn = m.get(n);
+//						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
+//							if(nn !=null) nn.removeChild(n);
+//						} else {
+//							NodeList nodes = ((Element)n).getChildNodes();
+//							for(int i=nodes.getLength()-1;i>=0;i--){
+//								m2.put(nodes.item(i),n);
+//							}
+//						}
+//					}
+//				}
+//				m = m2;
+//			}
+//			// Output the Document
+//			TransformerFactory tf = TransformerFactory.newInstance();
+//			Transformer t = tf.newTransformer();
+//			DOMSource source = new DOMSource(document);
+//			StreamResult result2 = new StreamResult(out);
+//			t.transform(source, result2);	
+//			ret = out.toString();
+//		} catch (JAXBException  e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (ParserConfigurationException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (TransformerException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return ret;
+//	}
+//
+//	protected void writeJSONtoXML(String filename, JSONObject jobj){
+//		try {
+//			String st =  writeJSONtoXML(jobj);
+//			// Output the Document
+//			TransformerFactory tf = TransformerFactory.newInstance();
+//			Transformer t;
+//			t = tf.newTransformer();
+//			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+//			StreamSource source = new StreamSource(in);
+//			PrintWriter out;
+//			out = new PrintWriter(filename);
+//			StreamResult result2 = new StreamResult(out);
+//			t.transform(source, result2);
+//		} catch (TransformerConfigurationException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (TransformerException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected JAXBElement readXMLtoJAXB(String filename){
@@ -407,5 +408,7 @@ public abstract class GenericParser {
 	public void setFactory(ParserFactory parserFactory) {
 		this.factory = parserFactory; 
 	}
+
+	public abstract String retrieveJsonString(String project, String branch, Date date);
 	
 }

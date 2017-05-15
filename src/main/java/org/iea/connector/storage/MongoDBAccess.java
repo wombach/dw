@@ -6,6 +6,7 @@ import javax.xml.bind.JAXBElement;
 
 import org.bson.Document;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
@@ -135,8 +136,8 @@ public class MongoDBAccess {
 				append("branch",  branch).
 				append("$or", new BasicDBObject("end_date",  new BasicDBObject("$lt", time)).
 						append("end_date",  new BasicDBObject("$eq", -1)));
-		//TODO:  add branch to the constraint 
-		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
+//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
+		FindIterable<Document> iterable = getCollection(project, col).find(query);
 		return iterable;
 	}
 
@@ -161,5 +162,24 @@ public class MongoDBAccess {
 		col.drop();
 		col = getCollection(db, COLLECTION_FILES);
 		col.drop();
+		col = getCollection(db, COLLECTION_VIEWS);
+		col.drop();
+	}
+
+	public FindIterable<Document> retrieveDocument(String project, String branch, String col, long time) {
+		// db.getCollection('nodes').find({'branch':"branch1", 
+	    //            'start_date': {$lt: 1494859350395}, 
+	    //            $or : [{'end_date': {$eq: -1}},
+	    //                    {'end_date': {$gt: 1494859350395}}]
+	    //           })
+		BasicDBList or = new BasicDBList();
+		or.add(new BasicDBObject("end_date",  new BasicDBObject("$gt", time)));
+		or.add(new BasicDBObject("end_date",  new BasicDBObject("$eq", -1)));
+		BasicDBObject query = new BasicDBObject("start_date",  new BasicDBObject("$lt", time)).
+				append("branch",  branch).
+				append("$or", or);
+		
+		FindIterable<Document> iterable = getCollection(project, col).find(query);
+		return iterable;
 	}
 }

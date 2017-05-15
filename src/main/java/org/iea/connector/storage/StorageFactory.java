@@ -113,6 +113,39 @@ public class StorageFactory {
 				v.dropBranch(project, branch);
 			}
 		}		
+	}
+
+	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time) {
+		Document ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveNodeDocumentManager(project, branch, time);
+			}
+		}
+		return ret;
+	}
+
+	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time) {
+		Document ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveRelationDocumentManager(project, branch, time);
+			}
+		}
+		return ret;
+	}
+
+	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time) {
+		Document ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveViewDocumentManager(project, branch, time);
+			}
+		}
+		return ret;
 	} 	
 	
 }

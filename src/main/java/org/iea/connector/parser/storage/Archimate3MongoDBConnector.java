@@ -1,8 +1,10 @@
 package org.iea.connector.parser.storage;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -10,11 +12,13 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBElement;
 
 import org.bson.BSONObject;
+import org.bson.BsonArray;
 import org.bson.Document;
 import org.iea.connector.storage.MongoDBAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
@@ -34,13 +38,13 @@ implements GenericParserStorageConnectorManager {
 	public final static String DOC_COMPARISON_STRING = "comparison_string";
 	public static final String DOC_HASH = "hash";
 	private static final String DOC_BRANCH = "branch";
-	
+
 	private MongoDBAccess mongo ;
-	
+
 	public Archimate3MongoDBConnector(){
 		mongo = new MongoDBAccess();
 	}
-	
+
 	public Document enrichDocument( JSONObject obj, String branch, long time, String compStr, int hash){
 		String uuid = UUID.randomUUID().toString();
 		obj.remove("identifier");
@@ -50,15 +54,15 @@ implements GenericParserStorageConnectorManager {
 			Iterator<Object> it = props.iterator();
 			while(it.hasNext()){
 				JSONObject prop = (JSONObject) it.next();
-				if(prop.getString("propertyDefinitionRef").equals("propidWiproDigitalWorkflowStartDate")){
+				if(prop.getString("propertyDefinitionRef").equals("propidIEAStartDate")){
 					JSONObject val = prop.getJSONObject("value");
 					val.remove("value");
 					val.put("value", time);
-				} else if(prop.getString("propertyDefinitionRef").equals("propidWiproDigitalWorkflowEndDate")){
+				} else if(prop.getString("propertyDefinitionRef").equals("propidIEAEndDate")){
 					JSONObject val = prop.getJSONObject("value");
 					val.remove("value");
 					val.put("value", -1);
-				} else if(prop.getString("propertyDefinitionRef").equals("propidWiproDigitalWorkflowIdentifier")){
+				} else if(prop.getString("propertyDefinitionRef").equals("propidIEAIdentifier")){
 					JSONObject val = prop.getJSONObject("value");
 					val.remove("value");
 					val.put("value", uuid);
@@ -75,7 +79,7 @@ implements GenericParserStorageConnectorManager {
 				.append(DOC_END_DATE, -1L)
 				.append(DOC_COMPARISON_STRING, compStr)
 				.append(DOC_HASH, hash)
-			//	.append(DOC_BRANCH, branchArr)
+				//	.append(DOC_BRANCH, branchArr)
 				.append(DOC_BRANCH, branch)
 				.append(DOC_RAW, (BSONObject)com.mongodb.util.JSON.parse(obj.toString()));
 		return doc;
@@ -98,7 +102,7 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public GenericStorageResult insertNodeDocument(String project, String branch, JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
-		
+
 		int hash = parser.getNodeHash(jsonObject);
 		Document doc = null;
 		GenericStorageResult ret = new GenericStorageResult();
@@ -168,7 +172,7 @@ implements GenericParserStorageConnectorManager {
 		// 
 		return ret;
 	}
-	
+
 	@Override
 	public GenericStorageResult insertViewDocument(String project, String branch, JSONObject jsonObject, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
@@ -201,12 +205,60 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public void dropProject(String project) {
 		mongo.dropProject(project);
-		
+
 	}
 
 	@Override
 	public void dropBranch(String project, String branch) {
 		mongo.dropBranch(project, branch);
+	}
+
+	@Override
+	public Document retrieveViewDocument(String project, String branch, long time) {
+		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, time);
+		ArrayList<Document> elem = new ArrayList<Document>();
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+//				LOGGER.severe("next instance: "+doc.toJson().toString());
+				Document raw = (Document) doc.get("raw");
+				elem.add(raw);
+			}
+			Document ret = new Document();
+			ret.append("view", elem);
+		return ret;
+	}
+
+	@Override
+	public Document retrieveNodeDocument(String project, String branch, long time) {
+		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_NODES, time);
+		ArrayList<Document> elem = new ArrayList<Document>();
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+//				LOGGER.severe("next instance: "+doc.toJson().toString());
+				Document raw = (Document) doc.get("raw");
+				elem.add(raw);
+			}
+			Document ret = new Document();
+			ret.append("element", elem);
+		return ret;
+	}
+
+	@Override
+	public Document retrieveRelationDocument(String project, String branch, long time) {
+		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, time);
+		ArrayList<Document> elem = new ArrayList<Document>();
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+//				LOGGER.severe("next instance: "+doc.toJson().toString());
+				Document raw = (Document) doc.get("raw");
+				elem.add(raw);
+			}
+			Document ret = new Document();
+			ret.append("relationship", elem);
+		return ret;
 	}
 
 }

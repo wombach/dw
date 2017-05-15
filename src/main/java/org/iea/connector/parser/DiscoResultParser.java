@@ -156,7 +156,7 @@ public class DiscoResultParser extends GenericParser {
 //			} else if(obj instanceof JSONArray){
 //				def = (JSONArray) obj;
 //				for(int i=0;i<def.length();i++){
-//					if(def.getJSONObject(i).get("identifier").toString().startsWith("propid_wipro_digital_workflow_")){
+//					if(def.getJSONObject(i).get("identifier").toString().startsWith("propid_iea_")){
 //						flag = true;
 //						break;
 //					}
@@ -167,14 +167,14 @@ public class DiscoResultParser extends GenericParser {
 //		}
 //		if(!flag){
 //			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
-//					"\"propid_wipro_digital_workflow_start_date\", "+
-//					"\"name\": \"Wipro start date\", \"type\": \"Long\" }"));
+//					"\"propid_iea_start_date\", "+
+//					"\"name\": \"iea start date\", \"type\": \"Long\" }"));
 //			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
-//					"\"propid_wipro_digital_workflow_end_date\", "+
-//					"\"name\": \"Wipro end date\", \"type\": \"Long\" }"));
+//					"\"propid_iea_end_date\", "+
+//					"\"name\": \"iea end date\", \"type\": \"Long\" }"));
 //			defs.append("propertydef", new JSONObject(" {\"identifier\": "+
-//					"\"propid_wipro_digital_workflow_identifier\", "+
-//					"\"name\": \"Wipro identifier\", \"type\": \"String\" }"));
+//					"\"propid_iea_identifier\", "+
+//					"\"name\": \"iea identifier\", \"type\": \"String\" }"));
 //		}
 //	}
 
@@ -203,13 +203,13 @@ public class DiscoResultParser extends GenericParser {
 			props.put("property", parr);
 		}
 		if(parr!=null){
-			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_start_date").
+			prop = new JSONObject().put("identifierref","propid_iea_start_date").
 					put("value", new JSONObject().put("xml:lang","en").put("content", start_date));
 			parr.put(prop);
-			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_end_date").
+			prop = new JSONObject().put("identifierref","propid_iea_end_date").
 					put("value", new JSONObject().put("xml:lang","en").put("content", end_date));
 			parr.put(prop);
-			prop = new JSONObject().put("identifierref","propid_wipro_digital_workflow_identifier").
+			prop = new JSONObject().put("identifierref","propid_iea_identifier").
 					put("value", new JSONObject().put("xml:lang","en").put("content", id));
 			parr.put(prop);
 		}
@@ -291,6 +291,12 @@ public class DiscoResultParser extends GenericParser {
 	public boolean storeObject(Object elm) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public String retrieveJsonString(String project, String branch, Date date) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

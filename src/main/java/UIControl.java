@@ -1,7 +1,9 @@
 
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -15,6 +17,7 @@ import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.storage.MongoDBAccess;
 import org.iea.connector.storage.Neo4jAccess;
 import org.iea.connector.storage.StorageRegistrationException;
+import org.json.JSONObject;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.summary.ResultSummary;
 import org.neo4j.driver.v1.summary.SummaryCounters;
@@ -153,25 +156,53 @@ public class UIControl {
 		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		pf.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
 		//		pf.registerParser("archimate", new ArchimateParser());
-		pf.dropDB();
+		//pf.dropProject("test_project");
 		String json = readFile("demo_model_v3_20170227_w_views4.json");
 		//pf.processJsonString(json);	
 		pf.processJsonString("test_project","branch2",json);	
 	}
 
 	public void test3(){
-		test2();
+		pf.registerParser("archimate3", new Archimate3Parser());
+		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
+		//test2();
 		// read the data and from the repository
 		Date date = new Date(System.currentTimeMillis());
-		pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
+		String t = pf.retrieveJsonString("archimate3", "test_project","branch2", date);
+		//pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
+		LOGGER.info(t);
+		//Get the file reference
+		Path path = Paths.get("test3_output.json");
+		 
+		//Use try-with-resource to get auto-closeable writer instance
+		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
+		{
+		    writer.write(t);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void test4(){
-		test2();
+		pf.registerParser("archimate3", new Archimate3Parser());
+		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		// read the data and from the repository
 		Date date = new Date(System.currentTimeMillis());
-		LOGGER.info("retrieved result");
-		LOGGER.info(pf.deriveJsonString("archimate3","test_project","branch2", date));
+		String t = pf.retrieveJsonString("archimate3", "test_project","branch2", date);
+		//JSONObject jobj = new JSONObject(t);
+		String t2 = pf.writeJSONtoXML("archimate3", t);
+		LOGGER.info(t2);
+		Path path = Paths.get("test4_output.xml");
+		 
+		//Use try-with-resource to get auto-closeable writer instance
+		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
+		{
+		    writer.write(t2);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -184,7 +215,9 @@ public class UIControl {
 	 */
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException, StorageRegistrationException {
 		UIControl u = new UIControl();
-		u.test1();
+//		u.test1();
+//		u.test2();
+		u.test4();
 //		pf.registerParser("archimate3", new Archimate3Parser());
 //		u.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		u.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);

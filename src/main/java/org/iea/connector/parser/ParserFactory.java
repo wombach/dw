@@ -13,7 +13,7 @@ import org.json.JSONObject;
 
 /**
  * Holds all available parsers and allows to dynamically determine the type of a file 
- * @author AN332496
+ * @author wombach
  *
  */
 public class ParserFactory {
@@ -139,6 +139,15 @@ public class ParserFactory {
 		return ret;
 	}
 
+	public String retrieveJsonString(String parserName, String project, String branch, Date date){
+		String ret = null;
+		if(parsers.containsKey(parserName)){
+			GenericParser gp = parsers.get(parserName);
+			ret = gp.retrieveJsonString(project, branch, date);
+		}
+		return ret;
+	}
+
 	public boolean registerStorage(String storageName, GenericParserStorageConnector gs, boolean managingIDs) {
 		GenericParser p = parsers.get(storageName);
 		boolean flag = false;
@@ -154,6 +163,16 @@ public class ParserFactory {
 		return flag;
 	}
 
+	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time) {
+		return storage.retrieveNodeDocument(parser, project, branch,time);
+	}
+	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time) {
+		return storage.retrieveRelationDocument(parser, project, branch,time);
+	}
+	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time) {
+		return storage.retrieveViewDocument(parser, project, branch,time);
+	}
+
 	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject n, long time) {
 		return storage.insertNodeDocument(parser, project, branch, n, time);
 	}
@@ -164,6 +183,15 @@ public class ParserFactory {
 
 	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, JSONObject view, long time) {
 		return storage.insertViewDocument(archimate3Parser, project, branch, uuid, view, time);
+	}
+
+	public String writeJSONtoXML(String parserName, String t) {
+		String ret = null;
+		if(parsers.containsKey(parserName)){
+			GenericParser gp = parsers.get(parserName);
+			ret = gp.writeJSONtoXML(t);
+		}
+		return ret;
 	}
 
 }

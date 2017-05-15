@@ -77,9 +77,9 @@
 <ArchiMate:ApplicationComponent id="43">
 <MM_ProfileValues>
 <MM_Value name="nm" type="string" xml:lang="en">Application component</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">44</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">444</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid  444444444444444444444444444444444444444444</MM_Value>
+<MM_Value name="propid_iea_start_date" type="integer">44</MM_Value>
+<MM_Value name="propid_iea_end_date" type="integer">444</MM_Value>
+<MM_Value name="propid_iea_identifier" type="string" xml:lang="en">uuid  444444444444444444444444444444444444444444</MM_Value>
 </MM_ProfileValues>
 </ArchiMate:ApplicationComponent>
 </ArchiMate:ApplicationComponents>
@@ -96,9 +96,9 @@
 <ArchiMate:BusinessObject id="49">
 <MM_ProfileValues>
 <MM_Value name="nm" type="string" xml:lang="en">Business object</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">33</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">333</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid 333333333333333333333333333333333</MM_Value>
+<MM_Value name="propid_iea_start_date" type="integer">33</MM_Value>
+<MM_Value name="propid_iea_end_date" type="integer">333</MM_Value>
+<MM_Value name="propid_iea_identifier" type="string" xml:lang="en">uuid 333333333333333333333333333333333</MM_Value>
 </MM_ProfileValues>
 </ArchiMate:BusinessObject>
 </ArchiMate:BusinessObjects>
@@ -106,17 +106,17 @@
 <ArchiMate:BusinessProcess id="51">
 <MM_ProfileValues>
 <MM_Value name="nm" type="string" xml:lang="en">step 1</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">11</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">22</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid11111111111111111111111111111111111111111111111111111111111111</MM_Value>
+<MM_Value name="propid_iea_start_date" type="integer">11</MM_Value>
+<MM_Value name="propid_iea_end_date" type="integer">22</MM_Value>
+<MM_Value name="propid_iea_identifier" type="string" xml:lang="en">uuid11111111111111111111111111111111111111111111111111111111111111</MM_Value>
 </MM_ProfileValues>
 </ArchiMate:BusinessProcess>
 <ArchiMate:BusinessProcess id="46">
 <MM_ProfileValues>
 <MM_Value name="nm" type="string" xml:lang="en">step 2</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_start_date" type="integer">22</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_end_date" type="integer">222</MM_Value>
-<MM_Value name="propid_wipro_digital_workflow_identifier" type="string" xml:lang="en">uuid 2222222222222222222222222222222222222222222222222222222222222222222</MM_Value>
+<MM_Value name="propid_iea_start_date" type="integer">22</MM_Value>
+<MM_Value name="propid_iea_end_date" type="integer">222</MM_Value>
+<MM_Value name="propid_iea_identifier" type="string" xml:lang="en">uuid 2222222222222222222222222222222222222222222222222222222222222222222</MM_Value>
 </MM_ProfileValues>
 </ArchiMate:BusinessProcess>
 </ArchiMate:BusinessProcesses>
@@ -170,7 +170,7 @@
 </MM_ModelPackage:MM_Languages>
 <MM_ModelPackage:MM_Users name="users" id="65">
 <MM_ModelPackage:MM_User id="66">
-<nm>an332496</nm>
+<nm>wombach</nm>
 <Any name="taggedValues"><Structure><List name="viewSettings"><Structure><List name="selectedObjects"><Objectref value="22"/></List><Objectref value="7" name="diagObj"/></Structure></List></Structure></Any>
 </MM_ModelPackage:MM_User>
 </MM_ModelPackage:MM_Users>

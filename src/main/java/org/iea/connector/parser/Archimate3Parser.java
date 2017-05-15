@@ -1,6 +1,7 @@
 package org.iea.connector.parser;
 
 import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
@@ -10,16 +11,29 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.bson.BSONObject;
 import org.bson.Document;
+import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.iea.connector.storage.MongoDBAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.opengroup.xsd.archimate._3.ModelType;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
@@ -136,7 +150,7 @@ public class Archimate3Parser extends GenericParser {
 			}
 			//			LOGGER.info(ret.toString());
 			LOGGER.info(prettyPrintJSON(raw));
-			this.writeJSONtoXML(filename, raw );
+//			this.writeJSONtoXML(filename, raw );
 		}
 	} 
 
@@ -169,7 +183,7 @@ public class Archimate3Parser extends GenericParser {
 			} else if(obj instanceof JSONArray){
 				def = (JSONArray) obj;
 				for(int i=0;i<def.length();i++){
-					if(def.getJSONObject(i).get("identifier").toString().startsWith("propid_wipro_digital_workflow_")){
+					if(def.getJSONObject(i).get("identifier").toString().startsWith("propid_iea_")){
 						flag = true;
 						break;
 					}
@@ -178,20 +192,20 @@ public class Archimate3Parser extends GenericParser {
 		} 
 		if(!flag){
 			defs.append("propertyDefinition", new JSONObject(" {\"identifier\": "+
-					"\"propidWiproDigitalWorkflowStartDate\", "+
-					//					"\"propid_wipro_digital_workflow_start_date\", "+
+					"\"propidIEAStartDate\", "+
+					//					"\"propid_iea_start_date\", "+
 					" \"type\": \"number\" }"));
-			//		"\"name\": \"Wipro start date\", \"type\": \"number\" }"));
+			//		"\"name\": \"iea start date\", \"type\": \"number\" }"));
 			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
-					"\"propidWiproDigitalWorkflowEndDate\", "+
-					//					"\"propid_wipro_digital_workflow_end_date\", "+
+					"\"propidIEAEndDate\", "+
+					//					"\"propid_iea_end_date\", "+
 					" 'type': number }"));
-			//		"\"name\": \"Wipro end date\", \"type\": \"number\" }"));
+			//		"\"name\": \"iea end date\", \"type\": \"number\" }"));
 			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
-					"\"propidWiproDigitalWorkflowIdentifier\", "+
-					//					"\"propid_wipro_digital_workflow_identifier\", "+
+					"\"propidIEAIdentifier\", "+
+					//					"\"propid_iea_identifier\", "+
 					" 'type': string }"));
-			//		"\"name\": \"Wipro identifier\", \"type\": \"string\" }"));
+			//		"\"name\": \"iea identifier\", \"type\": \"string\" }"));
 		}
 	}
 
@@ -220,16 +234,16 @@ public class Archimate3Parser extends GenericParser {
 			props.put("property", parr);
 		}
 		if(parr!=null){
-			prop = new JSONObject().put("propertyDefinitionRef","propidWiproDigitalWorkflowStartDate").
-					//					prop = new JSONObject().put("propertyDefinitionRef","propid_wipro_digital_workflow_start_date").
+			prop = new JSONObject().put("propertyDefinitionRef","propidIEAStartDate").
+					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_start_date").
 					put("value", new JSONObject().put("xml:lang","en").put("value", start_date));
 			parr.put(prop);
-			prop = new JSONObject().put("propertyDefinitionRef","propidWiproDigitalWorkflowEndDate").
-					//					prop = new JSONObject().put("propertyDefinitionRef","propid_wipro_digital_workflow_end_date").
+			prop = new JSONObject().put("propertyDefinitionRef","propidIEAEndDate").
+					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_end_date").
 					put("value", new JSONObject().put("xml:lang","en").put("value", end_date));
 			parr.put(prop);
-			prop = new JSONObject().put("propertyDefinitionRef","propidWiproDigitalWorkflowIdentifier").
-					//					prop = new JSONObject().put("propertyDefinitionRef","propid_wipro_digital_workflow_identifier").
+			prop = new JSONObject().put("propertyDefinitionRef","propidIEAIdentifier").
+					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_identifier").
 					put("value", new JSONObject().put("xml:lang","en").put("value", id));
 			parr.put(prop);
 		}
@@ -332,7 +346,7 @@ public class Archimate3Parser extends GenericParser {
 			}
 			//			LOGGER.info(ret.toString());
 			//			LOGGER.info(prettyPrintJSON(ret));
-			return this.writeJSONtoXML( raw );
+			return this.writeJSONtoXML( raw.toString() );
 		}
 		return "";
 	}
@@ -529,6 +543,11 @@ public class Archimate3Parser extends GenericParser {
 		return false;
 	}
 
+	public String deriveJsonString(String project, String branch, long time){
+		//factory.deriveJsonString(, project, branch, date)
+		return null;
+	}
+	
 	@Override
 	public boolean processJsonString(String project, String branch, String str) {
 		boolean ret = false;
@@ -667,6 +686,109 @@ public class Archimate3Parser extends GenericParser {
 			//	}
 		}
 		LOGGER.severe(retMsg);
+		return ret;
+	}
+
+	@Override
+	public String retrieveJsonString(String project, String branch, Date date) {
+		String ret1 = "{	\"model\": {"+
+				"\"documentation\": [{\"value\": \"Part of the Enterprise Architecture exported to XML\",\"xml_lang\": \"en\"}],"+
+				"\"elements\": ";
+		String ret2 = ",\"identifier\": \"model based on query\",\"name\": [{\"value\": \"Model with query result\",\"xml_lang\": \"en\"}],"+
+				"\"propertyDefinitions\": [{\"propertyDefinition\": [{\"identifier\": \"propidIEAStartDate\",\"propertyType\": \"number\"},"+
+				"{\"identifier\": \"propidIEAEndDate\",\"propertyType\": \"number\"	},"+
+				"{\"identifier\": \"propidIEAIdentifier\",\"propertyType\": \"string\"}]}],\"relationships\": ";
+		String ret3 = ",\"version\": \"1.0\",\"views\": {\"diagrams\": ";
+		String ret4 = "}}}";
+		
+		Document n = factory.retrieveNodeDocument(this, project, branch, date.getTime());
+		Document r = factory.retrieveRelationDocument(this, project, branch, date.getTime());
+		Document v = factory.retrieveViewDocument(this, project, branch, date.getTime());
+		
+		String ret = ret1+n.toJson()+ret2+r.toJson()+ret3+v.toJson()+ret4; 
+		
+		return ret;
+	}
+
+	@Override
+	public String writeJSONtoXML(String st){
+		JAXBContext jaxbContext;
+		JAXBElement result = null;
+		String ret = "";
+		try {
+//			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+//			Map<String, Object> properties = new HashMap<String, Object>();
+//			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+
+//			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
+			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+			// parse JSON
+			//String st = jobj.toString();
+			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+
+			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			StreamSource source2 = new StreamSource(in);
+			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
+
+			// write XML
+			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+			Marshaller marshaller = jaxbContext.createMarshaller();
+//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+			StringWriter out;
+			out = new StringWriter();
+			// Create the Document
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			org.w3c.dom.Document document = db.newDocument();
+
+			//			marshaller.marshal(result, out);
+			//			out.close();
+			marshaller.marshal(result, document);
+
+			// remove elements without namespace
+			Element root = document.getDocumentElement();
+			HashMap<Node, Node> m = new HashMap<Node,Node>();
+			m.put(root, null);
+			while(!m.isEmpty()){
+				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
+				for( Node n : m.keySet()){
+					if(n instanceof Element){
+						Node nn = m.get(n);
+						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
+							if(nn !=null) nn.removeChild(n);
+						} else {
+							NodeList nodes = ((Element)n).getChildNodes();
+							for(int i=nodes.getLength()-1;i>=0;i--){
+								m2.put(nodes.item(i),n);
+							}
+						}
+					}
+				}
+				m = m2;
+			}
+			// Output the Document
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer t = tf.newTransformer();
+			DOMSource source = new DOMSource(document);
+			StreamResult result2 = new StreamResult(out);
+			t.transform(source, result2);	
+			ret = out.toString();
+		} catch (JAXBException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return ret;
 	}
 

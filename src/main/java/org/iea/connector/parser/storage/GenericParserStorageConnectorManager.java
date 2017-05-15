@@ -17,4 +17,10 @@ public interface GenericParserStorageConnectorManager {
 
 	public GenericStorageResult insertViewDocument(String project, String branch, JSONObject jsonObject, long time);
 
+	public Document retrieveViewDocument(String project, String branch, long time);
+
+	public Document retrieveNodeDocument(String project, String branch, long time);
+
+	public Document retrieveRelationDocument(String project, String branch, long time);
+
 }

@@ -100,4 +100,25 @@ public class StorageConnectorContainer {
 				((GenericParserStorageConnectorManager) connector).dropBranch(project, branch);
 			} 		
 	}
+
+	public Document retrieveViewDocumentManager(String project, String branch, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveViewDocument(project, branch, time);
+		}
+		return null;
+	}
+
+	public Document retrieveNodeDocumentManager(String project, String branch, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveNodeDocument(project, branch, time);
+		}
+		return null;
+	}
+
+	public Document retrieveRelationDocumentManager(String project, String branch, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveRelationDocument(project, branch, time);
+		}
+		return null;
+	}
 }

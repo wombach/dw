@@ -26,7 +26,7 @@ public class Neo4jSingleton {
 	public static Session getSession(){
 		Session session = null;
 		if(driver==null){
-			driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "wipro@123" ) );
+			driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "iea@123" ) );
 		}
 		session = driver.session();
 		return session;
