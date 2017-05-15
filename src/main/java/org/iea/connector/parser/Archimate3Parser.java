@@ -36,7 +36,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public boolean parseFile(String filename) {
+	public boolean parseFile(String project, String branch,String filename) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = readXMLtoJSON(filename);
@@ -54,7 +54,7 @@ public class Archimate3Parser extends GenericParser {
 			els.remove("element");
 			for(int i=0;i<l.length();i++){
 				String identifier = l.getJSONObject(i).getString("identifier");
-				Document doc = insertNodeDocument(l.getJSONObject(i),time);
+				Document doc = insertNodeDocument(project,branch,l.getJSONObject(i),time);
 				String uuid = getUUID(doc);
 				map.put(identifier, uuid);
 			}
@@ -72,20 +72,20 @@ public class Archimate3Parser extends GenericParser {
 				rel.put("source", sourceUUID);
 				rel.put("target", targetUUID);
 
-				Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, time);
+				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
 				String uuid = getUUID(doc);
 				map.put(identifier, uuid);
 			}
 			// files
 			//			Document doc = 
-			insertFileDocument(xmlJSONObj,time);
+			insertFileDocument(project, branch, xmlJSONObj,time);
 			//	}
 		}
 		return ret;
 	}
 
 	@Override
-	public void deriveFile(String filename, Date date) {
+	public void deriveFile(String project, String branch,String filename, Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -236,7 +236,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public boolean processXmlString(String str) {
+	public boolean processXmlString(String project, String branch,String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = convertXMLtoJSON(str);
@@ -252,7 +252,7 @@ public class Archimate3Parser extends GenericParser {
 			JSONArray l = els.getJSONArray("element");
 			els.remove("element");
 			for(int i=0;i<l.length();i++){
-				Document doc = insertNodeDocument(l.getJSONObject(i), time);
+				Document doc = insertNodeDocument(project, branch, l.getJSONObject(i), time);
 				String uuid = getUUID(doc);
 				String identifier = l.getJSONObject(i).getString("identifier");
 				map.put(identifier, uuid);
@@ -268,20 +268,20 @@ public class Archimate3Parser extends GenericParser {
 				String target = rel.getString("target");
 				String sourceUUID = map.get(source);
 				String targetUUID = map.get(target);
-				Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, time);
+				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
 				String uuid = getUUID(doc);
 				map.put(identifier, uuid);
 			}
 			// files
 			//			Document doc = 
-			insertFileDocument(xmlJSONObj, time);
+			insertFileDocument(project, branch, xmlJSONObj, time);
 			//	}
 		}
 		return ret;
 	}
 
 	@Override
-	public String deriveXmlString(Date date) {
+	public String deriveXmlString(String project, String branch,Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -421,7 +421,7 @@ public class Archimate3Parser extends GenericParser {
 	//	}
 
 	@Override
-	public String deriveJsonString(Date date) {
+	public String deriveJsonString(String project, String branch,Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -502,7 +502,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public Object parseJsonString(String str) {
+	public Object parseJsonString(String project, String branch,String str) {
 		JAXBContext jaxbContext;
 		ModelType model2 = null;
 		try {
@@ -530,7 +530,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public boolean processJsonString(String str) {
+	public boolean processJsonString(String project, String branch, String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = new JSONObject(str);
@@ -550,7 +550,7 @@ public class Archimate3Parser extends GenericParser {
 			for(int i=0;i<l.length();i++){
 				JSONObject n = l.getJSONObject(i);
 				String identifier = n.getString("identifier");
-				Document doc = factory.insertNodeDocument(this, n, time);
+				Document doc = factory.insertNodeDocument(this, project, branch, n, time);
 				String uuid = getUUID(doc);
 				map.put(identifier, uuid);
 			}
@@ -605,55 +605,57 @@ public class Archimate3Parser extends GenericParser {
 						} 
 					} else {
 						String uuid = relIds.get(identifier);
-						Document doc = factory.insertRelationDocument(this, uuid, rel, sourceUUID, targetUUID, time);
+						Document doc = factory.insertRelationDocument(this, project, branch, uuid, rel, sourceUUID, targetUUID, time);
 						map.put(identifier, uuid);
 					}
 				}
 			}
 			// views
-			JSONObject views =  obj.getJSONObject("views");
-			JSONObject diags = views.getJSONObject("diagrams");
-			//			for( int ii=0;ii<diags.length();ii++){
-			JSONArray lo = diags.getJSONArray("view");
-			LOGGER.info("number of views: "+lo.length());
-			for( int ii=0;ii<lo.length();ii++){
-				JSONObject view = lo.getJSONObject(ii);
-				String id = view.getString("identifier");
-				String uuid = UUID.randomUUID().toString();
-				view.put("identifier", uuid);
-				map.put(id,  uuid);
-				JSONArray cons = view.getJSONArray("connections");
-				for(int jj=0;jj<cons.length();jj++){
-					JSONObject ob = cons.getJSONObject(jj);
-					String ref = ob.getString("relationshipRef");
-					uuid = map.get(ref);
-					ob.put("relationshipRef", uuid);
-					String src = ob.getString("source");
-					uuid = map.get(src);
-					ob.put("source", uuid);
-					String trg = ob.getString("target");
-					uuid = map.get(trg);
-					ob.put("target", uuid);
-					id = ob.getString("identifier");
-					uuid = UUID.randomUUID().toString();
-					ob.put("identifier", uuid);
+			if(obj.has("views")){
+				JSONObject views =  obj.getJSONObject("views");
+				JSONObject diags = views.getJSONObject("diagrams");
+				//			for( int ii=0;ii<diags.length();ii++){
+				JSONArray lo = diags.getJSONArray("view");
+				LOGGER.info("number of views: "+lo.length());
+				for( int ii=0;ii<lo.length();ii++){
+					JSONObject view = lo.getJSONObject(ii);
+					String id = view.getString("identifier");
+					String uuid = UUID.randomUUID().toString();
+					view.put("identifier", uuid);
 					map.put(id,  uuid);
-//					LOGGER.info(ob.toString());
+					JSONArray cons = view.getJSONArray("connections");
+					for(int jj=0;jj<cons.length();jj++){
+						JSONObject ob = cons.getJSONObject(jj);
+						String ref = ob.getString("relationshipRef");
+						uuid = map.get(ref);
+						ob.put("relationshipRef", uuid);
+						String src = ob.getString("source");
+						uuid = map.get(src);
+						ob.put("source", uuid);
+						String trg = ob.getString("target");
+						uuid = map.get(trg);
+						ob.put("target", uuid);
+						id = ob.getString("identifier");
+						uuid = UUID.randomUUID().toString();
+						ob.put("identifier", uuid);
+						map.put(id,  uuid);
+						//					LOGGER.info(ob.toString());
+					}
+					JSONArray nods = view.getJSONArray("nodes");
+					for(int jj=0;jj<nods.length();jj++){
+						JSONObject ob = nods.getJSONObject(jj);
+						String ref = ob.getString("elementRef");
+						uuid = map.get(ref);
+						ob.put("elementRef", uuid);
+						id = ob.getString("identifier");
+						uuid = UUID.randomUUID().toString();
+						ob.put("identifier", uuid);
+						map.put(id,  uuid);
+					}
+					uuid = view.getString("identifier");
+					Document doc = factory.insertViewDocument(this, project, branch,  uuid, view, time);
+					map.put("identifier", uuid);
 				}
-				JSONArray nods = view.getJSONArray("nodes");
-				for(int jj=0;jj<nods.length();jj++){
-					JSONObject ob = nods.getJSONObject(jj);
-					String ref = ob.getString("elementRef");
-					uuid = map.get(ref);
-					ob.put("elementRef", uuid);
-					id = ob.getString("identifier");
-					uuid = UUID.randomUUID().toString();
-					ob.put("identifier", uuid);
-					map.put(id,  uuid);
-				}
-				uuid = view.getString("identifier");
-				Document doc = factory.insertViewDocument(this, uuid, view, time);
-				map.put("identifier", uuid);
 			}
 			//			rels.remove("relationship"); 
 			//			Vector<JSONObject> v;
@@ -661,7 +663,7 @@ public class Archimate3Parser extends GenericParser {
 
 			// files
 			//			Document doc = 
-			insertFileDocument(xmlJSONObj, time);
+			//insertFileDocument(project, branch,xmlJSONObj, time);
 			//	}
 		}
 		LOGGER.severe(retMsg);

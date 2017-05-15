@@ -35,16 +35,24 @@ public class ParserFactory {
 		storage.dropDB();
 	}
 	
+	public void dropProject(String project){
+		storage.dropProject(project);
+	}
+	
+	public void dropBranch(String project, String branch){
+		
+	}
+	
 	/**
 	 * find the right parser and parse a particular file.
 	 * Store to mongoDB??? 
 	 * @param filename
 	 * @return
 	 */
-	public boolean parseFile(String filename){
+	public boolean parseFile(String project, String branch, String filename){
 		boolean ret = false;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.parseFile(filename);
+			ret = gp.parseFile(project, branch, filename);
 			if (ret) break;
 		}
 		return ret;
@@ -56,10 +64,10 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public boolean processXmlString(String str){
+	public boolean processXmlString(String project, String branch, String str){
 		boolean ret = false;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.processXmlString(str);
+			ret = gp.processXmlString(project, branch, str);
 			if (ret) break;
 		}
 		return ret;
@@ -68,22 +76,24 @@ public class ParserFactory {
 	/**
 	 * find the right parser and parse a particular file.
 	 * Store to mongoDB??? 
+	 * @param json 
+	 * @param string 
 	 * @param filename
 	 * @return
 	 */
-	public boolean processJsonString(String str){
+	public boolean processJsonString(String project, String branch, String json){
 		boolean ret = false;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.processJsonString(str);
+			ret = gp.processJsonString(project, branch, json);
 			if (ret) break;
 		}
 		return ret;
 	}
 
-	public Object parseJsonString(String str){
+	public Object parseJsonString(String project, String branch, String str){
 		Object ret = null;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.parseJsonString(str);
+			ret = gp.parseJsonString(project, branch, str);
 			if (ret!=null) break;
 		}
 		return ret;
@@ -94,10 +104,10 @@ public class ParserFactory {
 	 * @param query
 	 * @return
 	 */
-	public void deriveFile(String parserName, String filename, Date date){
+	public void deriveFile(String parserName, String project, String branch, String filename, Date date){
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			gp.deriveFile(filename, date);
+			gp.deriveFile(project, branch, filename, date);
 		}
 	}
 
@@ -106,11 +116,11 @@ public class ParserFactory {
 	 * @param query
 	 * @return String with the retrieved model
 	 */
-	public String deriveXmlString(String parserName, Date date){
+	public String deriveXmlString(String parserName, String project, String branch, Date date){
 		String ret = null;
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			ret = gp.deriveXmlString(date);
+			ret = gp.deriveXmlString(project, branch, date);
 		}
 		return ret;
 	}
@@ -120,11 +130,11 @@ public class ParserFactory {
 	 * @param query
 	 * @return String with the retrieved model
 	 */
-	public String deriveJsonString(String parserName, Date date){
+	public String deriveJsonString(String parserName, String project, String branch, Date date){
 		String ret = null;
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			ret = gp.deriveJsonString(date);
+			ret = gp.deriveJsonString(project, branch, date);
 		}
 		return ret;
 	}
@@ -144,16 +154,16 @@ public class ParserFactory {
 		return flag;
 	}
 
-	public Document insertNodeDocument(GenericParser parser, JSONObject n, long time) {
-		return storage.insertNodeDocument(parser, n, time);
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject n, long time) {
+		return storage.insertNodeDocument(parser, project, branch, n, time);
 	}
 
-	public Document insertRelationDocument(GenericParser parser, String uuid, JSONObject rel, String sourceUUID, String targetUUID, long time) {
-		return storage.insertRelationDocument(parser, uuid, rel, sourceUUID, targetUUID, time) ;
+	public Document insertRelationDocument(GenericParser parser,String project, String branch, String uuid, JSONObject rel, String sourceUUID, String targetUUID, long time) {
+		return storage.insertRelationDocument(parser, project, branch, uuid, rel, sourceUUID, targetUUID, time) ;
 	}
 
-	public Document insertViewDocument(Archimate3Parser archimate3Parser, String uuid, JSONObject view, long time) {
-		return storage.insertViewDocument(archimate3Parser, uuid, view, time);
+	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, JSONObject view, long time) {
+		return storage.insertViewDocument(archimate3Parser, project, branch, uuid, view, time);
 	}
 
 }

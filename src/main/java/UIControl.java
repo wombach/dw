@@ -56,12 +56,12 @@ public class UIControl {
 		return content;
 	}
 
-	private boolean parseFile(String filename){
-		return pf.parseFile(filename);
-	}
-	private Object parseJsonString(String json){
-		return pf.parseJsonString(json);
-	}
+//	private boolean parseFile(String filename){
+//		return pf.parseFile(filename);
+//	}
+//	private Object parseJsonString(String json){
+//		return pf.parseJsonString(json);
+//	}
 
 //	private boolean processJsonString(String json){
 //		return pf.processJsonString(json);
@@ -82,17 +82,17 @@ public class UIControl {
 //	}
 
 
-	public void deriveFile(String parserName, String filename, Date date) {
-		pf.deriveFile(parserName, filename, date);
-	}
-
-	public String deriveXmlString(String parserName, Date date) {
-		return pf.deriveXmlString(parserName, date);
-	}
-
-	public String deriveJsonString(String parserName, Date date) {
-		return pf.deriveJsonString(parserName, date);
-	}
+//	public void deriveFile(String parserName, String filename, Date date) {
+//		pf.deriveFile(parserName, filename, date);
+//	}
+//
+//	public String deriveXmlString(String parserName, Date date) {
+//		return pf.deriveXmlString(parserName, date);
+//	}
+//
+//	public String deriveJsonString(String parserName, Date date) {
+//		return pf.deriveJsonString(parserName, date);
+//	}
 
 //	private void registerParser(String parserName, GenericParser gp) {
 //		pf.registerParser(parserName, gp);
@@ -143,9 +143,9 @@ public class UIControl {
 		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		pf.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
 		//		pf.registerParser("archimate", new ArchimateParser());
-		pf.dropDB();
+		pf.dropProject("test_project");
 		String json = readFile("demo_model_v3_20170222.json");
-		pf.processJsonString(json);		
+		pf.processJsonString("test_project","branch1",json);		
 	}
 	
 	public void test2(){
@@ -155,8 +155,25 @@ public class UIControl {
 		//		pf.registerParser("archimate", new ArchimateParser());
 		pf.dropDB();
 		String json = readFile("demo_model_v3_20170227_w_views4.json");
-		pf.processJsonString(json);		
+		//pf.processJsonString(json);	
+		pf.processJsonString("test_project","branch2",json);	
 	}
+
+	public void test3(){
+		test2();
+		// read the data and from the repository
+		Date date = new Date(System.currentTimeMillis());
+		pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
+	}
+
+	public void test4(){
+		test2();
+		// read the data and from the repository
+		Date date = new Date(System.currentTimeMillis());
+		LOGGER.info("retrieved result");
+		LOGGER.info(pf.deriveJsonString("archimate3","test_project","branch2", date));
+	}
+
 	/**
 	 * static UI; later to be replaced by a web based interface
 	 * @param args
@@ -167,7 +184,7 @@ public class UIControl {
 	 */
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException, StorageRegistrationException {
 		UIControl u = new UIControl();
-		u.test2();
+		u.test1();
 //		pf.registerParser("archimate3", new Archimate3Parser());
 //		u.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		u.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);

@@ -5,12 +5,16 @@ import org.json.JSONObject;
 
 public interface GenericParserStorageConnectorManager {
 
-	public GenericStorageResult insertNodeDocument(JSONObject jsonObject, long time);
+	public GenericStorageResult insertNodeDocument(String project, String branch, JSONObject jsonObject, long time);
 
-	public GenericStorageResult insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) ;
+	public GenericStorageResult insertRelationDocument(String project, String branch, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) ;
 
 	public void dropDB();
+	
+	public void dropProject(String project);
+	
+	public void dropBranch(String project, String branch);
 
-	public GenericStorageResult insertViewDocument(JSONObject jsonObject, long time);
+	public GenericStorageResult insertViewDocument(String project, String branch, JSONObject jsonObject, long time);
 
 }

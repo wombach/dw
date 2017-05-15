@@ -24,29 +24,29 @@ public class StorageConnectorContainer {
 		this.managingIDs = managingIDs;
 	}
 
-	public GenericStorageResult insertNodeDocumentManager(JSONObject jsonObject, long time){
+	public GenericStorageResult insertNodeDocumentManager(String project, String branch, JSONObject jsonObject, long time){
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertNodeDocument(jsonObject, time);
+			return ((GenericParserStorageConnectorManager) connector).insertNodeDocument(project, branch, jsonObject, time);
 		} 
 		return null;
 	}
 
-	public void insertNodeDocumentFollower(JSONObject jsonObject, long time){
+	public void insertNodeDocumentFollower(String project, String branch, JSONObject jsonObject, long time){
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertNodeDocument(jsonObject, time);
+			((GenericParserStorageConnectorFollower) connector).insertNodeDocument(project, branch, jsonObject, time);
 		} 
 	}
 
-	public GenericStorageResult insertRelationDocumentManager(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
+	public GenericStorageResult insertRelationDocumentManager(String project, String branch, String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertRelationDocument(jsonObject, sourceUUID, targetUUID, time);
+			return ((GenericParserStorageConnectorManager) connector).insertRelationDocument(project, branch, jsonObject, sourceUUID, targetUUID, time);
 		} 
 		return null;
 	}
 
-	public void insertRelationDocumentFollower(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
+	public void insertRelationDocumentFollower(String project, String branch, String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time){
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(uuid, jsonObject, sourceUUID, targetUUID, time);
+			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(project, branch, uuid, jsonObject, sourceUUID, targetUUID, time);
 		} 
 	}
 
@@ -54,9 +54,9 @@ public class StorageConnectorContainer {
 		return this.managingIDs;
 	}
 
-	public void updateNodeDocument(JSONObject jsonObject, long time) {
+	public void updateNodeDocument(String project, String branch, JSONObject jsonObject, long time) {
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).updateNodeDocument(jsonObject, time);
+			((GenericParserStorageConnectorFollower) connector).updateNodeDocument(project, branch, jsonObject, time);
 		} 
 	}
 
@@ -70,16 +70,34 @@ public class StorageConnectorContainer {
 			
 	}
 
-	public GenericStorageResult insertViewDocumentManager(String uuid, JSONObject jsonObject, long time) {
+	public GenericStorageResult insertViewDocumentManager(String project, String branch, String uuid, JSONObject jsonObject, long time) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertViewDocument(jsonObject, time);
+			return ((GenericParserStorageConnectorManager) connector).insertViewDocument(project, branch, jsonObject, time);
 		} 
 		return null;
 	}
 
-	public void insertViewDocumentFollower(String uuid, JSONObject jsonObject, long time) {
+	public void insertViewDocumentFollower(String project, String branch, String uuid, JSONObject jsonObject, long time) {
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertViewDocument(uuid, jsonObject, time);
+			((GenericParserStorageConnectorFollower) connector).insertViewDocument(project, branch, uuid, jsonObject, time);
 		} 
+	}
+
+	public void dropProject(String project) {
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).dropProject(project);
+		} else 
+			if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+				((GenericParserStorageConnectorManager) connector).dropProject(project);
+			} 		
+	}
+
+	public void dropBranch(String project, String branch) {
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).dropBranch(project, branch);
+		} else 
+			if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+				((GenericParserStorageConnectorManager) connector).dropBranch(project, branch);
+			} 		
 	}
 }

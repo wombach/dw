@@ -33,13 +33,15 @@ implements GenericParserStorageConnectorManager {
 	public final static String DOC_ID = "id";
 	public final static String DOC_COMPARISON_STRING = "comparison_string";
 	public static final String DOC_HASH = "hash";
+	private static final String DOC_BRANCH = "branch";
+	
 	private MongoDBAccess mongo ;
 	
 	public Archimate3MongoDBConnector(){
 		mongo = new MongoDBAccess();
 	}
 	
-	public Document enrichDocument( JSONObject obj, long time, String compStr, int hash){
+	public Document enrichDocument( JSONObject obj, String branch, long time, String compStr, int hash){
 		String uuid = UUID.randomUUID().toString();
 		obj.remove("identifier");
 		obj.put("identifier", uuid);
@@ -64,6 +66,8 @@ implements GenericParserStorageConnectorManager {
 			}
 		}
 
+		//JSONArray branchArr = new JSONArray();
+		//branchArr.put(branch);
 		Document doc = new Document(DOC_NAME, DOC_NAME_NODE)
 				.append(DOC_TYPE, parser.getType())
 				.append(DOC_ID, uuid)
@@ -71,6 +75,8 @@ implements GenericParserStorageConnectorManager {
 				.append(DOC_END_DATE, -1L)
 				.append(DOC_COMPARISON_STRING, compStr)
 				.append(DOC_HASH, hash)
+			//	.append(DOC_BRANCH, branchArr)
+				.append(DOC_BRANCH, branch)
 				.append(DOC_RAW, (BSONObject)com.mongodb.util.JSON.parse(obj.toString()));
 		return doc;
 	}
@@ -90,7 +96,7 @@ implements GenericParserStorageConnectorManager {
 
 
 	@Override
-	public GenericStorageResult insertNodeDocument(JSONObject jsonObject, long time) {
+	public GenericStorageResult insertNodeDocument(String project, String branch, JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
 		
 		int hash = parser.getNodeHash(jsonObject);
@@ -98,7 +104,7 @@ implements GenericParserStorageConnectorManager {
 		GenericStorageResult ret = new GenericStorageResult();
 		boolean insert = false;
 		//		long time = System.currentTimeMillis();
-		FindIterable<Document> docs = mongo.queryDocument(MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
+		FindIterable<Document> docs = mongo.queryDocument(project, branch, MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
 
 
 		//      TODO: fix updates!
@@ -130,8 +136,8 @@ implements GenericParserStorageConnectorManager {
 		ret.setStatusInserted();
 		//		}
 		if (insert){
-			doc = enrichDocument( jsonObject, time, compStr, hash);
-			mongo.insertDocument(MongoDBAccess.COLLECTION_NODES, doc);
+			doc = enrichDocument( jsonObject, branch, time, compStr, hash);
+			mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_NODES, doc);
 			LOGGER.info("the document has been inserted");
 		} else {
 			LOGGER.info("no update was necessary");
@@ -147,14 +153,14 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public GenericStorageResult insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public GenericStorageResult insertRelationDocument(String project, String branch, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
-		Document doc = enrichDocument( jsonObject,time, compStr, hash);
+		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
-		mongo.insertDocument(MongoDBAccess.COLLECTION_RELATIONS, doc);
+		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
 		//
@@ -164,12 +170,12 @@ implements GenericParserStorageConnectorManager {
 	}
 	
 	@Override
-	public GenericStorageResult insertViewDocument(JSONObject jsonObject, long time) {
+	public GenericStorageResult insertViewDocument(String project, String branch, JSONObject jsonObject, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
-		Document doc = enrichDocument( jsonObject,time, compStr, hash);
-		mongo.insertDocument(MongoDBAccess.COLLECTION_VIEWS, doc);
+		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash);
+		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
 		//
@@ -190,6 +196,17 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public void dropDB() {
 		mongo.dropCollections();
+	}
+
+	@Override
+	public void dropProject(String project) {
+		mongo.dropProject(project);
+		
+	}
+
+	@Override
+	public void dropBranch(String project, String branch) {
+		mongo.dropBranch(project, branch);
 	}
 
 }

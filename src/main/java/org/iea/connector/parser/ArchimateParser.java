@@ -26,7 +26,7 @@ public class ArchimateParser extends GenericParser {
 	}
 
 	@Override
-	public boolean parseFile(String filename) {
+	public boolean parseFile(String project, String branch, String filename) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = readXMLtoJSON(filename);
@@ -41,7 +41,7 @@ public class ArchimateParser extends GenericParser {
 				JSONArray l = els.getJSONArray("element");
 				els.remove("element");
 				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i),0);
+					Document doc = insertNodeDocument(project, branch, l.getJSONObject(i),0);
 					String uuid = getUUID(doc);
 					String identifier = l.getJSONObject(i).getString("identifier");
 					map.put(identifier, uuid);
@@ -57,20 +57,20 @@ public class ArchimateParser extends GenericParser {
 					String target = rel.getString("target");
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, 0);
+					Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, 0);
 					String uuid = getUUID(doc);
 					map.put(identifier, uuid);
 				}
 				// files
 				//			Document doc = 
-				insertFileDocument(xmlJSONObj,0);
+				insertFileDocument(project, branch, xmlJSONObj,0);
 		//	}
 		}
 		return ret;
 	}
 
 	@Override
-	public void deriveFile(String filename, Date date) {
+	public void deriveFile(String project, String branch, String filename, Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -213,7 +213,7 @@ public class ArchimateParser extends GenericParser {
 	}
 
 	@Override
-	public boolean processXmlString(String str) {
+	public boolean processXmlString(String project, String branch, String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = convertXMLtoJSON(str);
@@ -228,7 +228,7 @@ public class ArchimateParser extends GenericParser {
 				JSONArray l = els.getJSONArray("element");
 				els.remove("element");
 				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i),0);
+					Document doc = insertNodeDocument(project, branch, l.getJSONObject(i),0);
 					String uuid = getUUID(doc);
 					String identifier = l.getJSONObject(i).getString("identifier");
 					map.put(identifier, uuid);
@@ -244,20 +244,20 @@ public class ArchimateParser extends GenericParser {
 					String target = rel.getString("target");
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, 0);
+					Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, 0);
 					String uuid = getUUID(doc);
 					map.put(identifier, uuid);
 				}
 				// files
 				//			Document doc = 
-				insertFileDocument(xmlJSONObj,0);
+				insertFileDocument(project, branch, xmlJSONObj,0);
 		//	}
 		}
 		return ret;
 	}
 
 	@Override
-	public String deriveXmlString(Date date) {
+	public String deriveXmlString(String project, String branch, Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -299,14 +299,14 @@ public class ArchimateParser extends GenericParser {
 	}
 
 	@Override
-	public boolean processJsonString(String str) {
+	public boolean processJsonString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 
 	@Override
-	public String deriveJsonString(Date date) {
+	public String deriveJsonString(String project, String branch, Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -318,7 +318,7 @@ public class ArchimateParser extends GenericParser {
 	}
 
 	@Override
-	public Object parseJsonString(String str) {
+	public Object parseJsonString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return null;
 	}

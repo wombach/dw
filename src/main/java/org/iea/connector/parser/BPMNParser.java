@@ -15,13 +15,13 @@ public class BPMNParser extends GenericParser{
 	}
 	
 	@Override
-	public boolean parseFile(String filename) {
+	public boolean parseFile(String project, String branch,String filename) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public void deriveFile(String filename, Date date) {
+	public void deriveFile(String project, String branch,String filename, Date date) {
 		// TODO Auto-generated method stub
 	}
 
@@ -63,25 +63,25 @@ public class BPMNParser extends GenericParser{
 	}
 
 	@Override
-	public boolean processXmlString(String str) {
+	public boolean processXmlString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean processJsonString(String str) {
+	public boolean processJsonString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public String deriveXmlString(Date date) {
+	public String deriveXmlString(String project, String branch,Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String deriveJsonString(Date date) {
+	public String deriveJsonString(String project, String branch,Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -93,7 +93,7 @@ public class BPMNParser extends GenericParser{
 	}
 
 	@Override
-	public Object parseJsonString(String str) {
+	public Object parseJsonString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return null;
 	}

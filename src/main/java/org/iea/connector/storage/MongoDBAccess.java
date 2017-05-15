@@ -94,22 +94,22 @@ public class MongoDBAccess {
 	}
 
 	public void insertDocument(String col, Document doc){
-		insertDocument(DATABASE,col , doc);
+		insertDocument(DATABASE, "none", col , doc);
 	}
 
-	public void insertDocument(String db, String col, Document doc){
-		MongoCollection<Document> collection = getCollection(db, col);
+	public void insertDocument(String project, String branch, String col, Document doc){
+		MongoCollection<Document> collection = getCollection(project, col);
 		//LOGGER.info("collection count before insert: "+collection.count());
 		collection.insertOne(doc);
 		LOGGER.info("collection count count after insert: "+collection.count());
 	}
 
 	public void updateDocument(String col, String searchKey, String searchValue, String setKey, long time){
-		updateDocument(DATABASE, col, searchKey, searchValue, setKey, time);
+		updateDocument(DATABASE, "none", col, searchKey, searchValue, setKey, time);
 	}
 
-	public void updateDocument(String db, String col, String searchKey, String searchValue, String setKey, long time){
-		MongoCollection<Document> collection = getCollection(db, col);
+	public void updateDocument(String project, String branch, String col, String searchKey, String searchValue, String setKey, long time){
+		MongoCollection<Document> collection = getCollection(project, col);
 		BasicDBObject updateQuery = new BasicDBObject();
 		updateQuery.append("$set", new BasicDBObject().append(setKey, time));
 
@@ -122,25 +122,37 @@ public class MongoDBAccess {
 	}
 
 	public FindIterable<Document> queryDocument(String col, String key, String value, Date date){
-		return queryDocument(DATABASE, col, key, value, date);
+		return queryDocument(DATABASE, "none", col, key, value, date);
 	}
 	
-	public FindIterable<Document> queryDocument(String db, String col, String key, String value, Date date){
-		return queryDocument(db, col, key, value, date.getTime());
+	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, Date date){
+		return queryDocument(project, branch, col, key, value, date.getTime());
 	}
 	
-	public FindIterable<Document> queryDocument(String db, String col, String key, String value, long time){
+	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, long time){
 		BasicDBObject query = new BasicDBObject(key, new BasicDBObject("$eq", value)).
 				append("start_date",  new BasicDBObject("$gt", time)).
+				append("branch",  branch).
 				append("$or", new BasicDBObject("end_date",  new BasicDBObject("$lt", time)).
 						append("end_date",  new BasicDBObject("$eq", -1)));
-		FindIterable<Document> iterable = getCollection(db, col).find(eq(key, value));
+		//TODO:  add branch to the constraint 
+		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
 		return iterable;
 	}
 
 	public void dropCollections(){
 		dropCollections(DATABASE);
 	}
+	
+	public void dropProject(String project){
+		dropCollections(project);
+	}
+	
+	public void dropBranch(String project, String branch){
+		//dropCollections(DATABASE);
+		//TODO: implement dropping all branches
+	}
+	
 	
 	public void dropCollections(String db){
 		MongoCollection<Document> col = getCollection(db, COLLECTION_NODES);

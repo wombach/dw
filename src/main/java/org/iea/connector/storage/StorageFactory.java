@@ -45,31 +45,31 @@ public class StorageFactory {
 		} else vec.add(new StorageConnectorContainer(gs) );
 	}
 
-	public Document insertNodeDocument(GenericParser parser, JSONObject jsonObject, long time) {
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject jsonObject, long time) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertNodeDocumentManager(jsonObject, time);
+				ret = v.insertNodeDocumentManager(project, branch, jsonObject, time);
 			} else { 
 				if(ret.isStatusUpdated()){
-					v.updateNodeDocument(jsonObject, time);
+					v.updateNodeDocument(project, branch, jsonObject, time);
 				} else if(ret.isStatusInserted()){
-					v.insertNodeDocumentFollower(jsonObject, time);
+					v.insertNodeDocumentFollower(project, branch, jsonObject, time);
 				}
 			}
 		}
 		return ret.getDoc();
 	}
 
-	public Document insertRelationDocument(GenericParser parser, String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public Document insertRelationDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertRelationDocumentManager(uuid, jsonObject, sourceUUID, targetUUID, time);
+				ret = v.insertRelationDocumentManager(project, branch, uuid, jsonObject, sourceUUID, targetUUID, time);
 			} else { 
-				v.insertRelationDocumentFollower(uuid, jsonObject, sourceUUID, targetUUID, time);
+				v.insertRelationDocumentFollower(project, branch, uuid, jsonObject, sourceUUID, targetUUID, time);
 			}
 		}
 		return ret.getDoc();
@@ -84,17 +84,35 @@ public class StorageFactory {
 		}
 	}
 
-	public Document insertViewDocument(GenericParser parser, String uuid, JSONObject jsonObject, long time) {
+	public Document insertViewDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, long time) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertViewDocumentManager(uuid, jsonObject, time);
+				ret = v.insertViewDocumentManager(project, branch, uuid, jsonObject, time);
 			} else { 
-				v.insertViewDocumentFollower(uuid, jsonObject, time);
+				v.insertViewDocumentFollower(project, branch, uuid, jsonObject, time);
 			}
 		}
 		return ret.getDoc();
+	}
+
+	public void dropProject(String project) {
+		Collection<Vector<StorageConnectorContainer>> vec = storage.values();
+		for(Vector<StorageConnectorContainer> vv:vec){
+			for(StorageConnectorContainer v:vv ){
+				v.dropProject(project);
+			}
+		}		
+	} 	
+	
+	public void dropBranch(String project, String branch) {
+		Collection<Vector<StorageConnectorContainer>> vec = storage.values();
+		for(Vector<StorageConnectorContainer> vv:vec){
+			for(StorageConnectorContainer v:vv ){
+				v.dropBranch(project, branch);
+			}
+		}		
 	} 	
 	
 }

@@ -74,13 +74,13 @@ public abstract class GenericParser {
 		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ns0");
 	}
 	
-	public abstract boolean parseFile(String filename);
+	public abstract boolean parseFile(String filename, String branch, String filename2);
 
 	public abstract Object parseXmlString(String str);
-	public abstract Object parseJsonString(String str);
+	public abstract Object parseJsonString(String str, String branch, String str2);
 	public abstract boolean storeObject(Object elm);
 	
-	public boolean processXmlString(String str){
+	public boolean processXmlString(String str, String branch, String str2){
 		boolean ret = false;
 		Object elm = parseXmlString(str);
 		if(elm!=null){
@@ -89,7 +89,7 @@ public abstract class GenericParser {
 		return ret;	
 	};
 	
-	public abstract  boolean processJsonString(String str);
+	public abstract  boolean processJsonString(String project, String branch, String json);
 //		boolean ret = false;
 ////		Object elm = parseJsonString(str);
 ////		if(elm!=null){
@@ -98,10 +98,10 @@ public abstract class GenericParser {
 //		return ret;
 //	}
 
-	public abstract void deriveFile(String filename, Date date);
+	public abstract void deriveFile(String project, String branch, String filename, Date date);
 
-	public abstract String deriveXmlString(Date date);
-	public abstract String deriveJsonString(Date date);
+	public abstract String deriveXmlString(String project, String branch, Date date);
+	public abstract String deriveJsonString(String project, String branch, Date date);
 
 	public Document enrichDocument( JSONObject obj, long time, String compStr, int hash){
 		String uuid = UUID.randomUUID().toString();
@@ -121,7 +121,7 @@ public abstract class GenericParser {
 	abstract public String getNodeComparisonString(JSONObject jsonObject);
 	abstract public int getNodeHash(JSONObject jsonObject);
 
-	public Document insertNodeDocument(JSONObject jsonObject, long time) {
+	public Document insertNodeDocument(String project, String branch,JSONObject jsonObject, long time) {
 //		String compStr = getNodeComparisonString(jsonObject);
 //		//MongoDBAccess mongo = new MongoDBAccess();
 //		int hash = getNodeHash(jsonObject);
@@ -167,7 +167,7 @@ public abstract class GenericParser {
 	abstract protected String getRelationComparisonString(JSONObject jsonObject);
 	abstract protected int getRelationHash(JSONObject jsonObject);
 
-	public Document insertRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public Document insertRelationDocument(String project, String branch,JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 //		String compStr = getRelationComparisonString(jsonObject);
 //		int hash = getRelationHash(jsonObject);
 //		Document doc = enrichDocument( jsonObject,time, compStr, hash);
@@ -182,7 +182,7 @@ public abstract class GenericParser {
 	abstract protected String getFileComparisonString(JSONObject jsonObject);
 	abstract protected int getFileHash(JSONObject jsonObject);
 
-	public Document insertFileDocument(JSONObject obj, long time) {
+	public Document insertFileDocument(String project, String branch,JSONObject obj, long time) {
 //		String compStr = getFileComparisonString(obj);
 //		int hash = getFileHash(obj);
 //		Document doc = enrichDocument( obj, time, compStr, hash);

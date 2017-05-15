@@ -81,7 +81,7 @@ implements GenericParserStorageConnectorFollower {
 	}
 
 	@Override
-	public void insertNodeDocument(JSONObject jsonObject, long time) {
+	public void insertNodeDocument(String project, String branch, JSONObject jsonObject, long time) {
 		String compStr = getNodeComparisonString(jsonObject);
 //		Neo4jAccess graph = UIControl.getGraph();
 		String query = createNodeCreationQuery(jsonObject, "node", time);
@@ -95,7 +95,7 @@ implements GenericParserStorageConnectorFollower {
 	}
 
 	@Override
-	public void insertRelationDocument(String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public void insertRelationDocument(String project, String branch, String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		String nodeQuery = createNodeCreationQuery(uuid, jsonObject, "relation", time);
@@ -107,7 +107,7 @@ implements GenericParserStorageConnectorFollower {
 	}
 
 	@Override
-	public void insertViewDocument(String uuid, JSONObject jsonObject, long time) {
+	public void insertViewDocument(String project, String branch, String uuid, JSONObject jsonObject, long time) {
 		// TODO Auto-generated method stub
 	} 
 	
@@ -173,14 +173,14 @@ implements GenericParserStorageConnectorFollower {
 
 
 	@Override
-	public void updateNodeDocument(JSONObject jsonObject, long time) {
+	public void updateNodeDocument(String project, String branch, JSONObject jsonObject, long time) {
 		// TODO Auto-generated method stub
 		String query = createNodeUpdateQuery(jsonObject, "node", time);
 		LOGGER.severe("implement update node");
 	}
 
 	@Override
-	public void updateRelationDocument(JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public void updateRelationDocument(String project, String branch, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 		// TODO Auto-generated method stub
 
 	}
@@ -188,6 +188,18 @@ implements GenericParserStorageConnectorFollower {
 	@Override
 	public void dropDB() {
 		graph.emptyDatabase();
+	}
+
+	@Override
+	public void dropProject(String project) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dropBranch(String project, String branch) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

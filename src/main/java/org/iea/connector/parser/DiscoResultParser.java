@@ -28,7 +28,7 @@ public class DiscoResultParser extends GenericParser {
 	}
 
 	@Override
-	public boolean parseFile(String filename) {
+	public boolean parseFile(String project, String branch,String filename) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = readXMLtoJSON(filename);
@@ -44,7 +44,7 @@ public class DiscoResultParser extends GenericParser {
 				JSONArray l = els.getJSONArray("Node");
 				els.remove("Node");
 				for(int i=0;i<l.length();i++){
-					Document doc = insertNodeDocument(l.getJSONObject(i),TIME);
+					Document doc = insertNodeDocument(project, branch, l.getJSONObject(i),TIME);
 					String uuid = getUUID(doc);
 					String identifier = Integer.toString(l.getJSONObject(i).getInt("index"));
 					map.put(identifier, uuid);
@@ -60,20 +60,20 @@ public class DiscoResultParser extends GenericParser {
 					String target = Integer.toString(rel.getInt("targetIndex"));
 					String sourceUUID = map.get(source);
 					String targetUUID = map.get(target);
-					Document doc = insertRelationDocument(rel, sourceUUID, targetUUID, TIME);
+					Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, TIME);
 					String uuid = getUUID(doc);
 					//map.put(identifier, uuid);
 				}
 				// files
 				//			Document doc = 
-				insertFileDocument(xmlJSONObj,TIME);
+				insertFileDocument(project, branch, xmlJSONObj,TIME);
 			}
 		}
 		return ret;
 	}
 
 	@Override
-	public void deriveFile(String filename, Date date) {
+	public void deriveFile(String project, String branch,String filename, Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -252,25 +252,25 @@ public class DiscoResultParser extends GenericParser {
 	}
 
 	@Override
-	public boolean processXmlString(String str) {
+	public boolean processXmlString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean processJsonString(String str) {
+	public boolean processJsonString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public String deriveXmlString(Date date) {
+	public String deriveXmlString(String project, String branch,Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String deriveJsonString(Date date) {
+	public String deriveJsonString(String project, String branch,Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -282,7 +282,7 @@ public class DiscoResultParser extends GenericParser {
 	}
 
 	@Override
-	public Object parseJsonString(String str) {
+	public Object parseJsonString(String project, String branch,String str) {
 		// TODO Auto-generated method stub
 		return null;
 	}
