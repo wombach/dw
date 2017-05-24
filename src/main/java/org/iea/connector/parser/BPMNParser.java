@@ -108,6 +108,12 @@ public class BPMNParser extends GenericParser{
 	public String retrieveJsonString(String project, String branch, Date date) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String writeJSONtoXML(String st) {
+		// TODO Auto-generated method stub
+		return null;
 	} 
 
 

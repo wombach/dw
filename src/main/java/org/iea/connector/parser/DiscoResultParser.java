@@ -124,7 +124,7 @@ public class DiscoResultParser extends GenericParser {
 			}
 //			LOGGER.info(ret.toString());
 //			LOGGER.info(prettyPrintJSON(ret));
-			this.writeJSONtoXML(filename, raw );
+//			this.writeJSONtoXML(filename, raw );
 		}
 	} 
 
@@ -295,6 +295,12 @@ public class DiscoResultParser extends GenericParser {
 
 	@Override
 	public String retrieveJsonString(String project, String branch, Date date) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String writeJSONtoXML(String st) {
 		// TODO Auto-generated method stub
 		return null;
 	}

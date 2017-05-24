@@ -68,9 +68,9 @@ public class Main4 {
 		vals.add(val);
 //		modelT.setElements(elems);
 		
-		InputStream iStream = Main4.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
-		Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+//		InputStream iStream = Main4.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+//		Map<String, Object> properties = new HashMap<String, Object>();
+//		properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "ns1");
 		namespaces.put("namespace2", "ns2");
@@ -84,7 +84,7 @@ public class Main4 {
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
 		marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
-//		marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+		marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 //		marshaller.marshal(model, System.out);
 		// Set the Marshaller media type to JSON or XML
 		marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
@@ -103,7 +103,7 @@ public class Main4 {
 		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
 		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 		StreamSource source2 = new StreamSource(in);
 		JAXBElement<ModelType> result = unmarshaller2.unmarshal(source2, ModelType.class);
 		ModelType model2 = (ModelType) result.getValue();

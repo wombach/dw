@@ -18,21 +18,21 @@
 					],
 					"properties": [
 						{
-							"propertyDefinitionRef": "propidWiproDigitalWorkflowStartDate",
+							"propertyDefinitionRef": "propidIEAStartDate",
 							"value": {
 								"value": 0,
 								"xml:lang": "en"
 							}
 						},
 						{
-							"propertyDefinitionRef": "propidWiproDigitalWorkflowEndDate",
+							"propertyDefinitionRef": "propidIEAEndDate",
 							"value": {
 								"value": -1,
 								"xml:lang": "en"
 							}
 						},
 						{
-							"propertyDefinitionRef": "propidWiproDigitalWorkflowIdentifier",
+							"propertyDefinitionRef": "propidIEAIdentifier",
 							"value": {
 								"value": "3d3ffdcf-a5ae-4610-adac-6e80fc33f1bf",
 								"xml:lang": "en"
@@ -51,21 +51,21 @@
 					],
 					"properties": [
 						{
-							"propertyDefinitionRef": "propidWiproDigitalWorkflowStartDate",
+							"propertyDefinitionRef": "propidIEAStartDate",
 							"value": {
 								"value": 0,
 								"xml:lang": "en"
 							}
 						},
 						{
-							"propertyDefinitionRef": "propidWiproDigitalWorkflowEndDate",
+							"propertyDefinitionRef": "propidIEAEndDate",
 							"value": {
 								"value": -1,
 								"xml:lang": "en"
 							}
 						},
 						{
-							"propertyDefinitionRef": "propidWiproDigitalWorkflowIdentifier",
+							"propertyDefinitionRef": "propidIEAIdentifier",
 							"value": {
 								"value": "239d5600-f793-4b9f-8e1c-9da76da97573",
 								"xml:lang": "en"
@@ -87,15 +87,15 @@
 			{
 				"propertyDefinition": [
 					{
-						"identifier": "propidWiproDigitalWorkflowStartDate",
+						"identifier": "propidIEAStartDate",
 						"propertyType": "number"
 					},
 					{
-						"identifier": "propidWiproDigitalWorkflowEndDate",
+						"identifier": "propidIEAEndDate",
 						"propertyType": "number"
 					},
 					{
-						"identifier": "propidWiproDigitalWorkflowIdentifier",
+						"identifier": "propidIEAIdentifier",
 						"propertyType": "string"
 					}
 				]
