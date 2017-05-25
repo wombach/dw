@@ -166,7 +166,7 @@ public class MongoDBAccess {
 		col.drop();
 	}
 
-	public FindIterable<Document> retrieveDocument(String project, String branch, String col, long time) {
+	public FindIterable<Document> retrieveDocument(String project, String branch, String col, String type, long time) {
 		// db.getCollection('nodes').find({'branch':"branch1", 
 	    //            'start_date': {$lt: 1494859350395}, 
 	    //            $or : [{'end_date': {$eq: -1}},
@@ -177,6 +177,7 @@ public class MongoDBAccess {
 		or.add(new BasicDBObject("end_date",  new BasicDBObject("$eq", -1)));
 		BasicDBObject query = new BasicDBObject("start_date",  new BasicDBObject("$lt", time)).
 				append("branch",  branch).
+				append("type", type).
 				append("$or", or);
 		
 		FindIterable<Document> iterable = getCollection(project, col).find(query);

@@ -14,6 +14,7 @@ import javax.xml.bind.JAXBElement;
 import org.bson.BSONObject;
 import org.bson.BsonArray;
 import org.bson.Document;
+import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.storage.MongoDBAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -86,15 +87,15 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	protected String getNodeComparisonString(JSONObject jsonObject) {
-		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
-		String name = nameObj.getString("value");
-		String node_type = jsonObject.getString("type");
+		JSONObject nameObj = jsonObject.getJSONArray(Archimate3Parser.NAME_TAG).getJSONObject(0);
+		String name = nameObj.getString(Archimate3Parser.VALUE_TAG);
+		String node_type = jsonObject.getString(Archimate3Parser.TYPE_TAG);
 		return parser.getType()+"|"+node_type+"|"+name.toString();
 	}
 
 	protected int getNodeHash(JSONObject jsonObject) {
 		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
-		jsonDoc.removeField("identifier");
+		jsonDoc.removeField(Archimate3Parser.IDENTIFIER_TAG);
 		return jsonDoc.hashCode();
 	}
 
@@ -215,7 +216,7 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public Document retrieveViewDocument(String project, String branch, long time) {
-		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, time);
+		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 			MongoCursor<Document> it = docs.iterator();
 			while(it.hasNext()){
@@ -225,13 +226,13 @@ implements GenericParserStorageConnectorManager {
 				elem.add(raw);
 			}
 			Document ret = new Document();
-			ret.append("view", elem);
+			ret.append(Archimate3Parser.VIEW_TAG, elem);
 		return ret;
 	}
 
 	@Override
 	public Document retrieveNodeDocument(String project, String branch, long time) {
-		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_NODES, time);
+		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_NODES, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 			MongoCursor<Document> it = docs.iterator();
 			while(it.hasNext()){
@@ -241,13 +242,13 @@ implements GenericParserStorageConnectorManager {
 				elem.add(raw);
 			}
 			Document ret = new Document();
-			ret.append("element", elem);
+			ret.append(Archimate3Parser.ELEMENT_TAG, elem);
 		return ret;
 	}
 
 	@Override
 	public Document retrieveRelationDocument(String project, String branch, long time) {
-		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, time);
+		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 			MongoCursor<Document> it = docs.iterator();
 			while(it.hasNext()){
@@ -257,7 +258,7 @@ implements GenericParserStorageConnectorManager {
 				elem.add(raw);
 			}
 			Document ret = new Document();
-			ret.append("relationship", elem);
+			ret.append(Archimate3Parser.RELATIONSHIP_TAG, elem);
 		return ret;
 	}
 
