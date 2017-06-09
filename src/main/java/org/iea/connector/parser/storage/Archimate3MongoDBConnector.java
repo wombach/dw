@@ -107,7 +107,7 @@ implements GenericParserStorageConnectorManager {
 		return jsonDoc.hashCode();
 	}
 
-	private JSONArray createOrganizationPath(Vector<KeyValuePair> org) {
+	private JSONArray createOrganizationPath(Vector<KeyValuePair> org, String branch) {
 		JSONArray root = new JSONArray();
 		if (org!=null && org.size()>0){
 			for(KeyValuePair it : org){
@@ -126,7 +126,7 @@ implements GenericParserStorageConnectorManager {
 		}
 		if(root.length()==0){
 			JSONObject item = new JSONObject();
-			item.put(DOC_ORGANIZATION_LABEL, DOC_ORGANIZATION_DEFAULT_FOLDER);
+			item.put(DOC_ORGANIZATION_LABEL, branch);
 			item.put(DOC_ORGANIZATION_POSITION, -1);
 			root.put(item);
 		}
@@ -173,7 +173,7 @@ implements GenericParserStorageConnectorManager {
 		insert = true;
 		ret.setStatusInserted();
 		//		}
-		JSONArray orgJson = createOrganizationPath(org);
+		JSONArray orgJson = createOrganizationPath(org, branch);
 		if (insert){
 			doc = enrichDocument( jsonObject, branch, time, compStr, hash, orgJson);
 			mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_NODES, doc);
@@ -196,7 +196,7 @@ implements GenericParserStorageConnectorManager {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
-		JSONArray orgJson = createOrganizationPath(org);
+		JSONArray orgJson = createOrganizationPath(org, branch);
 		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash, orgJson);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
@@ -216,7 +216,7 @@ implements GenericParserStorageConnectorManager {
 		String compStr = getOrganizationComparisonString(labelArr);
 		int hash = getOrganizationHash(labelArr);
 		GenericStorageResult ret = new GenericStorageResult();
-		JSONArray orgJson = createOrganizationPath(level);
+		JSONArray orgJson = createOrganizationPath(level, branch);
 		JSONObject jsonObj = new JSONObject();
 		jsonObj.put(DOC_ORGANIZATION_CONTENT, labelArr);
 		Document doc = enrichDocument( jsonObj,branch, time, compStr, hash, orgJson);
@@ -244,7 +244,7 @@ implements GenericParserStorageConnectorManager {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
-		JSONArray orgJson = createOrganizationPath(org);
+		JSONArray orgJson = createOrganizationPath(org, branch);
 		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash, orgJson);
 		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, doc);
 		ret.setDoc(doc);
