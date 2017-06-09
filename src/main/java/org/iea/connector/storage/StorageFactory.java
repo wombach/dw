@@ -11,6 +11,8 @@ import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.parser.GenericParser;
 import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.parser.storage.GenericStorageResult;
+import org.iea.util.KeyValuePair;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /** 
@@ -45,12 +47,12 @@ public class StorageFactory {
 		} else vec.add(new StorageConnectorContainer(gs) );
 	}
 
-	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject jsonObject, long time) {
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject jsonObject, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertNodeDocumentManager(project, branch, jsonObject, time);
+				ret = v.insertNodeDocumentManager(project, branch, jsonObject, time, org);
 			} else { 
 				if(ret.isStatusUpdated()){
 					v.updateNodeDocument(project, branch, jsonObject, time);
@@ -62,19 +64,45 @@ public class StorageFactory {
 		return ret.getDoc();
 	}
 
-	public Document insertRelationDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
+	public Document insertRelationDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, String sourceUUID, JSONObject source, String targetUUID, JSONObject target, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertRelationDocumentManager(project, branch, uuid, jsonObject, sourceUUID, targetUUID, time);
+				ret = v.insertRelationDocumentManager(project, branch, uuid, jsonObject, sourceUUID, source, targetUUID, target, time, org);
 			} else { 
-				v.insertRelationDocumentFollower(project, branch, uuid, jsonObject, sourceUUID, targetUUID, time);
+				v.insertRelationDocumentFollower(project, branch, uuid, jsonObject, sourceUUID, source, targetUUID, target, time);
 			}
 		}
 		return ret.getDoc();
 	}
 
+	public Document insertOrganizationDocument(Archimate3Parser parser, String project, String branch,
+			Vector<KeyValuePair> level, JSONArray labelArr, long time) {
+		GenericStorageResult ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.insertRelationDocumentManager(project, branch,level, labelArr, time);
+			}
+		}
+		return ret.getDoc();
+	}
+
+//	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String organizationsTypeLabel,
+//			JSONObject item, Vector<String> level, String value, long time) {
+//		GenericStorageResult ret = null;
+//		Vector<StorageConnectorContainer> vec = storage.get(parser);
+//		for(StorageConnectorContainer v:vec){
+//			if(v.isManagingIDs()){
+//				ret = v.insertOrganizationsDocumentManager(project, branch, organizationsTypeLabel, item, level, value, time);
+////			} else { 
+////				v.insertRelationDocumentFollower(project, branch, uuid, jsonObject, sourceUUID, source, targetUUID, target, time);
+//			}
+//		}
+//		return ret.getDoc();
+//	} 	
+//	
 	public void dropDB() {
 		Collection<Vector<StorageConnectorContainer>> vec = storage.values();
 		for(Vector<StorageConnectorContainer> vv:vec){
@@ -84,12 +112,12 @@ public class StorageFactory {
 		}
 	}
 
-	public Document insertViewDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, long time) {
+	public Document insertViewDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertViewDocumentManager(project, branch, uuid, jsonObject, time);
+				ret = v.insertViewDocumentManager(project, branch, uuid, jsonObject, time, org);
 			} else { 
 				v.insertViewDocumentFollower(project, branch, uuid, jsonObject, time);
 			}
@@ -146,6 +174,8 @@ public class StorageFactory {
 			}
 		}
 		return ret;
-	} 	
-	
+	}
+
+
+
 }

@@ -9,6 +9,8 @@ import org.bson.Document;
 import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.storage.StorageFactory;
 import org.iea.connector.storage.StorageRegistrationException;
+import org.iea.util.KeyValuePair;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -173,16 +175,16 @@ public class ParserFactory {
 		return storage.retrieveViewDocument(parser, project, branch,time);
 	}
 
-	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject n, long time) {
-		return storage.insertNodeDocument(parser, project, branch, n, time);
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject n, long time, Vector<KeyValuePair> org) {
+		return storage.insertNodeDocument(parser, project, branch, n, time, org);
 	}
 
-	public Document insertRelationDocument(GenericParser parser,String project, String branch, String uuid, JSONObject rel, String sourceUUID, String targetUUID, long time) {
-		return storage.insertRelationDocument(parser, project, branch, uuid, rel, sourceUUID, targetUUID, time) ;
+	public Document insertRelationDocument(GenericParser parser,String project, String branch, String uuid, JSONObject rel, String sourceUUID, JSONObject source, String targetUUID, JSONObject target, long time, Vector<KeyValuePair> org) {
+		return storage.insertRelationDocument(parser, project, branch, uuid, rel, sourceUUID, source, targetUUID, target, time, org) ;
 	}
 
-	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, JSONObject view, long time) {
-		return storage.insertViewDocument(archimate3Parser, project, branch, uuid, view, time);
+	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, JSONObject view, long time, Vector<KeyValuePair> org) {
+		return storage.insertViewDocument(archimate3Parser, project, branch, uuid, view, time, org);
 	}
 
 	public String writeJSONtoXML(String parserName, String t) {
@@ -193,5 +195,15 @@ public class ParserFactory {
 		}
 		return ret;
 	}
+
+	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch,
+			Vector<KeyValuePair> level, JSONArray labelArr, long time) {
+		return storage.insertOrganizationDocument(archimate3Parser, project, branch, level, labelArr,  time) ;
+	}
+
+//	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String organizationsTypeLabel,
+//			JSONObject item, Vector<String> level, String value, long time) {
+//		return storage.insertOrganizationDocument(archimate3Parser, project, branch, organizationsTypeLabel, item, level, value, time);
+//	}
 
 }

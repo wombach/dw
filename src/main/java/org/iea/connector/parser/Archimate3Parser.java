@@ -2,8 +2,12 @@ package org.iea.connector.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -38,6 +42,8 @@ import org.w3c.dom.NodeList;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
+import org.iea.util.KeyValuePair;
+
 public class Archimate3Parser extends GenericParser {
 
 	private final static Logger LOGGER = Logger.getLogger(Archimate3Parser.class.getName());
@@ -60,6 +66,14 @@ public class Archimate3Parser extends GenericParser {
 	public final static String ELEMENTREF_TAG = "@elementRef";
 	public final static String NAME_TAG = "ar3_name";
 	public final static String VALUE_TAG = "value";
+	public final static String ORGANIZATIONS_TAG = "ar3_organizations";
+	public final static String ORGANIZATIONS_TYPE_LABEL = "label";
+	public final static String ORGANIZATIONS_TYPE_IDENTIFIERREF = "identifierRef";
+	public final static String ITEM_TAG = "ar3_item";
+	public final static String LABEL_TAG = "ar3_label";
+	public final static String IDENTIFIERREF_TAG = "@identifierRef";
+	private static final String ORGANIZATION_JSON_LABEL = "organization_label";
+	private static final String ORGANIZATION_JSON_POSITION = "organization_position";
 
 	public Archimate3Parser(){
 		this.type = "archimate3";
@@ -574,11 +588,19 @@ public class Archimate3Parser extends GenericParser {
 		// check that the file is indeed an archimate file
 		long time = System.currentTimeMillis();
 		String retMsg = "";
+		HashMap<String,JSONObject> nodeMap = new HashMap<String,JSONObject>();
 		if( xmlJSONObj!=null && xmlJSONObj.has(MODEL_TAG)){
 			JSONObject obj = xmlJSONObj.getJSONObject(MODEL_TAG);
 			//			String xmlns = obj.getString("xmlns");
 			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
 			ret = true;
+			// organizations
+			JSONArray orgs =  obj.getJSONArray(ORGANIZATIONS_TAG);
+			// call a recursion function to parse the tree and add one document per element into the organizations collection
+			HashMap<String, Vector<KeyValuePair>> orgMap = new HashMap<String,Vector<KeyValuePair>>();
+			createOrganizationLookup(project, branch, orgs, orgMap, time, new Vector<KeyValuePair>());
+			
+			//
 			// nodes
 			JSONObject els =  obj.getJSONObject(ELEMENTS_TAG);
 			JSONArray l = els.getJSONArray(ELEMENT_TAG);
@@ -587,10 +609,20 @@ public class Archimate3Parser extends GenericParser {
 			for(int i=0;i<l.length();i++){
 				JSONObject n = l.getJSONObject(i);
 				String identifier = n.getString(IDENTIFIER_TAG);
-				Document doc = factory.insertNodeDocument(this, project, branch, n, time);
+				Document doc = factory.insertNodeDocument(this, project, branch, n, time, orgMap.get(identifier));
 				String uuid = getUUID(doc);
+				JSONArray nameArr = n.getJSONArray("ar3_name");
+				JSONObject nameObj = nameArr.getJSONObject(0);
+				String name = nameObj.getString("value");
 				map.put(identifier, uuid);
+				JSONObject s = new JSONObject();
+				s.put("name", name);
+				s.put("time", time);
+				s.put("type", getType());
+				s.put("branch",branch);
+				nodeMap.put(uuid, s );
 			}
+			//
 			// relations
 			JSONObject rels =  obj.getJSONObject(RELATIONSHIPS_TAG);
 			l = rels.getJSONArray(RELATIONSHIP_TAG);
@@ -642,11 +674,12 @@ public class Archimate3Parser extends GenericParser {
 						} 
 					} else {
 						String uuid = relIds.get(identifier);
-						Document doc = factory.insertRelationDocument(this, project, branch, uuid, rel, sourceUUID, targetUUID, time);
+						Document doc = factory.insertRelationDocument(this, project, branch, uuid, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
 						map.put(identifier, uuid);
 					}
 				}
 			}
+
 			// views
 			if(obj.has(VIEWS_TAG)){
 				JSONObject views =  obj.getJSONObject(VIEWS_TAG);
@@ -694,7 +727,7 @@ public class Archimate3Parser extends GenericParser {
 						}
 					}
 					uuid = view.getString(IDENTIFIER_TAG);
-					Document doc = factory.insertViewDocument(this, project, branch,  uuid, view, time);
+					Document doc = factory.insertViewDocument(this, project, branch,  uuid, view, time, orgMap.get(id));
 					map.put(IDENTIFIER_TAG, uuid);
 				}
 			}
@@ -709,6 +742,45 @@ public class Archimate3Parser extends GenericParser {
 		}
 		LOGGER.severe(retMsg);
 		return ret;
+	}
+
+
+	private void createOrganizationLookup(String project, String branch, JSONArray orgs, HashMap<String, Vector<KeyValuePair>> orgMap, long time, Vector<KeyValuePair> level) {
+		//JSONArray l = orgs.getJSONArray(ITEM_TAG);
+		LOGGER.info("number of items on level ("+level.toString()+"): "+orgs.length());
+		String value = null;
+		for(int ii=0; ii<orgs.length();ii++){
+			JSONObject item = orgs.getJSONObject(ii);
+			//			if(ite instanceof JSONArray){
+			//				JSONArray item;
+			//				item = (JSONArray) ite;
+			if(item.has(LABEL_TAG)){
+				JSONArray labelArr = item.getJSONArray(LABEL_TAG);
+				JSONObject label = labelArr.getJSONObject(0);
+				value = label.getString(VALUE_TAG);
+				Vector<KeyValuePair> level_call = (Vector<KeyValuePair>) level.clone();
+				KeyValuePair kv = new KeyValuePair(value,ii);
+				level_call.add(kv);
+				Document doc = factory.insertOrganizationDocument(this, project, branch, level_call, labelArr,  time);
+			}
+			if(item.has(ITEM_TAG)){
+				JSONArray item2 = item.getJSONArray(ITEM_TAG);
+				Vector<KeyValuePair> level_call = (Vector<KeyValuePair>) level.clone();
+				KeyValuePair kv = new KeyValuePair(value,ii);
+				level_call.add(kv);
+				createOrganizationLookup(project, branch, item2, orgMap, time, level_call);
+			}
+			//			} else if(ite instanceof JSONObject){
+			//				JSONObject item = (JSONObject) ite;
+			if(item.has(IDENTIFIERREF_TAG)){
+				String ref = item.getString(IDENTIFIERREF_TAG);
+				//	factory.insertOrganizationDocument(this, project, branch, ORGANIZATIONS_TYPE_LABEL, item, level, map.get(ref), time);
+				orgMap.put(ref, level);
+				//orgs.remove(ii);
+			}
+			//			}
+		}
+		//Document doc = factory.insertOrganizationDocument();
 	}
 
 	@Override
@@ -813,5 +885,7 @@ public class Archimate3Parser extends GenericParser {
 		}
 		return ret;
 	}
+
+
 
 }

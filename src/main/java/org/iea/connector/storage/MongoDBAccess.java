@@ -32,6 +32,7 @@ public class MongoDBAccess {
 	public final static String COLLECTION_VIEWS = "views";
 	public final static String COLLECTION_RELATIONS = "relations";
 	public final static String COLLECTION_FILES = "files";
+	public static final String COLLECTION_ORGANIZATIONS = "organizations";
 	
 	public MongoClient getClient(){
 		return MongoDBSingleton.getClient();
@@ -161,6 +162,8 @@ public class MongoDBAccess {
 		col = getCollection(db, COLLECTION_RELATIONS);
 		col.drop();
 		col = getCollection(db, COLLECTION_FILES);
+		col.drop();
+		col = getCollection(db, COLLECTION_ORGANIZATIONS);
 		col.drop();
 		col = getCollection(db, COLLECTION_VIEWS);
 		col.drop();

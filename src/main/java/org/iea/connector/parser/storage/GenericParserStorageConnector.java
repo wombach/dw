@@ -20,5 +20,6 @@ public abstract class GenericParserStorageConnector {
 	public void setParser(GenericParser parser){
 		this.parser = parser;
 	}
+
 	
 }

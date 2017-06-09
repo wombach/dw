@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
@@ -181,6 +182,13 @@ public abstract class GenericParser {
 
 	abstract protected String getFileComparisonString(JSONObject jsonObject);
 	abstract protected int getFileHash(JSONObject jsonObject);
+
+//	public Document insertOrganizationDocument(String project, String branch,String type, JSONObject jsonObject, Vector<String> level, String refUUID, long time) {
+//		return null;
+//	}
+//
+//	abstract protected String getOrganizationComparisonString(JSONObject jsonObject);
+//	abstract protected int getOrganizationHash(JSONObject jsonObject);
 
 	public Document insertFileDocument(String project, String branch,JSONObject obj, long time) {
 //		String compStr = getFileComparisonString(obj);

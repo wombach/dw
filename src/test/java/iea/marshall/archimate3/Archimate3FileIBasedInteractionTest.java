@@ -6,20 +6,25 @@ package iea.marshall.archimate3;
 import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.Scanner;
 
 import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.parser.ParserFactory;
 import org.iea.connector.parser.storage.Archimate3MongoDBConnector;
+import org.json.JSONException;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * @author wombach
@@ -98,9 +103,20 @@ public class Archimate3FileIBasedInteractionTest {
 		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
 		{
 			writer.write(t);
+			writer.flush();
+			writer.close();
+			File file2 = new File("test3_output.json");
+			String content2 = new Scanner(file2).useDelimiter("\\Z").next();
+			try {
+				JSONAssert.assertEquals(json, content2, false);
+			} catch (JSONException e) {
+				fail("Should not have thrown any exception");
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fail("Exception "+e);
 		}
+		
 	}
 }
