@@ -1,5 +1,6 @@
 package org.iea.connector.parser;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
@@ -10,6 +11,7 @@ import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.storage.StorageFactory;
 import org.iea.connector.storage.StorageRegistrationException;
 import org.iea.util.KeyValuePair;
+import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -165,14 +167,14 @@ public class ParserFactory {
 		return flag;
 	}
 
-	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time) {
-		return storage.retrieveNodeDocument(parser, project, branch,time);
+	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time, Organization org) {
+		return storage.retrieveNodeDocument(parser, project, branch,time, org);
 	}
-	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time) {
-		return storage.retrieveRelationDocument(parser, project, branch,time);
+	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
+		return storage.retrieveRelationDocument(parser, project, branch,time, org);
 	}
-	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time) {
-		return storage.retrieveViewDocument(parser, project, branch,time);
+	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time, Organization org) {
+		return storage.retrieveViewDocument(parser, project, branch,time, org);
 	}
 
 	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject n, long time, Vector<KeyValuePair> org) {
@@ -199,6 +201,10 @@ public class ParserFactory {
 	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch,
 			Vector<KeyValuePair> level, JSONArray labelArr, long time) {
 		return storage.insertOrganizationDocument(archimate3Parser, project, branch, level, labelArr,  time) ;
+	}
+
+	public Document retrieveOrganizationDocument(Archimate3Parser parser, String project, String branch, long time, Organization org) {
+		return storage.retrieveOrganizationDocument(parser, project, branch, time, org);
 	}
 
 //	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String organizationsTypeLabel,

@@ -1,9 +1,11 @@
 package org.iea.connector.parser.storage;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import org.bson.Document;
 import org.iea.util.KeyValuePair;
+import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,11 +31,13 @@ public interface GenericParserStorageConnectorManager {
 	public void dropBranch(String project, String branch);
 
 	
-	public Document retrieveViewDocument(String project, String branch, long time);
+	public Document retrieveViewDocument(String project, String branch, long time, Organization org);
 
-	public Document retrieveNodeDocument(String project, String branch, long time);
+	public Document retrieveNodeDocument(String project, String branch, long time, Organization org);
 
-	public Document retrieveRelationDocument(String project, String branch, long time);
+	public Document retrieveRelationDocument(String project, String branch, long time, Organization org);
+
+	public Document retrieveOrganizationDocument(String project, String branch, long time, Organization org);
 
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, String organizationsTypeLabel,

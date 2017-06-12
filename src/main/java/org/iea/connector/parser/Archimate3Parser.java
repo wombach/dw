@@ -2,11 +2,13 @@ package org.iea.connector.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Vector;
@@ -31,6 +33,7 @@ import org.bson.BSONObject;
 import org.bson.Document;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
+import org.iea.connector.parser.storage.Archimate3MongoDBConnector;
 import org.iea.connector.storage.MongoDBAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -43,6 +46,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
 import org.iea.util.KeyValuePair;
+import org.iea.util.Organization;
 
 public class Archimate3Parser extends GenericParser {
 
@@ -62,18 +66,20 @@ public class Archimate3Parser extends GenericParser {
 	public final static String TYPE_TAG = "@xsi_type";
 	public final static String CONNECTION_TAG = "ar3_connection";
 	public final static String RELATIONSHIPREF_TAG = "@relationshipRef";
-	public final static String NODES_TAG = "ar3_nodes";
+	public final static String NODES_TAG = "ar3_node";
 	public final static String ELEMENTREF_TAG = "@elementRef";
 	public final static String NAME_TAG = "ar3_name";
 	public final static String VALUE_TAG = "value";
 	public final static String ORGANIZATIONS_TAG = "ar3_organizations";
 	public final static String ORGANIZATIONS_TYPE_LABEL = "label";
-	public final static String ORGANIZATIONS_TYPE_IDENTIFIERREF = "identifierRef";
+	public final static String ORGANIZATIONS_TYPE_IDENTIFIERREF = "@identifierRef";
 	public final static String ITEM_TAG = "ar3_item";
 	public final static String LABEL_TAG = "ar3_label";
 	public final static String IDENTIFIERREF_TAG = "@identifierRef";
-	private static final String ORGANIZATION_JSON_LABEL = "organization_label";
-	private static final String ORGANIZATION_JSON_POSITION = "organization_position";
+	public static final String ORGANIZATION_JSON_LABEL = "organization_label";
+	public static final String ORGANIZATION_JSON_POSITION = "organization_position";
+	public static final String PROPERTIES_TAG = "ar3_properties";
+	public static final String PROPERTY_DEFINITION_TAG = "ar3_propertyDefinition";
 
 	public Archimate3Parser(){
 		this.type = "archimate3";
@@ -599,7 +605,7 @@ public class Archimate3Parser extends GenericParser {
 			// call a recursion function to parse the tree and add one document per element into the organizations collection
 			HashMap<String, Vector<KeyValuePair>> orgMap = new HashMap<String,Vector<KeyValuePair>>();
 			createOrganizationLookup(project, branch, orgs, orgMap, time, new Vector<KeyValuePair>());
-			
+
 			//
 			// nodes
 			JSONObject els =  obj.getJSONObject(ELEMENTS_TAG);
@@ -658,12 +664,16 @@ public class Archimate3Parser extends GenericParser {
 							sourceUUID = relIds.get(source);
 						}
 					}
+					rel.remove(SOURCE_TAG);
+					rel.put(SOURCE_TAG, sourceUUID);
 					String targetUUID = map.get(target);
 					if(targetUUID==null){
 						if(relIds.containsKey(target)){
 							targetUUID = relIds.get(target);
 						}
 					}
+					rel.remove(TARGET_TAG);
+					rel.put(TARGET_TAG, targetUUID);
 					if (sourceUUID==null || sourceUUID.isEmpty() || 
 							targetUUID==null || targetUUID.isEmpty()){
 						String type = rel.getString(TYPE_TAG);
@@ -689,17 +699,20 @@ public class Archimate3Parser extends GenericParser {
 				LOGGER.info("number of views: "+lo.length());
 				for( int ii=0;ii<lo.length();ii++){
 					JSONObject view = lo.getJSONObject(ii);
-					String id = view.getString(IDENTIFIER_TAG);
+					String view_id = view.getString(IDENTIFIER_TAG);
+					String id;
 					String uuid = UUID.randomUUID().toString();
 					view.put(IDENTIFIER_TAG, uuid);
-					map.put(id,  uuid);
+					map.put(view_id,  uuid);
 					if(view.has(CONNECTION_TAG)){
 						JSONArray cons = view.getJSONArray(CONNECTION_TAG);
 						for(int jj=0;jj<cons.length();jj++){
 							JSONObject ob = cons.getJSONObject(jj);
-							String ref = ob.getString(RELATIONSHIPREF_TAG);
-							uuid = map.get(ref);
-							ob.put(RELATIONSHIPREF_TAG, uuid);
+							if(ob.has(RELATIONSHIPREF_TAG)){
+								String ref = ob.getString(RELATIONSHIPREF_TAG);
+								uuid = map.get(ref);
+								ob.put(RELATIONSHIPREF_TAG, uuid);
+							}
 							String src = ob.getString(SOURCE_TAG);
 							uuid = map.get(src);
 							ob.put(SOURCE_TAG, uuid);
@@ -717,9 +730,11 @@ public class Archimate3Parser extends GenericParser {
 						JSONArray nods = view.getJSONArray(NODES_TAG);
 						for(int jj=0;jj<nods.length();jj++){
 							JSONObject ob = nods.getJSONObject(jj);
-							String ref = ob.getString(ELEMENTREF_TAG);
-							uuid = map.get(ref);
-							ob.put(ELEMENTREF_TAG, uuid);
+							if( ob.has(ELEMENTREF_TAG)){
+								String ref = ob.getString(ELEMENTREF_TAG);
+								uuid = map.get(ref);
+								ob.put(ELEMENTREF_TAG, uuid);
+							}
 							id = ob.getString(IDENTIFIER_TAG);
 							uuid = UUID.randomUUID().toString();
 							ob.put(IDENTIFIER_TAG, uuid);
@@ -727,8 +742,8 @@ public class Archimate3Parser extends GenericParser {
 						}
 					}
 					uuid = view.getString(IDENTIFIER_TAG);
-					Document doc = factory.insertViewDocument(this, project, branch,  uuid, view, time, orgMap.get(id));
-					map.put(IDENTIFIER_TAG, uuid);
+					Document doc = factory.insertViewDocument(this, project, branch,  uuid, view, time, orgMap.get(view_id));
+					//map.put(id, uuid);
 				}
 			}
 			//			rels.remove("relationship"); 
@@ -766,8 +781,10 @@ public class Archimate3Parser extends GenericParser {
 			if(item.has(ITEM_TAG)){
 				JSONArray item2 = item.getJSONArray(ITEM_TAG);
 				Vector<KeyValuePair> level_call = (Vector<KeyValuePair>) level.clone();
-				KeyValuePair kv = new KeyValuePair(value,ii);
-				level_call.add(kv);
+				if(value!=null && !value.isEmpty()){
+					KeyValuePair kv = new KeyValuePair(value,ii);
+					level_call.add(kv);
+				}
 				createOrganizationLookup(project, branch, item2, orgMap, time, level_call);
 			}
 			//			} else if(ite instanceof JSONObject){
@@ -787,20 +804,46 @@ public class Archimate3Parser extends GenericParser {
 	public String retrieveJsonString(String project, String branch, Date date) {
 		String ret1 = "{	\"ar3_model\": {"+
 				"\"ar3_documentation\": [{\"value\": \"Part of the Enterprise Architecture exported to XML\",\"xml_lang\": \"en\"}],"+
-				"\"ar3_elements\": ";
-		String ret2 = ",\"@identifier\": \"model based on query\",\"ar3_name\": [{\"value\": \"Model with query result\",\"@xml_lang\": \"en\"}],"+
-				"\"ar3_propertyDefinitions\": [{\"ar3_propertyDefinition\": [{\"@identifier\": \"propidIEAStartDate\",\"@propertyType\": \"number\"},"+
-				"{\"@identifier\": \"propidIEAEndDate\",\"@propertyType\": \"number\"	},"+
-				"{\"@identifier\": \"propidIEAIdentifier\",\"@propertyType\": \"string\"}]}],\"ar3_relationships\": ";
-		String ret3 = ",\"@version\": \"1.0\",\"ar3_views\": {\"ar3_diagrams\": ";
-		String ret4 = "}}}";
+				"\"ar3_elements\": \n";
+//		String ret2 = ",\"@identifier\": \"model based on query\",\"ar3_name\": [{\"value\": \"Model with query result\",\"@xml_lang\": \"en\"}],"+
+//				"\"ar3_propertyDefinitions\": [{\"ar3_propertyDefinition\": [{\"@identifier\": \"propidIEAStartDate\",\"@propertyType\": \"number\"},"+
+//				"{\"@identifier\": \"propidIEAEndDate\",\"@propertyType\": \"number\"	},"+
+//				"{\"@identifier\": \"propidIEAIdentifier\",\"@propertyType\": \"string\"}]}],\"ar3_relationships\": [";
+		String ret2 = "\n,\"@identifier\": \"model based on query\",\"ar3_name\": [{\"value\": \"Model with query result\",\"@xml_lang\": \"en\"}],"+
+						"\"ar3_relationships\": [\n";
+		String ret3 = "\n],\"@version\": \"1.0\", \n";
+		String ret4 = "\n, \"ar3_views\": {\"ar3_diagrams\": \n";
+		String ret5 = "\n}}}";
 
-		Document n = factory.retrieveNodeDocument(this, project, branch, date.getTime());
-		Document r = factory.retrieveRelationDocument(this, project, branch, date.getTime());
-		Document v = factory.retrieveViewDocument(this, project, branch, date.getTime());
+		long time =  date.getTime();
+		Organization org = new Organization();
+		Document n = factory.retrieveNodeDocument(this, project, branch,time, org);
+		Document r = factory.retrieveRelationDocument(this, project, branch, time, org);
+		Document v = factory.retrieveViewDocument(this, project, branch, time, org);
+		Document o = factory.retrieveOrganizationDocument(this, project, branch, time, org);
 
-		String ret = ret1+n.toJson()+ret2+r.toJson()+ret3+v.toJson()+ret4; 
-
+		String ret = ret1;
+		JSONObject ob = new JSONObject(n);
+		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret2;
+		ob = new JSONObject(r);
+		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret3;
+		ob = new JSONObject(o);
+		String str = ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR);
+		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
+		str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
+		ret = ret+str+ret4;
+		ob = new JSONObject(v);
+		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
+		//		Iterator<Document> it = o.iterator();
+		//		while (it.hasNext()){
+		//			Document d = it.next();
+		//			if(it.hasNext()){
+		//				ret=ret+",";
+		//			}
+		//		}
+		//ret = ret+ret4+v.toJson()+ret5; 
+		//ob = new JSONObject(ret);
+		//ret = ob.toString(4);
 		return ret;
 	}
 
@@ -819,11 +862,20 @@ public class Archimate3Parser extends GenericParser {
 			// parse JSON
 			//String st = jobj.toString();
 			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+			Map<String, String> namespaces = new HashMap<String, String>();
+
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
 			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-			//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
-			//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
+//			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source, ModelType.class);
+
 			StreamSource source2 = new StreamSource(in);
 			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
 

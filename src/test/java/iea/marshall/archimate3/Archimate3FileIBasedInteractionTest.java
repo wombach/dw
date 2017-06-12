@@ -53,7 +53,7 @@ public class Archimate3FileIBasedInteractionTest {
 		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		pf.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
 		//		pf.registerParser("archimate", new ArchimateParser());
-		pf.dropProject("archimate3_test_project");
+		
 	}
 
 	/**
@@ -95,18 +95,19 @@ public class Archimate3FileIBasedInteractionTest {
 
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
-				givenJsonFile_processJsonString_expectTrue();
-		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
-//				givenJsonFile_unmarshalJson_marshalXML();
+		//		givenJsonFile_processJsonString_expectTrue();
+//		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
+				givenJsonFile_unmarshalJson_marshalXML();
 	}
 
 	public void givenJsonFile_processJsonString_expectTrue() {		
+		pf.dropProject("archimate3_test_project");
 		String json = readFile("demo_archimate3.json");
 		assertTrue(pf.processJsonString("archimate3_test_project","branch1",json));	
 	}
 
 	public void givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile() {		
-		String json = readFile("demo_archimate3.json");
+		//String json = readFile("demo_archimate3.json");
 		Date date = new Date(System.currentTimeMillis());
 		String t = pf.retrieveJsonString("archimate3", "archimate3_test_project","branch1", date);
 		//pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
@@ -159,7 +160,8 @@ public class Archimate3FileIBasedInteractionTest {
 		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
-		File file = new File("test3_output.json");
+		File file = new File("demo_archimate3.json");
+//		File file = new File("test3_output.json");
 		StreamSource source = new StreamSource(file);
 		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);

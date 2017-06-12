@@ -1,5 +1,6 @@
 package org.iea.connector.storage;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -9,6 +10,7 @@ import org.iea.connector.parser.storage.GenericParserStorageConnectorFollower;
 import org.iea.connector.parser.storage.GenericParserStorageConnectorManager;
 import org.iea.connector.parser.storage.GenericStorageResult;
 import org.iea.util.KeyValuePair;
+import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -104,23 +106,23 @@ public class StorageConnectorContainer {
 			} 		
 	}
 
-	public Document retrieveViewDocumentManager(String project, String branch, long time) {
+	public Document retrieveViewDocumentManager(String project, String branch, long time, Organization org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveViewDocument(project, branch, time);
+			return ((GenericParserStorageConnectorManager) connector).retrieveViewDocument(project, branch, time, org);
 		}
 		return null;
 	}
 
-	public Document retrieveNodeDocumentManager(String project, String branch, long time) {
+	public Document retrieveNodeDocumentManager(String project, String branch, long time, Organization org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveNodeDocument(project, branch, time);
+			return ((GenericParserStorageConnectorManager) connector).retrieveNodeDocument(project, branch, time, org);
 		}
 		return null;
 	}
 
-	public Document retrieveRelationDocumentManager(String project, String branch, long time) {
+	public Document retrieveRelationDocumentManager(String project, String branch, long time, Organization org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveRelationDocument(project, branch, time);
+			return ((GenericParserStorageConnectorManager) connector).retrieveRelationDocument(project, branch, time, org);
 		}
 		return null;
 	}
@@ -131,6 +133,13 @@ public class StorageConnectorContainer {
 			return ((GenericParserStorageConnectorManager) connector).insertOrganizationDocument(project, branch,level, labelArr,  time);
 		}
 //		return null;
+		return null;
+	}
+
+	public Document retrieveOrganizationDocumentManager(String project, String branch, long time, Organization org) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveOrganizationDocument(project, branch, time, org);
+		}
 		return null;
 	}
 

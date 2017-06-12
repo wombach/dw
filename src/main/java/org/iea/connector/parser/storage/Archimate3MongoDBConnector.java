@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -18,6 +20,8 @@ import org.bson.Document;
 import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.storage.MongoDBAccess;
 import org.iea.util.KeyValuePair;
+import org.iea.util.MapUtil;
+import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,7 +40,7 @@ implements GenericParserStorageConnectorManager {
 	public final static String DOC_START_DATE = "start_date";
 	public final static String DOC_END_DATE = "end_date";
 	public final static String DOC_RAW = "raw";
-	public final static String DOC_RAW_ELEMENT = "element";
+	//public final static String DOC_RAW_ELEMENT = "element";
 	public final static String DOC_ID = "id";
 	public final static String DOC_COMPARISON_STRING = "comparison_string";
 	public static final String DOC_HASH = "hash";
@@ -55,27 +59,29 @@ implements GenericParserStorageConnectorManager {
 
 	public Document enrichDocument( JSONObject obj, String branch, long time, String compStr, int hash, JSONArray orgJson){
 		String uuid = UUID.randomUUID().toString();
-		obj.remove("identifier");
-		obj.put("identifier", uuid);
-		if(obj.has("properties")){
-			JSONArray props = obj.getJSONArray("properties");
+		obj.remove(Archimate3Parser.IDENTIFIER_TAG);
+		obj.put(Archimate3Parser.IDENTIFIER_TAG, uuid);
+		if(obj.has(Archimate3Parser.PROPERTIES_TAG)){
+			JSONArray props = obj.getJSONArray(Archimate3Parser.PROPERTIES_TAG);
 			Iterator<Object> it = props.iterator();
 			while(it.hasNext()){
 				JSONObject prop = (JSONObject) it.next();
-				if(prop.getString("propertyDefinitionRef").equals("propidIEAStartDate")){
-					JSONObject val = prop.getJSONObject("value");
-					val.remove("value");
-					val.put("value", time);
-				} else if(prop.getString("propertyDefinitionRef").equals("propidIEAEndDate")){
-					JSONObject val = prop.getJSONObject("value");
-					val.remove("value");
-					val.put("value", -1);
-				} else if(prop.getString("propertyDefinitionRef").equals("propidIEAIdentifier")){
-					JSONObject val = prop.getJSONObject("value");
-					val.remove("value");
+				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAStartDate")){
+					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
+					val.remove(Archimate3Parser.VALUE_TAG);
+					val.put(Archimate3Parser.VALUE_TAG, time);
+				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAEndDate")){
+					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
+					val.remove(Archimate3Parser.VALUE_TAG);
+					val.put(Archimate3Parser.VALUE_TAG, -1);
+				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAIdentifier")){
+					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
+					val.remove(Archimate3Parser.VALUE_TAG);
 					val.put("value", uuid);
 				} 
 			}
+		} else {
+			// TODO add a default property
 		}
 
 		//JSONArray branchArr = new JSONArray();
@@ -118,7 +124,7 @@ implements GenericParserStorageConnectorManager {
 					root.put(item);
 				} else if(it.getValue()!=null && it.getValue().toString().length()>0 && it.getValue() instanceof Integer) {
 					JSONObject item = new JSONObject();
-					item.put(DOC_ORGANIZATION_LABEL, DOC_ORGANIZATION_DEFAULT_FOLDER);
+					item.put(DOC_ORGANIZATION_LABEL, branch);
 					item.put(DOC_ORGANIZATION_POSITION, it.getValue());
 					root.put(item);
 				}
@@ -127,7 +133,7 @@ implements GenericParserStorageConnectorManager {
 		if(root.length()==0){
 			JSONObject item = new JSONObject();
 			item.put(DOC_ORGANIZATION_LABEL, branch);
-			item.put(DOC_ORGANIZATION_POSITION, -1);
+			item.put(DOC_ORGANIZATION_POSITION, Integer.MAX_VALUE);
 			root.put(item);
 		}
 		return root;
@@ -281,7 +287,7 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveViewDocument(String project, String branch, long time) {
+	public Document retrieveViewDocument(String project, String branch, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 		MongoCursor<Document> it = docs.iterator();
@@ -289,6 +295,25 @@ implements GenericParserStorageConnectorManager {
 			Document doc = it.next();
 			//				LOGGER.severe("next instance: "+doc.toJson().toString());
 			Document raw = (Document) doc.get("raw");
+			ArrayList<Document> nameArr = (ArrayList<Document>) raw.get(Archimate3Parser.NAME_TAG);
+			String name = "";
+			if(nameArr!=null && !nameArr.isEmpty()){
+				Document nameObj = nameArr.get(0);
+				name = nameObj.getString("value");
+			}
+			ArrayList<Document> oDoc = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
+			Organization item  = org;
+			for(int ii=0;ii<oDoc.size();ii++){
+				String na = oDoc.get(ii).getString(DOC_ORGANIZATION_LABEL);
+				int pos = oDoc.get(ii).getInteger(DOC_ORGANIZATION_POSITION);
+				if(!item.contains(na)){
+					item.addChild(na, new Organization(na),pos);
+				} else {
+					item.setChildPosition(na, pos);
+				}
+				item = item.getChildByName(na);
+			}
+			item.addLeaf(name, doc.getString(DOC_ID));
 			elem.add(raw);
 		}
 		Document ret = new Document();
@@ -297,14 +322,33 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveNodeDocument(String project, String branch, long time) {
+	public Document retrieveNodeDocument(String project, String branch, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_NODES, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 		MongoCursor<Document> it = docs.iterator();
 		while(it.hasNext()){
 			Document doc = it.next();
 			//				LOGGER.severe("next instance: "+doc.toJson().toString());
-			Document raw = (Document) doc.get("raw");
+			Document raw = (Document) doc.get(DOC_RAW);
+			ArrayList<Document> nameArr = (ArrayList<Document>) raw.get(Archimate3Parser.NAME_TAG);
+			String name = "";
+			if(nameArr!=null && !nameArr.isEmpty()){
+				Document nameObj = nameArr.get(0);
+				name = nameObj.getString("value");
+			}
+			ArrayList<Document> oDoc = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
+			Organization item  = org;
+			for(int ii=0;ii<oDoc.size();ii++){
+				String na = oDoc.get(ii).getString(DOC_ORGANIZATION_LABEL);
+				int pos = oDoc.get(ii).getInteger(DOC_ORGANIZATION_POSITION);
+				if(!item.contains(na)){
+					item.addChild(na, new Organization(na),pos);
+				} else {
+					item.setChildPosition(na, pos);
+				}
+				item = item.getChildByName(na);
+			}
+			item.addLeaf(name, doc.getString(DOC_ID));
 			elem.add(raw);
 		}
 		Document ret = new Document();
@@ -313,7 +357,7 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveRelationDocument(String project, String branch, long time) {
+	public Document retrieveRelationDocument(String project, String branch, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 		MongoCursor<Document> it = docs.iterator();
@@ -321,6 +365,28 @@ implements GenericParserStorageConnectorManager {
 			Document doc = it.next();
 			//				LOGGER.severe("next instance: "+doc.toJson().toString());
 			Document raw = (Document) doc.get("raw");
+			ArrayList<Document> oDoc = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
+			Organization item  = org;
+			//			for(int ii=0;ii<oDoc.size();ii++){
+			//				String na = oDoc.get(ii).getString(DOC_ORGANIZATION_LABEL);
+			//				int pos = oDoc.get(ii).getInteger(DOC_ORGANIZATION_POSITION);
+			//				item.setChildPosition(na, pos);
+			//				item = item.getChildByName(na);
+			//			}
+			//			item.addLeaf(doc.getString(DOC_ID), doc.getString(DOC_ID));
+			//			elem.add(raw);
+
+			for(int ii=0;ii<oDoc.size();ii++){
+				String na = oDoc.get(ii).getString(DOC_ORGANIZATION_LABEL);
+				int pos = oDoc.get(ii).getInteger(DOC_ORGANIZATION_POSITION);
+				if(!item.contains(na)){
+					item.addChild(na, new Organization(na),pos);
+				} else {
+					item.setChildPosition(na, pos);
+				}
+				item = item.getChildByName(na);
+			}
+			item.addLeaf(doc.getString(DOC_ID), doc.getString(DOC_ID));
 			elem.add(raw);
 		}
 		Document ret = new Document();
@@ -328,7 +394,69 @@ implements GenericParserStorageConnectorManager {
 		return ret;
 	}
 
+	@Override
+	public Document retrieveOrganizationDocument(String project, String branch, long time, Organization org) {
+		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS, parser.getType(), time);
+		ArrayList<Document> elem = new ArrayList<Document>();
+		MongoCursor<Document> it = docs.iterator();
+		while(it.hasNext()){
+			Document doc = it.next();
+			//				LOGGER.severe("next instance: "+doc.toJson().toString());
 
+			Document raw = (Document) doc.get("raw");
+			ArrayList<Document> label = (ArrayList<Document>) raw.get(DOC_ORGANIZATION_CONTENT);
+			ArrayList<Document> orgs = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
+			Organization item = org;
+			for(Document oDoc : orgs){
+				String lab = oDoc.getString(DOC_ORGANIZATION_LABEL);
+				int pos = oDoc.getInteger(DOC_ORGANIZATION_POSITION);
+				if(!item.contains(lab)){
+					item.addChild(lab, new Organization(lab),pos);
+				} else {
+					item.setChildPosition(lab, pos);
+				}
+				item = item.getChildByName(lab);
+				item.setChildPosition(lab, pos);
+			}
+			item.setLabel(label);
+		}
+		Document ret = new Document();
+		elem = createBSONFromOrganization(org);
+		ret.append(Archimate3Parser.ORGANIZATIONS_TAG, elem);
+		return ret;
+	}
+
+	private ArrayList<Document> createBSONFromOrganization(Organization org) {
+		ArrayList<Document> ret = new ArrayList<Document>();
+		Document e;
+		if(org.getLabel()!=null){
+			e = new Document();
+			e.append(Archimate3Parser.ORGANIZATIONS_TYPE_LABEL, org.getLabel());
+			ret.add(e);
+		}
+		if(org.getLeaves()!=null && !org.getLeaves().isEmpty()){
+			e = new Document();
+			ArrayList<Document> list = new ArrayList<Document>();
+			Map<String, String> leaves = org.getLeaves();
+			for(String leaf : leaves.values()){
+				Document d = new Document();
+				list.add(d.append(Archimate3Parser.ORGANIZATIONS_TYPE_IDENTIFIERREF, leaf));
+			}
+			e.append(Archimate3Parser.ITEM_TAG, list);
+			ret.add(e);
+		}
+		List<Organization> list = org.getChildren();
+		if(list != null && !list.isEmpty()){
+			for(Organization o : list){
+				if(o!=null){
+					e = new Document();
+					e.append(Archimate3Parser.ITEM_TAG, createBSONFromOrganization(o));
+					ret.add(e);
+				}
+			}
+		}
+		return ret;
+	}
 
 
 }

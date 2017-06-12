@@ -3385,7 +3385,8 @@
                   "@xml_lang" : "en",
                   "value" : "Default View"
                } ],
-               "ar3_node" : [ {
+               "ar3_node" :
+                [ {
                   "@identifier" : "id-4821deda",
                   "@x" : 360,
                   "@y" : 36,

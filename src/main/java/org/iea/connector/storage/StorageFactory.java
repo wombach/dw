@@ -1,5 +1,6 @@
 package org.iea.connector.storage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import org.iea.connector.parser.GenericParser;
 import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.parser.storage.GenericStorageResult;
 import org.iea.util.KeyValuePair;
+import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -143,34 +145,45 @@ public class StorageFactory {
 		}		
 	}
 
-	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time) {
+	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveNodeDocumentManager(project, branch, time);
+				ret = v.retrieveNodeDocumentManager(project, branch, time, org);
 			}
 		}
 		return ret;
 	}
 
-	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time) {
+	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveRelationDocumentManager(project, branch, time);
+				ret = v.retrieveRelationDocumentManager(project, branch, time, org);
 			}
 		}
 		return ret;
 	}
 
-	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time) {
+	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveViewDocumentManager(project, branch, time);
+				ret = v.retrieveViewDocumentManager(project, branch, time, org);
+			}
+		}
+		return ret;
+	}
+
+	public Document retrieveOrganizationDocument(Archimate3Parser parser, String project, String branch, long time, Organization org) {
+		Document ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveOrganizationDocumentManager(project, branch, time, org);
 			}
 		}
 		return ret;
