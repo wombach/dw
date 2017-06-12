@@ -59,7 +59,7 @@ implements GenericParserStorageConnectorManager {
 
 	public Document enrichDocument( JSONObject obj, String branch, long time, String compStr, int hash, JSONArray orgJson){
 		String uuid = UUID.randomUUID().toString();
-		obj.remove(Archimate3Parser.IDENTIFIER_TAG);
+		//obj.remove(Archimate3Parser.IDENTIFIER_TAG);
 		obj.put(Archimate3Parser.IDENTIFIER_TAG, uuid);
 		if(obj.has(Archimate3Parser.PROPERTIES_TAG)){
 			JSONArray props = obj.getJSONArray(Archimate3Parser.PROPERTIES_TAG);

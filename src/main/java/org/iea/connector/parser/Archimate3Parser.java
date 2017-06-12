@@ -591,6 +591,7 @@ public class Archimate3Parser extends GenericParser {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = new JSONObject(str);
+		Document doc_test = Document.parse(str);
 		// check that the file is indeed an archimate file
 		long time = System.currentTimeMillis();
 		String retMsg = "";

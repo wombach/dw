@@ -95,9 +95,9 @@ public class Archimate3FileIBasedInteractionTest {
 
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
-		//		givenJsonFile_processJsonString_expectTrue();
+				givenJsonFile_processJsonString_expectTrue();
 //		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
-				givenJsonFile_unmarshalJson_marshalXML();
+//				givenJsonFile_unmarshalJson_marshalXML();
 	}
 
 	public void givenJsonFile_processJsonString_expectTrue() {		
