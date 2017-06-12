@@ -25,6 +25,8 @@ import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
@@ -57,28 +59,39 @@ implements GenericParserStorageConnectorManager {
 		mongo = new MongoDBAccess();
 	}
 
-	public Document enrichDocument( JSONObject obj, String branch, long time, String compStr, int hash, JSONArray orgJson){
+	public Document enrichDocument( Document jsonObject, String branch, long time, String compStr, int hash, ArrayList<Document> orgJson){
 		String uuid = UUID.randomUUID().toString();
-		obj.remove(Archimate3Parser.IDENTIFIER_TAG);
-		obj.put(Archimate3Parser.IDENTIFIER_TAG, uuid);
-		if(obj.has(Archimate3Parser.PROPERTIES_TAG)){
-			JSONArray props = obj.getJSONArray(Archimate3Parser.PROPERTIES_TAG);
-			Iterator<Object> it = props.iterator();
+		jsonObject.remove(Archimate3Parser.IDENTIFIER_TAG);
+		// copying the document has been done to ensure the order of the properties in the document. This is unfortunately
+		// necessary since the current moxy implementation has a bug that it is not able to read @xsi_type at an arbitrary 
+		// position in the json string. It has to be at the beginning of the string.
+		// When the bug is fixed, we can remove this copy operation.
+		Document raw = new Document();
+		raw.append(Archimate3Parser.IDENTIFIER_TAG, uuid);
+		if(jsonObject.containsKey(Archimate3Parser.TYPE_TAG)){
+			raw.append(Archimate3Parser.TYPE_TAG, jsonObject.get(Archimate3Parser.TYPE_TAG));
+		}
+		jsonObject.remove(Archimate3Parser.TYPE_TAG);
+		raw.putAll(jsonObject);
+//		jsonObject.put(Archimate3Parser.IDENTIFIER_TAG, uuid);
+		if(jsonObject.containsKey(Archimate3Parser.PROPERTIES_TAG)){
+			ArrayList<Document> props = (ArrayList<Document>) jsonObject.get(Archimate3Parser.PROPERTIES_TAG);
+			Iterator<Document> it = props.iterator();
 			while(it.hasNext()){
-				JSONObject prop = (JSONObject) it.next();
-				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAStartDate")){
-					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
-					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put(Archimate3Parser.VALUE_TAG, time);
-				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAEndDate")){
-					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
-					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put(Archimate3Parser.VALUE_TAG, -1);
-				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAIdentifier")){
-					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
-					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put("value", uuid);
-				} 
+//				JSONObject prop = (JSONObject) it.next();
+//				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAStartDate")){
+//					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
+//					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.put(Archimate3Parser.VALUE_TAG, time);
+//				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAEndDate")){
+//					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
+//					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.put(Archimate3Parser.VALUE_TAG, -1);
+//				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals("propidIEAIdentifier")){
+//					JSONObject val = prop.getJSONObject(Archimate3Parser.VALUE_TAG);
+//					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.put("value", uuid);
+//				} 
 			}
 		} else {
 			// TODO add a default property
@@ -95,52 +108,53 @@ implements GenericParserStorageConnectorManager {
 				.append(DOC_HASH, hash)
 				//	.append(DOC_BRANCH, branchArr)
 				.append(DOC_BRANCH, branch)
-				.append(DOC_ORGANIZATION,  (BSONObject)com.mongodb.util.JSON.parse(orgJson.toString()))
-				.append(DOC_RAW, (BSONObject)com.mongodb.util.JSON.parse(obj.toString()));
+				.append(DOC_ORGANIZATION,  orgJson)
+//				.append(DOC_RAW, jsonObject);
+				.append(DOC_RAW, raw);
 		return doc;
 	}
 
-	protected String getNodeComparisonString(JSONObject jsonObject) {
-		JSONObject nameObj = jsonObject.getJSONArray(Archimate3Parser.NAME_TAG).getJSONObject(0);
+	protected String getNodeComparisonString(Document jsonObject) {
+		Document nameObj =   ((ArrayList<Document>) jsonObject.get(Archimate3Parser.NAME_TAG)).get(0);
 		String name = nameObj.getString(Archimate3Parser.VALUE_TAG);
 		String node_type = jsonObject.getString(Archimate3Parser.TYPE_TAG);
 		return parser.getType()+"|"+node_type+"|"+name.toString();
 	}
 
-	protected int getNodeHash(JSONObject jsonObject) {
+	protected int getNodeHash(Document jsonObject) {
 		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
 		jsonDoc.removeField(Archimate3Parser.IDENTIFIER_TAG);
 		return jsonDoc.hashCode();
 	}
 
-	private JSONArray createOrganizationPath(Vector<KeyValuePair> org, String branch) {
-		JSONArray root = new JSONArray();
+	private ArrayList<Document> createOrganizationPath(Vector<KeyValuePair> org, String branch) {
+		ArrayList<Document> root = new ArrayList<Document>();
 		if (org!=null && org.size()>0){
 			for(KeyValuePair it : org){
 				if(it.getKey()!=null && it.getKey().toString().length()>0 && it.getKey()!="null"){
-					JSONObject item = new JSONObject();
+					Document item = new Document();
 					item.put(DOC_ORGANIZATION_LABEL, it.getKey());
 					item.put(DOC_ORGANIZATION_POSITION, it.getValue());
-					root.put(item);
+					root.add(item);
 				} else if(it.getValue()!=null && it.getValue().toString().length()>0 && it.getValue() instanceof Integer) {
-					JSONObject item = new JSONObject();
+					Document item = new Document();
 					item.put(DOC_ORGANIZATION_LABEL, branch);
 					item.put(DOC_ORGANIZATION_POSITION, it.getValue());
-					root.put(item);
+					root.add(item);
 				}
 			}
 		}
-		if(root.length()==0){
-			JSONObject item = new JSONObject();
+		if(root.size()==0){
+			Document item = new Document();
 			item.put(DOC_ORGANIZATION_LABEL, branch);
 			item.put(DOC_ORGANIZATION_POSITION, Integer.MAX_VALUE);
-			root.put(item);
+			root.add(item);
 		}
 		return root;
 	}
 
 	@Override
-	public GenericStorageResult insertNodeDocument(String project, String branch, JSONObject jsonObject, long time, Vector<KeyValuePair> org) {
+	public GenericStorageResult insertNodeDocument(String project, String branch, Document jsonObject, long time, Vector<KeyValuePair> org) {
 		String compStr = getNodeComparisonString(jsonObject);
 
 		int hash = parser.getNodeHash(jsonObject);
@@ -179,7 +193,7 @@ implements GenericParserStorageConnectorManager {
 		insert = true;
 		ret.setStatusInserted();
 		//		}
-		JSONArray orgJson = createOrganizationPath(org, branch);
+		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
 		if (insert){
 			doc = enrichDocument( jsonObject, branch, time, compStr, hash, orgJson);
 			mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_NODES, doc);
@@ -192,17 +206,17 @@ implements GenericParserStorageConnectorManager {
 		return ret;
 	}
 
-	protected String getRelationComparisonString(JSONObject jsonObject) {
+	protected String getRelationComparisonString(Document jsonObject) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public GenericStorageResult insertRelationDocument(String project, String branch, JSONObject jsonObject, String sourceUUID, JSONObject sourceJson, String targetUUID, JSONObject targetJson, long time, Vector<KeyValuePair> org) {
+	public GenericStorageResult insertRelationDocument(String project, String branch, Document jsonObject, String sourceUUID, Document sourceJson, String targetUUID, Document targetJson, long time, Vector<KeyValuePair> org) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
-		JSONArray orgJson = createOrganizationPath(org, branch);
+		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
 		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash, orgJson);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
@@ -218,12 +232,12 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public GenericStorageResult insertOrganizationDocument(String project, String branch, Vector<KeyValuePair> level, JSONArray labelArr, long time) {
+	public GenericStorageResult insertOrganizationDocument(String project, String branch, Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
 		String compStr = getOrganizationComparisonString(labelArr);
 		int hash = getOrganizationHash(labelArr);
 		GenericStorageResult ret = new GenericStorageResult();
-		JSONArray orgJson = createOrganizationPath(level, branch);
-		JSONObject jsonObj = new JSONObject();
+		ArrayList<Document> orgJson = createOrganizationPath(level, branch);
+		Document jsonObj = new Document();
 		jsonObj.put(DOC_ORGANIZATION_CONTENT, labelArr);
 		Document doc = enrichDocument( jsonObj,branch, time, compStr, hash, orgJson);
 		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS, doc);
@@ -235,22 +249,22 @@ implements GenericParserStorageConnectorManager {
 		return ret;
 	}
 
-	private int getOrganizationHash(JSONArray labelArr) {
+	private int getOrganizationHash(ArrayList<Document> labelArr) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	private String getOrganizationComparisonString(JSONArray labelArr) {
+	private String getOrganizationComparisonString(ArrayList<Document> labelArr) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public GenericStorageResult insertViewDocument(String project, String branch, JSONObject jsonObject, long time, Vector<KeyValuePair> org) {
+	public GenericStorageResult insertViewDocument(String project, String branch, Document jsonObject, long time, Vector<KeyValuePair> org) {
 		String compStr = getRelationComparisonString(jsonObject);
 		int hash = getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
-		JSONArray orgJson = createOrganizationPath(org, branch);
+		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
 		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash, orgJson);
 		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, doc);
 		ret.setDoc(doc);
@@ -261,7 +275,7 @@ implements GenericParserStorageConnectorManager {
 		return ret;
 	} 
 
-	private int getRelationHash(JSONObject jsonObject) {
+	private int getRelationHash(Document jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

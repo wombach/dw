@@ -31,6 +31,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.bson.BSONObject;
 import org.bson.Document;
+import org.bson.json.JsonWriterSettings;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.iea.connector.parser.storage.Archimate3MongoDBConnector;
@@ -42,8 +43,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.util.JSON;
 
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
@@ -107,7 +111,8 @@ public class Archimate3Parser extends GenericParser {
 			for(int i=0;i<l.length();i++){
 				String identifier = l.getJSONObject(i).getString("identifier");
 				Document doc = insertNodeDocument(project,branch,l.getJSONObject(i),time);
-				String uuid = getUUID(doc);
+//				String uuid = getUUID(doc);
+				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
 			// relations
@@ -125,7 +130,8 @@ public class Archimate3Parser extends GenericParser {
 				rel.put("target", targetUUID);
 
 				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
-				String uuid = getUUID(doc);
+//				String uuid = getUUID(doc);
+				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
 			// files
@@ -305,7 +311,8 @@ public class Archimate3Parser extends GenericParser {
 			els.remove("element");
 			for(int i=0;i<l.length();i++){
 				Document doc = insertNodeDocument(project, branch, l.getJSONObject(i), time);
-				String uuid = getUUID(doc);
+//				String uuid = getUUID(doc);
+				String uuid = getUUID(null);
 				String identifier = l.getJSONObject(i).getString("identifier");
 				map.put(identifier, uuid);
 			}
@@ -321,7 +328,8 @@ public class Archimate3Parser extends GenericParser {
 				String sourceUUID = map.get(source);
 				String targetUUID = map.get(target);
 				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
-				String uuid = getUUID(doc);
+//				String uuid = getUUID(doc);
+				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
 			// files
@@ -398,10 +406,10 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public int getNodeHash(JSONObject jsonObject) {
-		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
-		jsonDoc.removeField("identifier");
-		return jsonDoc.hashCode();
+	public int getNodeHash(Document jsonObject) {
+		//BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
+		jsonObject.remove(IDENTIFIER_TAG);
+		return jsonObject.hashCode();
 	}
 	@Override
 	protected String getRelationComparisonString(JSONObject jsonObject) {
@@ -590,38 +598,39 @@ public class Archimate3Parser extends GenericParser {
 	public boolean processJsonString(String project, String branch, String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
-		JSONObject xmlJSONObj = new JSONObject(str);
+//		JSONObject xmlJSONObj = new JSONObject(str);
+		Document doc_all = Document.parse(str);
 		// check that the file is indeed an archimate file
 		long time = System.currentTimeMillis();
 		String retMsg = "";
-		HashMap<String,JSONObject> nodeMap = new HashMap<String,JSONObject>();
-		if( xmlJSONObj!=null && xmlJSONObj.has(MODEL_TAG)){
-			JSONObject obj = xmlJSONObj.getJSONObject(MODEL_TAG);
+		HashMap<String,Document> nodeMap = new HashMap<String,Document>();
+		if( doc_all!=null && doc_all.containsKey(MODEL_TAG)){
+			Document obj = (Document) doc_all.get(MODEL_TAG);
 			//			String xmlns = obj.getString("xmlns");
 			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
 			ret = true;
 			// organizations
-			JSONArray orgs =  obj.getJSONArray(ORGANIZATIONS_TAG);
+			ArrayList<Document> orgs = (ArrayList<Document>) obj.get(ORGANIZATIONS_TAG);
 			// call a recursion function to parse the tree and add one document per element into the organizations collection
 			HashMap<String, Vector<KeyValuePair>> orgMap = new HashMap<String,Vector<KeyValuePair>>();
 			createOrganizationLookup(project, branch, orgs, orgMap, time, new Vector<KeyValuePair>());
 
 			//
 			// nodes
-			JSONObject els =  obj.getJSONObject(ELEMENTS_TAG);
-			JSONArray l = els.getJSONArray(ELEMENT_TAG);
-			LOGGER.info("number of lements: "+l.length());
+			Document els = (Document) obj.get(ELEMENTS_TAG);
+			ArrayList<Document> l = (ArrayList<Document>) els.get(ELEMENT_TAG);
+			LOGGER.info("number of lements: "+l.size());
 			els.remove(ELEMENT_TAG);
-			for(int i=0;i<l.length();i++){
-				JSONObject n = l.getJSONObject(i);
+			for(int i=0;i<l.size();i++){
+				Document n = l.get(i);
 				String identifier = n.getString(IDENTIFIER_TAG);
 				Document doc = factory.insertNodeDocument(this, project, branch, n, time, orgMap.get(identifier));
 				String uuid = getUUID(doc);
-				JSONArray nameArr = n.getJSONArray("ar3_name");
-				JSONObject nameObj = nameArr.getJSONObject(0);
+				ArrayList<Document> nameArr = (ArrayList<Document>) n.get("ar3_name");
+				Document nameObj = nameArr.get(0);
 				String name = nameObj.getString("value");
 				map.put(identifier, uuid);
-				JSONObject s = new JSONObject();
+				Document s = new Document();
 				s.put("name", name);
 				s.put("time", time);
 				s.put("type", getType());
@@ -630,15 +639,15 @@ public class Archimate3Parser extends GenericParser {
 			}
 			//
 			// relations
-			JSONObject rels =  obj.getJSONObject(RELATIONSHIPS_TAG);
-			l = rels.getJSONArray(RELATIONSHIP_TAG);
-			LOGGER.info("number of relationships: "+l.length());
+			Document rels =  (Document) obj.get(RELATIONSHIPS_TAG);
+			l = (ArrayList<Document>) rels.get(RELATIONSHIP_TAG);
+			LOGGER.info("number of relationships: "+l.size());
 			rels.remove(RELATIONSHIP_TAG); 
-			Vector<JSONObject> v;
-			Vector<JSONObject> v2 = new Vector<JSONObject>();
+			Vector<Document> v;
+			Vector<Document> v2 = new Vector<Document>();
 			HashMap<String,String> relIds = new HashMap<String,String>();
-			for(int i=0;i<l.length();i++){
-				JSONObject rel = l.getJSONObject(i);
+			for(int i=0;i<l.size();i++){
+				Document rel = l.get(i);
 				String identifier = rel.getString(IDENTIFIER_TAG);
 				//				if (identifier.equals("relation-fcdb1ce9-89c7-e611-8309-5ce0c5d8efd6")){
 				//					LOGGER.info("found it");
@@ -648,10 +657,10 @@ public class Archimate3Parser extends GenericParser {
 			}
 			while(!v2.isEmpty()){
 				v = v2;
-				v2 = new Vector<JSONObject>();
+				v2 = new Vector<Document>();
 				while(!v.isEmpty()){
 					int i = (int) (Math.random() * v.size());
-					JSONObject rel = v.remove(i);
+					Document rel = v.remove(i);
 					String identifier = rel.getString(IDENTIFIER_TAG);
 					//					if (identifier.equals("relation-f41438e9-89c7-e611-8309-5ce0c5d8efd6")){
 					//						LOGGER.info("found it");
@@ -691,24 +700,24 @@ public class Archimate3Parser extends GenericParser {
 			}
 
 			// views
-			if(obj.has(VIEWS_TAG)){
-				JSONObject views =  obj.getJSONObject(VIEWS_TAG);
-				JSONObject diags = views.getJSONObject(DIAGRAMS_TAG);
+			if(obj.containsKey(VIEWS_TAG)){
+				Document views =  (Document) obj.get(VIEWS_TAG);
+				Document diags = (Document) views.get(DIAGRAMS_TAG);
 				//			for( int ii=0;ii<diags.length();ii++){
-				JSONArray lo = diags.getJSONArray(VIEW_TAG);
-				LOGGER.info("number of views: "+lo.length());
-				for( int ii=0;ii<lo.length();ii++){
-					JSONObject view = lo.getJSONObject(ii);
+				ArrayList<Document> lo = (ArrayList<Document>) diags.get(VIEW_TAG);
+				LOGGER.info("number of views: "+lo.size());
+				for( int ii=0;ii<lo.size();ii++){
+					Document view = lo.get(ii);
 					String view_id = view.getString(IDENTIFIER_TAG);
 					String id;
 					String uuid = UUID.randomUUID().toString();
 					view.put(IDENTIFIER_TAG, uuid);
 					map.put(view_id,  uuid);
-					if(view.has(CONNECTION_TAG)){
-						JSONArray cons = view.getJSONArray(CONNECTION_TAG);
-						for(int jj=0;jj<cons.length();jj++){
-							JSONObject ob = cons.getJSONObject(jj);
-							if(ob.has(RELATIONSHIPREF_TAG)){
+					if(view.containsKey(CONNECTION_TAG)){
+						ArrayList<Document> cons = (ArrayList<Document>) view.get(CONNECTION_TAG);
+						for(int jj=0;jj<cons.size();jj++){
+							Document ob = cons.get(jj);
+							if(ob.containsKey(RELATIONSHIPREF_TAG)){
 								String ref = ob.getString(RELATIONSHIPREF_TAG);
 								uuid = map.get(ref);
 								ob.put(RELATIONSHIPREF_TAG, uuid);
@@ -726,11 +735,11 @@ public class Archimate3Parser extends GenericParser {
 							//					LOGGER.info(ob.toString());
 						}
 					}
-					if(view.has(NODES_TAG)){
-						JSONArray nods = view.getJSONArray(NODES_TAG);
-						for(int jj=0;jj<nods.length();jj++){
-							JSONObject ob = nods.getJSONObject(jj);
-							if( ob.has(ELEMENTREF_TAG)){
+					if(view.containsKey(NODES_TAG)){
+						ArrayList<Document> nods = (ArrayList<Document>) view.get(NODES_TAG);
+						for(int jj=0;jj<nods.size();jj++){
+							Document ob = nods.get(jj);
+							if( ob.containsKey(ELEMENTREF_TAG)){
 								String ref = ob.getString(ELEMENTREF_TAG);
 								uuid = map.get(ref);
 								ob.put(ELEMENTREF_TAG, uuid);
@@ -760,26 +769,26 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 
-	private void createOrganizationLookup(String project, String branch, JSONArray orgs, HashMap<String, Vector<KeyValuePair>> orgMap, long time, Vector<KeyValuePair> level) {
+	private void createOrganizationLookup(String project, String branch, ArrayList<Document> orgs, HashMap<String, Vector<KeyValuePair>> orgMap, long time, Vector<KeyValuePair> level) {
 		//JSONArray l = orgs.getJSONArray(ITEM_TAG);
-		LOGGER.info("number of items on level ("+level.toString()+"): "+orgs.length());
+		LOGGER.info("number of items on level ("+level.toString()+"): "+orgs.size());
 		String value = null;
-		for(int ii=0; ii<orgs.length();ii++){
-			JSONObject item = orgs.getJSONObject(ii);
+		for(int ii=0; ii<orgs.size();ii++){
+			 Document item = (Document) orgs.get(ii);
 			//			if(ite instanceof JSONArray){
 			//				JSONArray item;
 			//				item = (JSONArray) ite;
-			if(item.has(LABEL_TAG)){
-				JSONArray labelArr = item.getJSONArray(LABEL_TAG);
-				JSONObject label = labelArr.getJSONObject(0);
+			if(item.containsKey(LABEL_TAG)){
+				ArrayList<Document> labelArr = (ArrayList<Document>) item.get(LABEL_TAG);
+				Document label = labelArr.get(0);
 				value = label.getString(VALUE_TAG);
 				Vector<KeyValuePair> level_call = (Vector<KeyValuePair>) level.clone();
 				KeyValuePair kv = new KeyValuePair(value,ii);
 				level_call.add(kv);
 				Document doc = factory.insertOrganizationDocument(this, project, branch, level_call, labelArr,  time);
 			}
-			if(item.has(ITEM_TAG)){
-				JSONArray item2 = item.getJSONArray(ITEM_TAG);
+			if(item.containsKey(ITEM_TAG)){
+				ArrayList<Document> item2 =  (ArrayList<Document>) item.get(ITEM_TAG);
 				Vector<KeyValuePair> level_call = (Vector<KeyValuePair>) level.clone();
 				if(value!=null && !value.isEmpty()){
 					KeyValuePair kv = new KeyValuePair(value,ii);
@@ -789,7 +798,7 @@ public class Archimate3Parser extends GenericParser {
 			}
 			//			} else if(ite instanceof JSONObject){
 			//				JSONObject item = (JSONObject) ite;
-			if(item.has(IDENTIFIERREF_TAG)){
+			if(item.containsKey(IDENTIFIERREF_TAG)){
 				String ref = item.getString(IDENTIFIERREF_TAG);
 				//	factory.insertOrganizationDocument(this, project, branch, ORGANIZATIONS_TYPE_LABEL, item, level, map.get(ref), time);
 				orgMap.put(ref, level);
@@ -823,17 +832,29 @@ public class Archimate3Parser extends GenericParser {
 		Document o = factory.retrieveOrganizationDocument(this, project, branch, time, org);
 
 		String ret = ret1;
-		JSONObject ob = new JSONObject(n);
-		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret2;
-		ob = new JSONObject(r);
-		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret3;
-		ob = new JSONObject(o);
-		String str = ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR);
+		JsonWriterSettings writerSet = new JsonWriterSettings(true);
+		ret = ret+n.toJson(writerSet)+ret2;
+		ret = ret+r.toJson(writerSet)+ret3;
+//		ret = ret+o.toJson(writerSet)+ret4;
+		String str = o.toJson(writerSet);
 		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
 		str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
-		ret = ret+str+ret4;
-		ob = new JSONObject(v);
-		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
+		ret = ret + str + ret4;
+		ret = ret+v.toJson(writerSet)+ret5;
+		
+//		ob = new JSONObject(v);
+//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
+//		JSONObject ob = new JSONObject(n);
+//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret2;
+//		ob = new JSONObject(r);
+//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret3;
+//		ob = new JSONObject(o);
+//		String str = ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR);
+//		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
+//		str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
+//		ret = ret+str+ret4;
+//		ob = new JSONObject(v);
+//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
 		//		Iterator<Document> it = o.iterator();
 		//		while (it.hasNext()){
 		//			Document d = it.next();

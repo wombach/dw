@@ -95,7 +95,7 @@ public class Archimate3FileIBasedInteractionTest {
 
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
-		//		givenJsonFile_processJsonString_expectTrue();
+//				givenJsonFile_processJsonString_expectTrue();
 //		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
 				givenJsonFile_unmarshalJson_marshalXML();
 	}
@@ -156,7 +156,7 @@ public class Archimate3FileIBasedInteractionTest {
 		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);
 
 		Map<String, String> namespaces = new HashMap<String, String>();
-		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
+//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
 		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
@@ -172,6 +172,9 @@ public class Archimate3FileIBasedInteractionTest {
 		JAXBElement<ModelType> result = unmarshaller2.unmarshal(source, ModelType.class);
 		ModelType model = (ModelType) result.getValue();
 
+		namespaces = new HashMap<String, String>();
+		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
+		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 		//		jaxbContext =  JAXBContext.newInstance(ModelType.class);
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);

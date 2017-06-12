@@ -9,20 +9,22 @@ import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.mongodb.BasicDBObject;
+
 public interface GenericParserStorageConnectorManager {
 
-	public GenericStorageResult insertNodeDocument(String project, String branch, JSONObject jsonObject, long time, Vector<KeyValuePair> org);
+	public GenericStorageResult insertNodeDocument(String project, String branch, Document n, long time, Vector<KeyValuePair> org);
 
-	public GenericStorageResult insertRelationDocument(String project, String branch, JSONObject jsonObject, 
-			String sourceUUID, JSONObject source, String targetUUID, JSONObject target, long time, Vector<KeyValuePair> org) ;
+	public GenericStorageResult insertRelationDocument(String project, String branch, Document jsonObject, 
+			String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) ;
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, JSONObject jsonObject,
 //			String refUUID, JSONObject refJson, long time);
 
 	public GenericStorageResult insertOrganizationDocument(String project, String branch, Vector<KeyValuePair> level,
-			JSONArray labelArr, long time);
+			ArrayList<Document> labelArr, long time);
 
-	public GenericStorageResult insertViewDocument(String project, String branch, JSONObject jsonObject, long time, Vector<KeyValuePair> org);
+	public GenericStorageResult insertViewDocument(String project, String branch, Document jsonObject, long time, Vector<KeyValuePair> org);
 	
 	public void dropDB();
 	

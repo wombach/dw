@@ -45,6 +45,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
@@ -120,7 +121,7 @@ public abstract class GenericParser {
 	}
 
 	abstract public String getNodeComparisonString(JSONObject jsonObject);
-	abstract public int getNodeHash(JSONObject jsonObject);
+	abstract public int getNodeHash(Document jsonObject);
 
 	public Document insertNodeDocument(String project, String branch,JSONObject jsonObject, long time) {
 //		String compStr = getNodeComparisonString(jsonObject);

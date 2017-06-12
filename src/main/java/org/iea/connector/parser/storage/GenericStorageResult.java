@@ -2,6 +2,8 @@ package org.iea.connector.parser.storage;
 
 import org.bson.Document;
 
+import com.mongodb.BasicDBObject;
+
 public class GenericStorageResult {
 	private Document doc = null;
 	private int status = -1;

@@ -17,6 +17,8 @@ import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.mongodb.BasicDBObject;
+
 /** 
  * StorageFactory class
  *
@@ -49,24 +51,24 @@ public class StorageFactory {
 		} else vec.add(new StorageConnectorContainer(gs) );
 	}
 
-	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject jsonObject, long time, Vector<KeyValuePair> org) {
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, Document n, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertNodeDocumentManager(project, branch, jsonObject, time, org);
+				ret = v.insertNodeDocumentManager(project, branch, n, time, org);
 			} else { 
 				if(ret.isStatusUpdated()){
-					v.updateNodeDocument(project, branch, jsonObject, time);
+					v.updateNodeDocument(project, branch, n, time);
 				} else if(ret.isStatusInserted()){
-					v.insertNodeDocumentFollower(project, branch, jsonObject, time);
+					v.insertNodeDocumentFollower(project, branch, n, time);
 				}
 			}
 		}
 		return ret.getDoc();
 	}
 
-	public Document insertRelationDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, String sourceUUID, JSONObject source, String targetUUID, JSONObject target, long time, Vector<KeyValuePair> org) {
+	public Document insertRelationDocument(GenericParser parser, String project, String branch, String uuid, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
@@ -80,7 +82,7 @@ public class StorageFactory {
 	}
 
 	public Document insertOrganizationDocument(Archimate3Parser parser, String project, String branch,
-			Vector<KeyValuePair> level, JSONArray labelArr, long time) {
+			Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
@@ -114,7 +116,7 @@ public class StorageFactory {
 		}
 	}
 
-	public Document insertViewDocument(GenericParser parser, String project, String branch, String uuid, JSONObject jsonObject, long time, Vector<KeyValuePair> org) {
+	public Document insertViewDocument(GenericParser parser, String project, String branch, String uuid, Document jsonObject, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){

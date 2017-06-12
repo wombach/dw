@@ -15,6 +15,8 @@ import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.mongodb.BasicDBObject;
+
 /**
  * Holds all available parsers and allows to dynamically determine the type of a file 
  * @author wombach
@@ -177,15 +179,15 @@ public class ParserFactory {
 		return storage.retrieveViewDocument(parser, project, branch,time, org);
 	}
 
-	public Document insertNodeDocument(GenericParser parser, String project, String branch, JSONObject n, long time, Vector<KeyValuePair> org) {
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, Document n, long time, Vector<KeyValuePair> org) {
 		return storage.insertNodeDocument(parser, project, branch, n, time, org);
 	}
 
-	public Document insertRelationDocument(GenericParser parser,String project, String branch, String uuid, JSONObject rel, String sourceUUID, JSONObject source, String targetUUID, JSONObject target, long time, Vector<KeyValuePair> org) {
+	public Document insertRelationDocument(GenericParser parser,String project, String branch, String uuid, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
 		return storage.insertRelationDocument(parser, project, branch, uuid, rel, sourceUUID, source, targetUUID, target, time, org) ;
 	}
 
-	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, JSONObject view, long time, Vector<KeyValuePair> org) {
+	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, Document view, long time, Vector<KeyValuePair> org) {
 		return storage.insertViewDocument(archimate3Parser, project, branch, uuid, view, time, org);
 	}
 
@@ -199,7 +201,7 @@ public class ParserFactory {
 	}
 
 	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch,
-			Vector<KeyValuePair> level, JSONArray labelArr, long time) {
+			Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
 		return storage.insertOrganizationDocument(archimate3Parser, project, branch, level, labelArr,  time) ;
 	}
 
