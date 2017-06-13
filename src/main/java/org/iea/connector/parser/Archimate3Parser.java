@@ -283,11 +283,11 @@ public class Archimate3Parser extends GenericParser {
 		if(parr!=null){
 			prop = new JSONObject().put("propertyDefinitionRef","propidIEAStartDate").
 					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_start_date").
-					put("value", new JSONObject().put("xml:lang","en").put("value", start_date));
+					put("value", new JSONObject().put("xml:lang","en").put("value", String.valueOf(start_date)));
 			parr.put(prop);
 			prop = new JSONObject().put("propertyDefinitionRef","propidIEAEndDate").
 					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_end_date").
-					put("value", new JSONObject().put("xml:lang","en").put("value", end_date));
+					put("value", new JSONObject().put("xml:lang","en").put("value", String.valueOf(end_date)));
 			parr.put(prop);
 			prop = new JSONObject().put("propertyDefinitionRef","propidIEAIdentifier").
 					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_identifier").

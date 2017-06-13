@@ -89,15 +89,15 @@ implements GenericParserStorageConnectorManager {
 				Document prop = it.next();
 				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals(PROPID_IEA_START_DATE)){
 					Document val = (Document) prop.get(Archimate3Parser.VALUE_TAG);
-					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.remove(Archimate3Parser.VALUE_TAG);
 					val.put(Archimate3Parser.VALUE_TAG, time);
 				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals(PROPID_IEA_END_DATE)){
 					Document val = (Document) prop.get(Archimate3Parser.VALUE_TAG);
-					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.remove(Archimate3Parser.VALUE_TAG);
 					val.put(Archimate3Parser.VALUE_TAG, -1);
 				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals(PROPID_IEA_IDENTIFIER)){
 					Document val = (Document) prop.get(Archimate3Parser.VALUE_TAG);
-					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.remove(Archimate3Parser.VALUE_TAG);
 					val.put("value", uuid);
 				} 
 			}
@@ -106,13 +106,15 @@ implements GenericParserStorageConnectorManager {
 			Document prop = new Document();
 			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_START_DATE);
 			Document val = new Document("@xml_lang", "en");
-			val.put(Archimate3Parser.VALUE_TAG, time);
+			String start = String.valueOf(time);
+			val.put(Archimate3Parser.VALUE_TAG, start);
 			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
 			props.add(prop);
 			prop = new Document();
 			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_END_DATE);
 			val = new Document("@xml_lang", "en");
-			val.put(Archimate3Parser.VALUE_TAG, (long) -1);
+			String end = String.valueOf((long)-1);
+			val.put(Archimate3Parser.VALUE_TAG, end);
 			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
 			props.add(prop);
 			prop = new Document();
