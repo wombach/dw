@@ -44,16 +44,16 @@ public class StorageConnectorContainer {
 		} 
 	}
 
-	public GenericStorageResult insertRelationDocumentManager(String project, String branch, String uuid, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org){
+	public GenericStorageResult insertRelationDocumentManager(String project, String branch,  Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org){
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
 			return ((GenericParserStorageConnectorManager) connector).insertRelationDocument(project, branch, jsonObject, sourceUUID, source, targetUUID, target, time, org);
 		} 
 		return null;
 	}
 
-	public void insertRelationDocumentFollower(String project, String branch, String uuid, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time){
+	public void insertRelationDocumentFollower(String project, String branch, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time){
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(project, branch, uuid, jsonObject, sourceUUID, source,  targetUUID, target, time);
+			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(project, branch, jsonObject, sourceUUID, source,  targetUUID, target, time);
 		} 
 	}
 

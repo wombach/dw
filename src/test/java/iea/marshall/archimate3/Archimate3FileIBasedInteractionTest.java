@@ -95,8 +95,9 @@ public class Archimate3FileIBasedInteractionTest {
 
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
-//				givenJsonFile_processJsonString_expectTrue();
-//		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
+//		givenXMLFile_unmarshalJson_marshalXML();
+//		givenJsonFile_processJsonString_expectTrue();
+		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
 				givenJsonFile_unmarshalJson_marshalXML();
 	}
 
@@ -160,8 +161,8 @@ public class Archimate3FileIBasedInteractionTest {
 		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
-		File file = new File("demo_archimate3.json");
-//		File file = new File("test3_output.json");
+//		File file = new File("demo_archimate3.json");
+		File file = new File("test3_output.json");
 		StreamSource source = new StreamSource(file);
 		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
@@ -184,6 +185,43 @@ public class Archimate3FileIBasedInteractionTest {
 		//		marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
 		marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
 		FileWriter out = new FileWriter( "test3_output.xml");
+		marshaller.marshal(model, out);
+		out.flush();
+		out.close();
+	}
+
+	public void givenXMLFile_unmarshalJson_marshalXML() throws JAXBException, IOException{
+		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);
+
+		Map<String, String> namespaces = new HashMap<String, String>();
+		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
+//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
+
+		File file = new File("test_w_properties.xml");
+//		File file = new File("test3_output.json");
+		StreamSource source = new StreamSource(file);
+		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+//		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
+		JAXBElement<ModelType> result = unmarshaller2.unmarshal(source, ModelType.class);
+		ModelType model = (ModelType) result.getValue();
+
+		namespaces = new HashMap<String, String>();
+		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
+		//		jaxbContext =  JAXBContext.newInstance(ModelType.class);
+		Marshaller marshaller = jaxbContext.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+				marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+				marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+				marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
+		marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
+		FileWriter out = new FileWriter( "test_w_properties.json");
 		marshaller.marshal(model, out);
 		out.flush();
 		out.close();

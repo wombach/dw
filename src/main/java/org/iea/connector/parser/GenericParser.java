@@ -10,6 +10,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -106,7 +107,7 @@ public abstract class GenericParser {
 	public abstract String deriveJsonString(String project, String branch, Date date);
 
 	public Document enrichDocument( JSONObject obj, long time, String compStr, int hash){
-		String uuid = UUID.randomUUID().toString();
+		String uuid = "id-"+UUID.randomUUID().toString();
 		obj.remove("identifier");
 		obj.put("identifier", uuid);
 		Document doc = new Document(DOC_NAME, DOC_NAME_NODE)
@@ -120,7 +121,7 @@ public abstract class GenericParser {
 		return doc;
 	}
 
-	abstract public String getNodeComparisonString(JSONObject jsonObject);
+	abstract public String getNodeComparisonString(Document jsonObject);
 	abstract public int getNodeHash(Document jsonObject);
 
 	public Document insertNodeDocument(String project, String branch,JSONObject jsonObject, long time) {
@@ -166,8 +167,8 @@ public abstract class GenericParser {
 		return null;
 	}
 
-	abstract protected String getRelationComparisonString(JSONObject jsonObject);
-	abstract protected int getRelationHash(JSONObject jsonObject);
+	public abstract String getRelationComparisonString(Document jsonObject);
+	public abstract int getRelationHash(Document jsonObject);
 
 	public Document insertRelationDocument(String project, String branch,JSONObject jsonObject, String sourceUUID, String targetUUID, long time) {
 //		String compStr = getRelationComparisonString(jsonObject);
@@ -419,5 +420,13 @@ public abstract class GenericParser {
 	}
 
 	public abstract String retrieveJsonString(String project, String branch, Date date);
+
+	public abstract String getOrganizationComparisonString(ArrayList<Document> labelArr);
+
+	public abstract int getOrganizationHash(ArrayList<Document> labelArr);
+
+	public abstract String getViewComparisonString(Document jsonObject);
 	
+	public abstract int getViewHash(Document jsonObject);
+
 }

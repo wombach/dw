@@ -83,7 +83,10 @@ public class Archimate3Parser extends GenericParser {
 	public static final String ORGANIZATION_JSON_LABEL = "organization_label";
 	public static final String ORGANIZATION_JSON_POSITION = "organization_position";
 	public static final String PROPERTIES_TAG = "ar3_properties";
+	public static final String PROPERTY_TAG = "ar3_property";
 	public static final String PROPERTY_DEFINITION_TAG = "ar3_propertyDefinition";
+	public static final String PROPERTY_DEFINITIONREF_TAG = "@propertyDefinitionRef";
+	public static final String PROPERTY_VALUE_TAG = "ar3_value";
 
 	public Archimate3Parser(){
 		this.type = "archimate3";
@@ -111,7 +114,7 @@ public class Archimate3Parser extends GenericParser {
 			for(int i=0;i<l.length();i++){
 				String identifier = l.getJSONObject(i).getString("identifier");
 				Document doc = insertNodeDocument(project,branch,l.getJSONObject(i),time);
-//				String uuid = getUUID(doc);
+				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
@@ -130,7 +133,7 @@ public class Archimate3Parser extends GenericParser {
 				rel.put("target", targetUUID);
 
 				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
-//				String uuid = getUUID(doc);
+				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
@@ -311,7 +314,7 @@ public class Archimate3Parser extends GenericParser {
 			els.remove("element");
 			for(int i=0;i<l.length();i++){
 				Document doc = insertNodeDocument(project, branch, l.getJSONObject(i), time);
-//				String uuid = getUUID(doc);
+				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				String identifier = l.getJSONObject(i).getString("identifier");
 				map.put(identifier, uuid);
@@ -328,7 +331,7 @@ public class Archimate3Parser extends GenericParser {
 				String sourceUUID = map.get(source);
 				String targetUUID = map.get(target);
 				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
-//				String uuid = getUUID(doc);
+				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
@@ -398,21 +401,24 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public String getNodeComparisonString(JSONObject jsonObject) {
-		JSONObject nameObj = jsonObject.getJSONArray("name").getJSONObject(0);
-		String name = nameObj.getString("value");
+	public String getNodeComparisonString(Document jsonObject) {
+		String name="";
+		if(jsonObject.get("name")!=null){
+			Document nameObj = ((ArrayList<Document>)jsonObject.get("name")).get(0);
+			name = nameObj.getString("value");
+		}
 		String node_type = jsonObject.getString("type");
 		return type+"|"+node_type+"|"+name.toString();
 	}
 
 	@Override
 	public int getNodeHash(Document jsonObject) {
-		//BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
-		jsonObject.remove(IDENTIFIER_TAG);
+		//jsonObject.remove(IDENTIFIER_TAG);
 		return jsonObject.hashCode();
 	}
+
 	@Override
-	protected String getRelationComparisonString(JSONObject jsonObject) {
+	public String getRelationComparisonString(Document jsonObject) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -424,13 +430,13 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	protected int getRelationHash(JSONObject jsonObject) {
+	public int getRelationHash(Document jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	protected int getFileHash(JSONObject jsonObject) {
+	public int getViewHash(Document jsonObject) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -598,7 +604,7 @@ public class Archimate3Parser extends GenericParser {
 	public boolean processJsonString(String project, String branch, String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
-//		JSONObject xmlJSONObj = new JSONObject(str);
+		//		JSONObject xmlJSONObj = new JSONObject(str);
 		Document doc_all = Document.parse(str);
 		// check that the file is indeed an archimate file
 		long time = System.currentTimeMillis();
@@ -624,8 +630,10 @@ public class Archimate3Parser extends GenericParser {
 			for(int i=0;i<l.size();i++){
 				Document n = l.get(i);
 				String identifier = n.getString(IDENTIFIER_TAG);
+				String uuid = "id-"+UUID.randomUUID().toString();
+				n.put(IDENTIFIER_TAG, uuid);
 				Document doc = factory.insertNodeDocument(this, project, branch, n, time, orgMap.get(identifier));
-				String uuid = getUUID(doc);
+//				String uuid = getUUID(doc);
 				ArrayList<Document> nameArr = (ArrayList<Document>) n.get("ar3_name");
 				Document nameObj = nameArr.get(0);
 				String name = nameObj.getString("value");
@@ -645,14 +653,14 @@ public class Archimate3Parser extends GenericParser {
 			rels.remove(RELATIONSHIP_TAG); 
 			Vector<Document> v;
 			Vector<Document> v2 = new Vector<Document>();
-			HashMap<String,String> relIds = new HashMap<String,String>();
+//			HashMap<String,String> relIds = new HashMap<String,String>();
 			for(int i=0;i<l.size();i++){
 				Document rel = l.get(i);
 				String identifier = rel.getString(IDENTIFIER_TAG);
 				//				if (identifier.equals("relation-fcdb1ce9-89c7-e611-8309-5ce0c5d8efd6")){
 				//					LOGGER.info("found it");
 				//				}
-				relIds.put(identifier, UUID.randomUUID().toString());
+				map.put(identifier, "id-"+UUID.randomUUID().toString());
 				v2.add(rel);
 			}
 			while(!v2.isEmpty()){
@@ -669,16 +677,16 @@ public class Archimate3Parser extends GenericParser {
 					String target = rel.getString(TARGET_TAG);
 					String sourceUUID = map.get(source);
 					if(sourceUUID==null){
-						if(relIds.containsKey(source)){
-							sourceUUID = relIds.get(source);
+						if(map.containsKey(source)){
+							sourceUUID = map.get(source);
 						}
 					}
 					rel.remove(SOURCE_TAG);
 					rel.put(SOURCE_TAG, sourceUUID);
 					String targetUUID = map.get(target);
 					if(targetUUID==null){
-						if(relIds.containsKey(target)){
-							targetUUID = relIds.get(target);
+						if(map.containsKey(target)){
+							targetUUID = map.get(target);
 						}
 					}
 					rel.remove(TARGET_TAG);
@@ -692,8 +700,9 @@ public class Archimate3Parser extends GenericParser {
 							retMsg += "Relation "+identifier+" ("+type+") related target ID can not be found: "+target+"\n";
 						} 
 					} else {
-						String uuid = relIds.get(identifier);
-						Document doc = factory.insertRelationDocument(this, project, branch, uuid, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
+						String uuid = map.get(identifier);
+						rel.put(IDENTIFIER_TAG,uuid);
+						Document doc = factory.insertRelationDocument(this, project, branch, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
 						map.put(identifier, uuid);
 					}
 				}
@@ -710,9 +719,27 @@ public class Archimate3Parser extends GenericParser {
 					Document view = lo.get(ii);
 					String view_id = view.getString(IDENTIFIER_TAG);
 					String id;
-					String uuid = UUID.randomUUID().toString();
+					String uuid = "id-"+UUID.randomUUID().toString();
 					view.put(IDENTIFIER_TAG, uuid);
 					map.put(view_id,  uuid);
+					if(view.containsKey(NODES_TAG)){
+						ArrayList<Document> nods = (ArrayList<Document>) view.get(NODES_TAG);
+						for(int jj=0;jj<nods.size();jj++){
+							Document ob = nods.get(jj);
+							changeIDsInNode(ob, map);
+							//							if( ob.containsKey(ELEMENTREF_TAG)){
+							//								String ref = ob.getString(ELEMENTREF_TAG);
+							//								uuid = map.get(ref);
+							//								ob.put(ELEMENTREF_TAG, uuid);
+							//							}
+							//							id = ob.getString(IDENTIFIER_TAG);
+							//							if(id.equals("id-1993f24b"))
+							//								LOGGER.info("found it");
+							//							uuid = "id-"+UUID.randomUUID().toString();
+							//							ob.put(IDENTIFIER_TAG, uuid);
+							//							map.put(id,  uuid);
+						}
+					}
 					if(view.containsKey(CONNECTION_TAG)){
 						ArrayList<Document> cons = (ArrayList<Document>) view.get(CONNECTION_TAG);
 						for(int jj=0;jj<cons.size();jj++){
@@ -729,27 +756,13 @@ public class Archimate3Parser extends GenericParser {
 							uuid = map.get(trg);
 							ob.put(TARGET_TAG, uuid);
 							id = ob.getString(IDENTIFIER_TAG);
-							uuid = UUID.randomUUID().toString();
+							uuid = "id-"+UUID.randomUUID().toString();
 							ob.put(IDENTIFIER_TAG, uuid);
 							map.put(id,  uuid);
 							//					LOGGER.info(ob.toString());
 						}
 					}
-					if(view.containsKey(NODES_TAG)){
-						ArrayList<Document> nods = (ArrayList<Document>) view.get(NODES_TAG);
-						for(int jj=0;jj<nods.size();jj++){
-							Document ob = nods.get(jj);
-							if( ob.containsKey(ELEMENTREF_TAG)){
-								String ref = ob.getString(ELEMENTREF_TAG);
-								uuid = map.get(ref);
-								ob.put(ELEMENTREF_TAG, uuid);
-							}
-							id = ob.getString(IDENTIFIER_TAG);
-							uuid = UUID.randomUUID().toString();
-							ob.put(IDENTIFIER_TAG, uuid);
-							map.put(id,  uuid);
-						}
-					}
+					
 					uuid = view.getString(IDENTIFIER_TAG);
 					Document doc = factory.insertViewDocument(this, project, branch,  uuid, view, time, orgMap.get(view_id));
 					//map.put(id, uuid);
@@ -769,12 +782,32 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 
+	private void changeIDsInNode(Document ob, HashMap<String, String> map) {
+		String uuid;
+		if( ob.containsKey(ELEMENTREF_TAG)){
+			String ref = ob.getString(ELEMENTREF_TAG);
+			uuid = map.get(ref);
+			ob.put(ELEMENTREF_TAG, uuid);
+		}
+		String id = ob.getString(IDENTIFIER_TAG);
+		uuid = "id-"+UUID.randomUUID().toString();
+		ob.put(IDENTIFIER_TAG, uuid);
+		map.put(id,  uuid);
+		if(ob.containsKey(NODES_TAG)){
+			ArrayList<Document> nods = (ArrayList<Document>) ob.get(NODES_TAG);
+			for(int jj=0;jj<nods.size();jj++){
+				Document ob2 = nods.get(jj);
+				changeIDsInNode(ob2, map);
+			}
+		}
+	}
+
 	private void createOrganizationLookup(String project, String branch, ArrayList<Document> orgs, HashMap<String, Vector<KeyValuePair>> orgMap, long time, Vector<KeyValuePair> level) {
 		//JSONArray l = orgs.getJSONArray(ITEM_TAG);
 		LOGGER.info("number of items on level ("+level.toString()+"): "+orgs.size());
 		String value = null;
 		for(int ii=0; ii<orgs.size();ii++){
-			 Document item = (Document) orgs.get(ii);
+			Document item = (Document) orgs.get(ii);
 			//			if(ite instanceof JSONArray){
 			//				JSONArray item;
 			//				item = (JSONArray) ite;
@@ -811,17 +844,26 @@ public class Archimate3Parser extends GenericParser {
 
 	@Override
 	public String retrieveJsonString(String project, String branch, Date date) {
-		String ret1 = "{	\"ar3_model\": {"+
+		String ret1 = "{	\"ar3_model\": {\"@identifier\": \"model1\","+
 				"\"ar3_documentation\": [{\"value\": \"Part of the Enterprise Architecture exported to XML\",\"xml_lang\": \"en\"}],"+
 				"\"ar3_elements\": \n";
-//		String ret2 = ",\"@identifier\": \"model based on query\",\"ar3_name\": [{\"value\": \"Model with query result\",\"@xml_lang\": \"en\"}],"+
-//				"\"ar3_propertyDefinitions\": [{\"ar3_propertyDefinition\": [{\"@identifier\": \"propidIEAStartDate\",\"@propertyType\": \"number\"},"+
-//				"{\"@identifier\": \"propidIEAEndDate\",\"@propertyType\": \"number\"	},"+
-//				"{\"@identifier\": \"propidIEAIdentifier\",\"@propertyType\": \"string\"}]}],\"ar3_relationships\": [";
-		String ret2 = "\n,\"@identifier\": \"model based on query\",\"ar3_name\": [{\"value\": \"Model with query result\",\"@xml_lang\": \"en\"}],"+
-						"\"ar3_relationships\": [\n";
-		String ret3 = "\n],\"@version\": \"1.0\", \n";
-		String ret4 = "\n, \"ar3_views\": {\"ar3_diagrams\": \n";
+		String ret2 = ",\"ar3_name\": [{\"value\": \"Model with query result\",\"@xml_lang\": \"en\"}],\n"+
+				"\"ar3_propertyDefinitions\": \n{\"ar3_propertyDefinition\": \n"+
+				"[{\"@identifier\": \""+Archimate3MongoDBConnector.PROPID_IEA_START_DATE+"\",\"@type\": \"number\","+
+				"\"ar3_name\" : [ {\"value\" : \""+Archimate3MongoDBConnector.PROPID_IEA_START_DATE+"\"} ]},\n"+
+				"{\"@identifier\": \""+Archimate3MongoDBConnector.PROPID_IEA_END_DATE+"\",\"@type\": \"number\","+
+				"\"ar3_name\" : [ {\"value\" : \""+Archimate3MongoDBConnector.PROPID_IEA_END_DATE+"\"} ]},\n"+
+				"{\"@identifier\": \""+Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER+"\",\"@type\": \"string\","+
+				"\"ar3_name\" : [ {\"value\" : \""+Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER+"\"} ]},\n"+
+				"{\"@identifier\": \""+Archimate3MongoDBConnector.PROPID_IEA_HASH+"\",\"@type\": \"string\","+
+				"\"ar3_name\" : [ {\"value\" : \""+Archimate3MongoDBConnector.PROPID_IEA_HASH+"\"} ]},\n"+
+				"{\"@identifier\": \""+Archimate3MongoDBConnector.PROPID_IEA_COMPARISON_STRING+"\",\"@type\": \"string\","+
+				"\"ar3_name\" : [ {\"value\" : \""+Archimate3MongoDBConnector.PROPID_IEA_COMPARISON_STRING+"\"} ]}\n"+
+				"]},\n\"ar3_relationships\": [";
+		//		String ret2 = "\n,\"@identifier\": \"model based on query\",\"ar3_name\": [{\"value\": \"Model with query result\",\"@xml_lang\": \"en\"}],"+
+		//				"\"ar3_relationships\": [\n";
+		String ret3 = "\n],\"@version\": \"1.0\", \n \"ar3_organizations\" :  [ ";
+		String ret4 = "\n],\n \"ar3_views\": {\"ar3_diagrams\": \n";
 		String ret5 = "\n}}}";
 
 		long time =  date.getTime();
@@ -835,26 +877,26 @@ public class Archimate3Parser extends GenericParser {
 		JsonWriterSettings writerSet = new JsonWriterSettings(true);
 		ret = ret+n.toJson(writerSet)+ret2;
 		ret = ret+r.toJson(writerSet)+ret3;
-//		ret = ret+o.toJson(writerSet)+ret4;
+		//		ret = ret+o.toJson(writerSet)+ret4;
 		String str = o.toJson(writerSet);
 		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
-		str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
+		//str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
 		ret = ret + str + ret4;
 		ret = ret+v.toJson(writerSet)+ret5;
-		
-//		ob = new JSONObject(v);
-//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
-//		JSONObject ob = new JSONObject(n);
-//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret2;
-//		ob = new JSONObject(r);
-//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret3;
-//		ob = new JSONObject(o);
-//		String str = ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR);
-//		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
-//		str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
-//		ret = ret+str+ret4;
-//		ob = new JSONObject(v);
-//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
+
+		//		ob = new JSONObject(v);
+		//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
+		//		JSONObject ob = new JSONObject(n);
+		//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret2;
+		//		ob = new JSONObject(r);
+		//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret3;
+		//		ob = new JSONObject(o);
+		//		String str = ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR);
+		//		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
+		//		str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
+		//		ret = ret+str+ret4;
+		//		ob = new JSONObject(v);
+		//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
 		//		Iterator<Document> it = o.iterator();
 		//		while (it.hasNext()){
 		//			Document d = it.next();
@@ -895,7 +937,7 @@ public class Archimate3Parser extends GenericParser {
 			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 			unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
-//			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source, ModelType.class);
+			//			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source, ModelType.class);
 
 			StreamSource source2 = new StreamSource(in);
 			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
@@ -957,6 +999,30 @@ public class Archimate3Parser extends GenericParser {
 			e.printStackTrace();
 		}
 		return ret;
+	}
+
+	@Override
+	protected int getFileHash(JSONObject jsonObject) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public String getOrganizationComparisonString(ArrayList<Document> labelArr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getOrganizationHash(ArrayList<Document> labelArr) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public String getViewComparisonString(Document jsonObject) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

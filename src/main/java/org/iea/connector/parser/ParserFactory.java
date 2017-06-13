@@ -183,8 +183,8 @@ public class ParserFactory {
 		return storage.insertNodeDocument(parser, project, branch, n, time, org);
 	}
 
-	public Document insertRelationDocument(GenericParser parser,String project, String branch, String uuid, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
-		return storage.insertRelationDocument(parser, project, branch, uuid, rel, sourceUUID, source, targetUUID, target, time, org) ;
+	public Document insertRelationDocument(GenericParser parser,String project, String branch, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
+		return storage.insertRelationDocument(parser, project, branch, rel, sourceUUID, source, targetUUID, target, time, org) ;
 	}
 
 	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, Document view, long time, Vector<KeyValuePair> org) {
