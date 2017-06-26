@@ -1,29 +1,22 @@
 package org.iea.connector.storage;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
-
 import org.bson.Document;
+import org.iea.connector.parser.Archimate3Parser;
+import org.iea.connector.parser.storage.Archimate3MongoDBConnector;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
-
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Sorts.ascending;
-import static java.util.Arrays.asList;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
 
 public class MongoDBAccess {
 	private final static Logger LOGGER = Logger.getLogger(MongoDBAccess.class.getName()); 
@@ -33,11 +26,11 @@ public class MongoDBAccess {
 	public final static String COLLECTION_RELATIONS = "relations";
 	public final static String COLLECTION_FILES = "files";
 	public static final String COLLECTION_ORGANIZATIONS = "organizations";
-	
+
 	public MongoClient getClient(){
 		return MongoDBSingleton.getClient();
 	}
-	
+
 	public MongoCollection<Document> getCollection(String col){
 		MongoClient mongoClient = getClient();
 		MongoDatabase database = mongoClient.getDatabase(DATABASE);
@@ -61,7 +54,7 @@ public class MongoDBAccess {
 	public void getAllDocuments(){
 		getAllDocuments(DATABASE);
 	}
-	
+
 	public void getAllDocuments(String db){
 		MongoCollection<Document> collection = getCollection(db, COLLECTION_NODES);
 		MongoCursor<Document> cursor = collection.find().iterator();
@@ -96,10 +89,10 @@ public class MongoDBAccess {
 	}
 
 	public void insertDocument(String col, Document doc){
-		insertDocument(DATABASE, "none", col , doc);
+		insertDocument(DATABASE, col , doc);
 	}
 
-	public void insertDocument(String project, String branch, String col, Document doc){
+	public void insertDocument(String project, String col, Document doc){
 		MongoCollection<Document> collection = getCollection(project, col);
 		//LOGGER.info("collection count before insert: "+collection.count());
 		collection.insertOne(doc);
@@ -107,10 +100,10 @@ public class MongoDBAccess {
 	}
 
 	public void updateDocument(String col, String searchKey, String searchValue, String setKey, long time){
-		updateDocument(DATABASE, "none", col, searchKey, searchValue, setKey, time);
+		updateDocument(DATABASE, col, searchKey, searchValue, setKey, time);
 	}
 
-	public void updateDocument(String project, String branch, String col, String searchKey, String searchValue, String setKey, long time){
+	public void updateDocument(String project, String col, String searchKey, String searchValue, String setKey, long time){
 		MongoCollection<Document> collection = getCollection(project, col);
 		BasicDBObject updateQuery = new BasicDBObject();
 		updateQuery.append("$set", new BasicDBObject().append(setKey, time));
@@ -126,36 +119,68 @@ public class MongoDBAccess {
 	public FindIterable<Document> queryDocument(String col, String key, String value, Date date){
 		return queryDocument(DATABASE, "none", col, key, value, date);
 	}
-	
+
 	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, Date date){
 		return queryDocument(project, branch, col, key, value, date.getTime());
 	}
-	
+
 	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, long time){
 		BasicDBObject query = new BasicDBObject(key, new BasicDBObject("$eq", value)).
 				append("start_date",  new BasicDBObject("$gt", time)).
 				append("branch",  branch).
 				append("$or", new BasicDBObject("end_date",  new BasicDBObject("$lt", time)).
 						append("end_date",  new BasicDBObject("$eq", -1)));
-//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
+		//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
 		FindIterable<Document> iterable = getCollection(project, col).find(query);
 		return iterable;
+	}
+
+	/**
+	 * "db."+MongoDBAccess.COLLECTION_NODES+".find({"+
+	 *						"'"+DOC_BRANCH+"':\""+branch+"\","+
+	 *						"'"+DOC_END_DATE+"': -1,},{'"+DOC_ID+"':true})."+
+	 *						"forEach( function(myDoc){print(tojson(myDoc."+DOC_ID+")); })";	
+	 * @param project
+	 * @param branch
+	 * @param col
+	 * @return
+	 */
+	public Set<String> queryDocumentFindAllIds(String project, String branch, String col){
+		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
+				append(Archimate3MongoDBConnector.DOC_END_DATE,  new BasicDBObject("$eq", -1));
+		//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
+		HashSet<String> ref =  new HashSet<String>();
+		//		Block<Document> extractID = new Block<Document>() {
+		//			@Override
+		//			public void apply(final Document document) {
+		//				ref.add(document.getString(Archimate3MongoDBConnector.DOC_ID));
+		//			}
+		//		};
+		FindIterable<Document> docs = getCollection(project, col).find(query);//.forEach(extractID);
+		if(docs !=null && docs.iterator()!=null){
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+				ref.add(doc.getString(Archimate3MongoDBConnector.DOC_ID));
+			}
+		}
+		return ref;
 	}
 
 	public void dropCollections(){
 		dropCollections(DATABASE);
 	}
-	
+
 	public void dropProject(String project){
 		dropCollections(project);
 	}
-	
+
 	public void dropBranch(String project, String branch){
 		//dropCollections(DATABASE);
 		//TODO: implement dropping all branches
 	}
-	
-	
+
+
 	public void dropCollections(String db){
 		MongoCollection<Document> col = getCollection(db, COLLECTION_NODES);
 		col.drop();
@@ -171,10 +196,10 @@ public class MongoDBAccess {
 
 	public FindIterable<Document> retrieveDocument(String project, String branch, String col, String type, long time) {
 		// db.getCollection('nodes').find({'branch':"branch1", 
-	    //            'start_date': {$lt: 1494859350395}, 
-	    //            $or : [{'end_date': {$eq: -1}},
-	    //                    {'end_date': {$gt: 1494859350395}}]
-	    //           })
+		//            'start_date': {$lt: 1494859350395}, 
+		//            $or : [{'end_date': {$eq: -1}},
+		//                    {'end_date': {$gt: 1494859350395}}]
+		//           })
 		BasicDBList or = new BasicDBList();
 		or.add(new BasicDBObject("end_date",  new BasicDBObject("$gt", time)));
 		or.add(new BasicDBObject("end_date",  new BasicDBObject("$eq", -1)));
@@ -182,8 +207,15 @@ public class MongoDBAccess {
 				append("branch",  branch).
 				append("type", type).
 				append("$or", or);
-		
+
 		FindIterable<Document> iterable = getCollection(project, col).find(query);
 		return iterable;
+	}
+	
+	public void retireDocument(String project, String col, BasicDBObject query, BasicDBObject set){
+		MongoCollection<Document> colDB = getCollection(project, col);
+		UpdateResult ret = colDB.updateMany(query, set);
+		LOGGER.info("found :"+ret.getMatchedCount()+"   changed:"+ret.getModifiedCount());
+		
 	}
 }

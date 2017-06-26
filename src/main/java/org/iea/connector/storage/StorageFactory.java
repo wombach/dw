@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -81,7 +82,7 @@ public class StorageFactory {
 		return ret.getDoc();
 	}
 
-	public Document insertOrganizationDocument(Archimate3Parser parser, String project, String branch,
+	public Document insertOrganizationDocument(GenericParser parser, String project, String branch,
 			Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
@@ -180,7 +181,7 @@ public class StorageFactory {
 		return ret;
 	}
 
-	public Document retrieveOrganizationDocument(Archimate3Parser parser, String project, String branch, long time, Organization org) {
+	public Document retrieveOrganizationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
@@ -189,6 +190,65 @@ public class StorageFactory {
 			}
 		}
 		return ret;
+	}
+
+	public Set<String> retrieveAllNodeIDs(GenericParser parser, String project, String branch) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveAllNodeIDsManager(project, branch);
+			}
+		}
+		return ret;
+	}
+
+	public Set<String> retrieveAllRelationshipIDs(GenericParser parser, String project, String branch) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveAllRelationshipIDsManager(project, branch);
+			}
+		}
+		return ret;
+	}
+
+	public Set<String> retrieveAllViewIDs(GenericParser parser, String project, String branch) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveAllViewIDsManager(project, branch);
+			}
+		}
+		return ret;
+	}
+
+
+	public void retireNodeDocument(GenericParser parser, String project, String branch, String ref, long time) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.retireNodeDocument(project, branch, ref, time);
+			}
+		}
+	}
+	public void retireRelationshipDocument(GenericParser parser, String project, String branch, String ref, long time) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.retireRelationshipDocument(project, branch, ref, time);
+			}
+		}
+	}
+	public void retireViewDocument(GenericParser parser, String project, String branch, String ref, long time) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.retireViewDocument(project, branch, ref, time);
+			}
+		}
 	}
 
 

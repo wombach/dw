@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Vector;
@@ -33,7 +34,7 @@ import com.mongodb.client.MongoCursor;
 
 public class Archimate3MongoDBConnector extends GenericParserStorageConnector 
 implements GenericParserStorageConnectorManager {
-	
+
 	public final static int PRETTY_PRINT_INDENT_FACTOR = 4;
 	public final static String DOC_NAME = "name";
 	public final static String DOC_NAME_NODE = "node";
@@ -43,7 +44,6 @@ implements GenericParserStorageConnectorManager {
 	public final static String DOC_RAW = "raw";
 	//public final static String DOC_RAW_ELEMENT = "element";
 	public final static String DOC_ID = "id";
-	public final static String DOC_COMPARISON_STRING = "comparison_string";
 	public static final String DOC_HASH = "hash";
 	public static final String DOC_BRANCH = "branch";
 	public static final String DOC_ORGANIZATION_LABEL ="label";
@@ -52,8 +52,7 @@ implements GenericParserStorageConnectorManager {
 	public static final String DOC_ORGANIZATION_DEFAULT_FOLDER = "default";
 	public static final String DOC_ORGANIZATION_CONTENT = "content";
 
-	public static final Object PROPID_IEA_HASH = "propidIEAHash";
-	public static final Object PROPID_IEA_COMPARISON_STRING = "propidIEAComparisonString";
+	public static final String PROPID_IEA_HASH = "propidIEAHash";
 	public static final String PROPID_IEA_END_DATE = "propidIEAEndDate";
 	public static final String PROPID_IEA_START_DATE = "propidIEAStartDate";
 	public static final String PROPID_IEA_IDENTIFIER = "propidIEAIdentifier";
@@ -66,9 +65,9 @@ implements GenericParserStorageConnectorManager {
 		mongo = new MongoDBAccess();
 	}
 
-	public Document enrichDocument( Document jsonObject, String branch, long time, String compStr, int hash, ArrayList<Document> orgJson){
-//		String uuid = "id-"+UUID.randomUUID().toString();
-//		jsonObject.remove(Archimate3Parser.IDENTIFIER_TAG);
+	public Document enrichDocument( Document jsonObject, String branch, long time, int hash, ArrayList<Document> orgJson){
+		//		String uuid = "id-"+UUID.randomUUID().toString();
+		//		jsonObject.remove(Archimate3Parser.IDENTIFIER_TAG);
 		String uuid = jsonObject.getString(Archimate3Parser.IDENTIFIER_TAG);
 		// copying the document has been done to ensure the order of the properties in the document. This is unfortunately
 		// necessary since the current moxy implementation has a bug that it is not able to read @xsi_type at an arbitrary 
@@ -81,24 +80,29 @@ implements GenericParserStorageConnectorManager {
 		}
 		jsonObject.remove(Archimate3Parser.TYPE_TAG);
 		raw.putAll(jsonObject);
-//		jsonObject.put(Archimate3Parser.IDENTIFIER_TAG, uuid);
+		//		jsonObject.put(Archimate3Parser.IDENTIFIER_TAG, uuid);
 		if(jsonObject.containsKey(Archimate3Parser.PROPERTIES_TAG)){
-			ArrayList<Document> props = (ArrayList<Document>) jsonObject.get(Archimate3Parser.PROPERTIES_TAG);
+			Document propies = (Document) jsonObject.get(Archimate3Parser.PROPERTIES_TAG);
+			ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
 			Iterator<Document> it = props.iterator();
 			while(it.hasNext()){
 				Document prop = it.next();
-				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals(PROPID_IEA_START_DATE)){
-					Document val = (Document) prop.get(Archimate3Parser.VALUE_TAG);
-//					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put(Archimate3Parser.VALUE_TAG, time);
-				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals(PROPID_IEA_END_DATE)){
-					Document val = (Document) prop.get(Archimate3Parser.VALUE_TAG);
-//					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put(Archimate3Parser.VALUE_TAG, -1);
-				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITION_TAG).equals(PROPID_IEA_IDENTIFIER)){
-					Document val = (Document) prop.get(Archimate3Parser.VALUE_TAG);
-//					val.remove(Archimate3Parser.VALUE_TAG);
+				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
+					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+					//					val.remove(Archimate3Parser.VALUE_TAG);
+					val.put(Archimate3Parser.VALUE_TAG, String.valueOf(time));
+				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_END_DATE)){
+					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+					//					val.remove(Archimate3Parser.VALUE_TAG);
+					val.put(Archimate3Parser.VALUE_TAG, String.valueOf((long)-1));
+				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_IDENTIFIER)){
+					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+					//					val.remove(Archimate3Parser.VALUE_TAG);
 					val.put("value", uuid);
+				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_HASH)){
+					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+					//					val.remove(Archimate3Parser.VALUE_TAG);
+					val.put("value", hash);
 				} 
 			}
 		} else {
@@ -129,12 +133,6 @@ implements GenericParserStorageConnectorManager {
 			val.put(Archimate3Parser.VALUE_TAG, hash);
 			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
 			props.add(prop);
-			prop = new Document();
-			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_COMPARISON_STRING);
-			val = new Document("@xml_lang", "en");
-			val.put(Archimate3Parser.VALUE_TAG, compStr);
-			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
-			props.add(prop);
 			raw.put(Archimate3Parser.PROPERTIES_TAG, new Document(Archimate3Parser.PROPERTY_TAG,props));
 		}
 
@@ -145,28 +143,27 @@ implements GenericParserStorageConnectorManager {
 				.append(DOC_ID, uuid)
 				.append(DOC_START_DATE, time)
 				.append(DOC_END_DATE, -1L)
-				.append(DOC_COMPARISON_STRING, compStr)
 				.append(DOC_HASH, hash)
 				//	.append(DOC_BRANCH, branchArr)
 				.append(DOC_BRANCH, branch)
 				.append(DOC_ORGANIZATION,  orgJson)
-//				.append(DOC_RAW, jsonObject);
+				//				.append(DOC_RAW, jsonObject);
 				.append(DOC_RAW, raw);
 		return doc;
 	}
 
-//	protected String getNodeComparisonString(Document jsonObject) {
-//		Document nameObj =   ((ArrayList<Document>) jsonObject.get(Archimate3Parser.NAME_TAG)).get(0);
-//		String name = nameObj.getString(Archimate3Parser.VALUE_TAG);
-//		String node_type = jsonObject.getString(Archimate3Parser.TYPE_TAG);
-//		return parser.getType()+"|"+node_type+"|"+name.toString();
-//	}
+	//	protected String getNodeComparisonString(Document jsonObject) {
+	//		Document nameObj =   ((ArrayList<Document>) jsonObject.get(Archimate3Parser.NAME_TAG)).get(0);
+	//		String name = nameObj.getString(Archimate3Parser.VALUE_TAG);
+	//		String node_type = jsonObject.getString(Archimate3Parser.TYPE_TAG);
+	//		return parser.getType()+"|"+node_type+"|"+name.toString();
+	//	}
 
-//	protected int getNodeHash(Document jsonObject) {
-//		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
-//		jsonDoc.removeField(Archimate3Parser.IDENTIFIER_TAG);
-//		return jsonDoc.hashCode();
-//	}
+	//	protected int getNodeHash(Document jsonObject) {
+	//		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
+	//		jsonDoc.removeField(Archimate3Parser.IDENTIFIER_TAG);
+	//		return jsonDoc.hashCode();
+	//	}
 
 	private ArrayList<Document> createOrganizationPath(Vector<KeyValuePair> org, String branch) {
 		ArrayList<Document> root = new ArrayList<Document>();
@@ -194,17 +191,33 @@ implements GenericParserStorageConnectorManager {
 		return root;
 	}
 
+	public Set<String> retrieveAllNodeIDs(String project, String branch){
+		//		String query_all_ids = "db."+MongoDBAccess.COLLECTION_NODES+".find({"+
+		//							"'"+DOC_BRANCH+"':\""+branch+"\","+
+		//							"'"+DOC_END_DATE+"': -1,},{'"+DOC_ID+"':true})."+
+		//							"forEach( function(myDoc){print(tojson(myDoc."+DOC_ID+")); })";
+		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_NODES);
+	}
+
+	public Set<String> retrieveAllRelationshipIDs(String project, String branch){
+		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_RELATIONS);
+	}
+
+	public Set<String> retrieveAllViewIDs(String project, String branch){
+		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_VIEWS);
+	}
+
 	@Override
 	public GenericStorageResult insertNodeDocument(String project, String branch, Document jsonObject, long time, Vector<KeyValuePair> org) {
-		String compStr = parser.getNodeComparisonString(jsonObject);
+		//		String compStr = parser.getNodeComparisonString(jsonObject);
 
 		int hash = parser.getNodeHash(jsonObject);
 		Document doc = null;
 		GenericStorageResult ret = new GenericStorageResult();
-		boolean insert = false;
+		String uuid = jsonObject.getString(Archimate3Parser.IDENTIFIER_TAG);
+		boolean insert = true;
 		//		long time = System.currentTimeMillis();
-		FindIterable<Document> docs = mongo.queryDocument(project, branch, MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
-
+		//		FindIterable<Document> docs = mongo.queryDocument(project, branch, MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
 
 		//      TODO: fix updates!
 		//		if(docs !=null && docs.iterator()!=null && docs.iterator().hasNext()){
@@ -230,14 +243,12 @@ implements GenericParserStorageConnectorManager {
 		//			}
 		//
 		//		} else {
-		LOGGER.warning("the document to be inserted is not known to the collection");
-		insert = true;
 		ret.setStatusInserted();
 		//		}
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
 		if (insert){
-			doc = enrichDocument( jsonObject, branch, time, compStr, hash, orgJson);
-			mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_NODES, doc);
+			doc = enrichDocument( jsonObject, branch, time, hash, orgJson);
+			mongo.insertDocument(project, MongoDBAccess.COLLECTION_NODES, doc);
 			LOGGER.info("the document has been inserted");
 		} else {
 			LOGGER.info("no update was necessary");
@@ -253,12 +264,13 @@ implements GenericParserStorageConnectorManager {
 		int hash = parser.getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
-		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash, orgJson);
+		Document doc = enrichDocument( jsonObject,branch, time, hash, orgJson);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
 		//		.append("source", sourceJson)
 		//		.append("target", targetJson);
-		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, doc);
+		
+		mongo.insertDocument(project, MongoDBAccess.COLLECTION_RELATIONS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
 		//
@@ -275,8 +287,8 @@ implements GenericParserStorageConnectorManager {
 		ArrayList<Document> orgJson = createOrganizationPath(level, branch);
 		Document jsonObj = new Document();
 		jsonObj.put(DOC_ORGANIZATION_CONTENT, labelArr);
-		Document doc = enrichDocument( jsonObj,branch, time, compStr, hash, orgJson);
-		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS, doc);
+		Document doc = enrichDocument( jsonObj,branch, time, hash, orgJson);
+		mongo.insertDocument(project,MongoDBAccess.COLLECTION_ORGANIZATIONS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
 		//
@@ -291,8 +303,8 @@ implements GenericParserStorageConnectorManager {
 		int hash = parser.getViewHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
-		Document doc = enrichDocument( jsonObject,branch, time, compStr, hash, orgJson);
-		mongo.insertDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, doc);
+		Document doc = enrichDocument( jsonObject,branch, time, hash, orgJson);
+		mongo.insertDocument(project,MongoDBAccess.COLLECTION_VIEWS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
 		//
@@ -471,13 +483,13 @@ implements GenericParserStorageConnectorManager {
 		Document e = new Document();
 		boolean flag = false;
 		if(org.getLabel()!=null){
-//			e = 
+			//			e = 
 			e.append(Archimate3Parser.LABEL_TAG, org.getLabel());
 			flag=true;
 			//			ret.add(e);
 		}
 		if(org.getLeaves()!=null && !org.getLeaves().isEmpty()){
-//			e = new Document();
+			//			e = new Document();
 			ArrayList<Document> list = new ArrayList<Document>();
 			Map<String, String> leaves = org.getLeaves();
 			for(String leaf : leaves.values()){
@@ -486,7 +498,7 @@ implements GenericParserStorageConnectorManager {
 			}
 			e.append(Archimate3Parser.ITEM_TAG, list);
 			flag= true;
-//			ret.add(e);
+			//			ret.add(e);
 		}
 		if (flag) ret.add(e);
 
@@ -503,5 +515,32 @@ implements GenericParserStorageConnectorManager {
 		return ret;
 	}
 
+	public void retireNodeDocument(String project, String branch, String uuid, long time){
+		retireDocument(project, branch, MongoDBAccess.COLLECTION_NODES, uuid, time);
+	}
+	
+	public void retireRelationshipDocument(String project, String branch, String uuid, long time){
+		retireDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, uuid, time);
+	}
+	
+	public void retireViewDocument(String project, String branch, String uuid, long time){
+		retireDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, uuid, time);
+	}
+	
+	protected void retireDocument(String project, String branch, String col, String uuid, long time){
+		//	String query_retire = "db."+MongoDBAccess.COLLECTION_NODES+".update({'"+DOC_ID+"': {$eq: \""+uuid+"\"},"+ 
+		//	"'"+DOC_BRANCH+"':\""+branch+"\","+
+		//	"'"+DOC_END_DATE+"': -1,"+
+		//	"'"+DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+"."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG+"' :{$eq: \"-1\"}},"+
+		//	"{$set:{'"+DOC_END_DATE+"':NumberLong("+String.valueOf(time)+"), "+
+		//	"'"+DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+".$."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG+"': \""+String.valueOf(time)+"\" }} )";
+		BasicDBObject query = new BasicDBObject(DOC_ID, uuid).
+				append(DOC_BRANCH, branch).
+				append(DOC_END_DATE,-1).
+				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+"."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG,String.valueOf(-1) );
+		BasicDBObject set = new BasicDBObject("$set", new BasicDBObject(DOC_END_DATE, time).
+				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+".$."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG, String.valueOf(time)));
+		mongo.retireDocument(project, col, query, set);
+	}
 
 }

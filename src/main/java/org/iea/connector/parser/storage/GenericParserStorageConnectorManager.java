@@ -1,6 +1,7 @@
 package org.iea.connector.parser.storage;
 
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.Vector;
 
 import org.bson.Document;
@@ -40,6 +41,18 @@ public interface GenericParserStorageConnectorManager {
 	public Document retrieveRelationDocument(String project, String branch, long time, Organization org);
 
 	public Document retrieveOrganizationDocument(String project, String branch, long time, Organization org);
+
+	public Set<String> retrieveAllNodeIDs(String project, String branch);
+
+	public Set<String> retrieveAllRelationshipIDs(String project, String branch);
+
+	public Set<String> retrieveAllViewIDs(String project, String branch);
+
+	public void retireNodeDocument(String project, String branch, String ref, long time);
+
+	public void retireRelationshipDocument(String project, String branch, String ref, long time);
+
+	public void retireViewDocument(String project, String branch, String ref, long time);
 
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, String organizationsTypeLabel,

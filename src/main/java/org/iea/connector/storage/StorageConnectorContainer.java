@@ -1,6 +1,7 @@
 package org.iea.connector.storage;
 
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -143,6 +144,45 @@ public class StorageConnectorContainer {
 			return ((GenericParserStorageConnectorManager) connector).retrieveOrganizationDocument(project, branch, time, org);
 		}
 		return null;
+	}
+
+	public Set<String> retrieveAllNodeIDsManager(String project, String branch) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveAllNodeIDs(project, branch);
+		}
+		return null;
+	}
+
+	public Set<String> retrieveAllRelationshipIDsManager(String project, String branch) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveAllRelationshipIDs(project, branch);
+		}
+		return null;
+	}
+
+	public Set<String> retrieveAllViewIDsManager(String project, String branch) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveAllViewIDs(project, branch);
+		}
+		return null;
+	}
+
+	public void retireNodeDocument(String project, String branch, String ref, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).retireNodeDocument(project, branch, ref, time);
+		}
+	}
+
+	public void retireRelationshipDocument(String project, String branch, String ref, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).retireRelationshipDocument(project, branch, ref, time);
+		}		
+	}
+
+	public void retireViewDocument(String project, String branch, String ref, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).retireViewDocument(project, branch, ref, time);
+		}		
 	}
 
 //	public GenericStorageResult insertOrganizationsDocumentManager(String project, String branch,

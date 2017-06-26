@@ -3,6 +3,7 @@ package org.iea.connector.parser;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -187,8 +188,8 @@ public class ParserFactory {
 		return storage.insertRelationDocument(parser, project, branch, rel, sourceUUID, source, targetUUID, target, time, org) ;
 	}
 
-	public Document insertViewDocument(Archimate3Parser archimate3Parser, String project, String branch,String uuid, Document view, long time, Vector<KeyValuePair> org) {
-		return storage.insertViewDocument(archimate3Parser, project, branch, uuid, view, time, org);
+	public Document insertViewDocument(GenericParser parser, String project, String branch,String uuid, Document view, long time, Vector<KeyValuePair> org) {
+		return storage.insertViewDocument(parser, project, branch, uuid, view, time, org);
 	}
 
 	public String writeJSONtoXML(String parserName, String t) {
@@ -200,13 +201,37 @@ public class ParserFactory {
 		return ret;
 	}
 
-	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch,
+	public Document insertOrganizationDocument(GenericParser parser, String project, String branch,
 			Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
-		return storage.insertOrganizationDocument(archimate3Parser, project, branch, level, labelArr,  time) ;
+		return storage.insertOrganizationDocument(parser, project, branch, level, labelArr,  time) ;
 	}
 
-	public Document retrieveOrganizationDocument(Archimate3Parser parser, String project, String branch, long time, Organization org) {
+	public Document retrieveOrganizationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
 		return storage.retrieveOrganizationDocument(parser, project, branch, time, org);
+	}
+
+	public Set<String> retrieveAllNodeIDs(GenericParser parser, String project, String branch) {
+		return storage.retrieveAllNodeIDs(parser, project, branch) ;
+	}
+
+	public Set<String> retrieveAllRelationshipIDs(GenericParser parser, String project, String branch) {
+		return storage.retrieveAllRelationshipIDs(parser, project, branch) ;
+	}
+
+	public Set<String> retrieveAllViewIDs(GenericParser parser, String project, String branch) {
+		return storage.retrieveAllViewIDs(parser, project, branch) ;
+	}
+
+	public void retireNodeDocument(GenericParser parser, String project, String branch, String ref, long time) {
+		storage.retireNodeDocument(parser, project, branch, ref, time) ;
+	}
+
+	public void retireRelationshipDocument(GenericParser parser, String project, String branch, String ref, long time) {
+		storage.retireRelationshipDocument(parser, project, branch, ref, time) ;
+	}
+
+	public void retireViewDocument(GenericParser parser, String project, String branch, String ref, long time) {
+		storage.retireViewDocument(parser, project, branch, ref, time) ;
 	}
 
 //	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String organizationsTypeLabel,
