@@ -14,18 +14,18 @@ import com.mongodb.BasicDBObject;
 
 public interface GenericParserStorageConnectorManager {
 
-	public GenericStorageResult insertNodeDocument(String project, String branch, Document n, long time, Vector<KeyValuePair> org);
+	public GenericStorageResult insertNodeDocument(String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org);
 
-	public GenericStorageResult insertRelationDocument(String project, String branch, Document jsonObject, 
+	public GenericStorageResult insertRelationDocument(String project, String branch, String user, Document jsonObject, 
 			String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) ;
 
-//	public GenericStorageResult insertOrganizationDocument(String project, String branch, JSONObject jsonObject,
+//	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, JSONObject jsonObject,
 //			String refUUID, JSONObject refJson, long time);
 
-	public GenericStorageResult insertOrganizationDocument(String project, String branch, Vector<KeyValuePair> level,
+	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, Vector<KeyValuePair> level,
 			ArrayList<Document> labelArr, long time);
 
-	public GenericStorageResult insertViewDocument(String project, String branch, Document jsonObject, long time, Vector<KeyValuePair> org);
+	public GenericStorageResult insertViewDocument(String project, String branch, String user, Document jsonObject, long time, Vector<KeyValuePair> org);
 	
 	public void dropDB();
 	
@@ -34,13 +34,13 @@ public interface GenericParserStorageConnectorManager {
 	public void dropBranch(String project, String branch);
 
 	
-	public Document retrieveViewDocument(String project, String branch, long time, Organization org);
+	public Document retrieveViewDocument(String project, String branch, String user, long time, Organization org);
 
-	public Document retrieveNodeDocument(String project, String branch, long time, Organization org);
+	public Document retrieveNodeDocument(String project, String branch, String user, long time, Organization org);
 
-	public Document retrieveRelationDocument(String project, String branch, long time, Organization org);
+	public Document retrieveRelationDocument(String project, String branch, String user, long time, Organization org);
 
-	public Document retrieveOrganizationDocument(String project, String branch, long time, Organization org);
+	public Document retrieveOrganizationDocument(String project, String branch, String user, long time, Organization org);
 
 	public Set<String> retrieveAllNodeIDs(String project, String branch);
 
@@ -48,14 +48,27 @@ public interface GenericParserStorageConnectorManager {
 
 	public Set<String> retrieveAllViewIDs(String project, String branch);
 
-	public void retireNodeDocument(String project, String branch, String ref, long time);
+	public void retireNodeDocument(String project, String branch, String user, String ref, long time);
 
-	public void retireRelationshipDocument(String project, String branch, String ref, long time);
+	public void retireRelationshipDocument(String project, String branch, String user, String ref, long time);
 
-	public void retireViewDocument(String project, String branch, String ref, long time);
+	public void retireViewDocument(String project, String branch, String user, String ref, long time);
+
+	public Document retrieveManagementDocument(String project, String branch, String user, long time, Organization org);
+
+	public void retireManagementDocument(String project, String branch, String user, String ref, long time);
+
+	public GenericStorageResult insertManagementDocument(String project, String branch, String user, Document n, long time,
+			Vector<KeyValuePair> org);
+
+	public void retireOrganizationDocument(String project, String branch, String user, String ref, long time);
+
+	public void retrieveOrganization(String project, String branch, String user, long time, Organization org);
+
+	public Set<String> retrieveAllOrganizationIDs(String project, String branch);
 
 
-//	public GenericStorageResult insertOrganizationDocument(String project, String branch, String organizationsTypeLabel,
+//	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, String organizationsTypeLabel,
 //			JSONObject item, Vector<String> level, String value, long time);
 
 }

@@ -51,6 +51,8 @@ implements GenericParserStorageConnectorManager {
 	public static final String DOC_ORGANIZATION = "organization";
 	public static final String DOC_ORGANIZATION_DEFAULT_FOLDER = "default";
 	public static final String DOC_ORGANIZATION_CONTENT = "content";
+	public static final String DOC_END_USER = "end_user";
+	public static final String DOC_START_USER = "start_user";
 
 	public static final String PROPID_IEA_HASH = "propidIEAHash";
 	public static final String PROPID_IEA_END_DATE = "propidIEAEndDate";
@@ -65,7 +67,7 @@ implements GenericParserStorageConnectorManager {
 		mongo = new MongoDBAccess();
 	}
 
-	public Document enrichDocument( Document jsonObject, String branch, long time, int hash, ArrayList<Document> orgJson){
+	public Document enrichDocument( Document jsonObject, String branch, String user, long time, int hash, ArrayList<Document> orgJson){
 		//		String uuid = "id-"+UUID.randomUUID().toString();
 		//		jsonObject.remove(Archimate3Parser.IDENTIFIER_TAG);
 		String uuid = jsonObject.getString(Archimate3Parser.IDENTIFIER_TAG);
@@ -142,6 +144,7 @@ implements GenericParserStorageConnectorManager {
 				.append(DOC_TYPE, parser.getType())
 				.append(DOC_ID, uuid)
 				.append(DOC_START_DATE, time)
+				.append(DOC_START_USER, user)
 				.append(DOC_END_DATE, -1L)
 				.append(DOC_HASH, hash)
 				//	.append(DOC_BRANCH, branchArr)
@@ -208,7 +211,7 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public GenericStorageResult insertNodeDocument(String project, String branch, Document jsonObject, long time, Vector<KeyValuePair> org) {
+	public GenericStorageResult insertNodeDocument(String project, String branch, String user, Document jsonObject, long time, Vector<KeyValuePair> org) {
 		//		String compStr = parser.getNodeComparisonString(jsonObject);
 
 		int hash = parser.getNodeHash(jsonObject);
@@ -219,7 +222,6 @@ implements GenericParserStorageConnectorManager {
 		//		long time = System.currentTimeMillis();
 		//		FindIterable<Document> docs = mongo.queryDocument(project, branch, MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
 
-		//      TODO: fix updates!
 		//		if(docs !=null && docs.iterator()!=null && docs.iterator().hasNext()){
 		//			LOGGER.warning("the document to be inserted has at least one element in the collection with the same comparison string");
 		//			MongoCursor<Document> it = docs.iterator();
@@ -247,7 +249,7 @@ implements GenericParserStorageConnectorManager {
 		//		}
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
 		if (insert){
-			doc = enrichDocument( jsonObject, branch, time, hash, orgJson);
+			doc = enrichDocument( jsonObject, branch, user, time, hash, orgJson);
 			mongo.insertDocument(project, MongoDBAccess.COLLECTION_NODES, doc);
 			LOGGER.info("the document has been inserted");
 		} else {
@@ -259,12 +261,12 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public GenericStorageResult insertRelationDocument(String project, String branch, Document jsonObject, String sourceUUID, Document sourceJson, String targetUUID, Document targetJson, long time, Vector<KeyValuePair> org) {
+	public GenericStorageResult insertRelationDocument(String project, String branch, String user, Document jsonObject, String sourceUUID, Document sourceJson, String targetUUID, Document targetJson, long time, Vector<KeyValuePair> org) {
 		String compStr = parser.getRelationComparisonString(jsonObject);
 		int hash = parser.getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
-		Document doc = enrichDocument( jsonObject,branch, time, hash, orgJson);
+		Document doc = enrichDocument( jsonObject,branch, user, time, hash, orgJson);
 		doc.append("sourceUUID", sourceUUID)
 		.append("targetUUID", targetUUID);
 		//		.append("source", sourceJson)
@@ -273,50 +275,42 @@ implements GenericParserStorageConnectorManager {
 		mongo.insertDocument(project, MongoDBAccess.COLLECTION_RELATIONS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
-		//
-		// TODO missing handling of updates
-		// 
 		return ret;
 	}
 
 	@Override
-	public GenericStorageResult insertOrganizationDocument(String project, String branch, Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
+	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
 		String compStr = parser.getOrganizationComparisonString(labelArr);
 		int hash = parser.getOrganizationHash(labelArr);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(level, branch);
 		Document jsonObj = new Document();
 		jsonObj.put(DOC_ORGANIZATION_CONTENT, labelArr);
-		Document doc = enrichDocument( jsonObj,branch, time, hash, orgJson);
+		jsonObj.put(Archimate3Parser.IDENTIFIER_TAG, "id-"+UUID.randomUUID().toString());
+		Document doc = enrichDocument( jsonObj,branch, user, time, hash, orgJson);
 		mongo.insertDocument(project,MongoDBAccess.COLLECTION_ORGANIZATIONS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
-		//
-		// TODO missing handling of updates
-		// 
 		return ret;
 	}
 
 	@Override
-	public GenericStorageResult insertViewDocument(String project, String branch, Document jsonObject, long time, Vector<KeyValuePair> org) {
+	public GenericStorageResult insertViewDocument(String project, String branch, String user, Document jsonObject, long time, Vector<KeyValuePair> org) {
 		String compStr = parser.getViewComparisonString(jsonObject);
 		int hash = parser.getViewHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
-		Document doc = enrichDocument( jsonObject,branch, time, hash, orgJson);
+		Document doc = enrichDocument( jsonObject,branch, user, time, hash, orgJson);
 		mongo.insertDocument(project,MongoDBAccess.COLLECTION_VIEWS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
-		//
-		// TODO missing handling of updates
-		// 
 		return ret;
 	} 
 
-	private int getRelationHash(Document jsonObject) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+//	private int getRelationHash(Document jsonObject) {
+//		// 
+//		return 0;
+//	}
 
 	public void updateNodeDocument(JSONObject jsonObject, long time) {
 		// TODO Auto-generated method stub
@@ -339,7 +333,7 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveViewDocument(String project, String branch, long time, Organization org) {
+	public Document retrieveViewDocument(String project, String branch, String user, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 		MongoCursor<Document> it = docs.iterator();
@@ -374,7 +368,7 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveNodeDocument(String project, String branch, long time, Organization org) {
+	public Document retrieveNodeDocument(String project, String branch, String user, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_NODES, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 		MongoCursor<Document> it = docs.iterator();
@@ -409,7 +403,7 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveRelationDocument(String project, String branch, long time, Organization org) {
+	public Document retrieveRelationDocument(String project, String branch, String user, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 		MongoCursor<Document> it = docs.iterator();
@@ -447,14 +441,14 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveOrganizationDocument(String project, String branch, long time, Organization org) {
+	public void retrieveOrganization(String project, String branch, String user, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS, parser.getType(), time);
 		ArrayList<Document> elem = new ArrayList<Document>();
 		MongoCursor<Document> it = docs.iterator();
 		while(it.hasNext()){
 			Document doc = it.next();
 			//				LOGGER.severe("next instance: "+doc.toJson().toString());
-
+			String uuid = doc.getString(DOC_ID);
 			Document raw = (Document) doc.get("raw");
 			ArrayList<Document> label = (ArrayList<Document>) raw.get(DOC_ORGANIZATION_CONTENT);
 			ArrayList<Document> orgs = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
@@ -463,7 +457,7 @@ implements GenericParserStorageConnectorManager {
 				String lab = oDoc.getString(DOC_ORGANIZATION_LABEL);
 				int pos = oDoc.getInteger(DOC_ORGANIZATION_POSITION);
 				if(!item.contains(lab)){
-					item.addChild(lab, new Organization(lab),pos);
+					item.addChild(lab, new Organization(lab),pos, uuid);
 				} else {
 					item.setChildPosition(lab, pos);
 				}
@@ -471,20 +465,26 @@ implements GenericParserStorageConnectorManager {
 				item.setChildPosition(lab, pos);
 			}
 			item.setLabel(label);
-		}
+		}		
+	}
+		
+	@Override
+	public Document retrieveOrganizationDocument(String project, String branch, String user, long time, Organization org) {
+		retrieveOrganization(project, branch, user, time, org);
 		Document ret = new Document();
-		elem = createBSONFromOrganization(org);
-		ret.append(Archimate3Parser.ITEM_TAG, elem);
+		Document elem = createBSONFromOrganization(org);
+//		ret.append(Archimate3Parser.ITEM_TAG, elem);
+		ret = elem;
 		return ret;
 	}
 
-	private ArrayList<Document> createBSONFromOrganization(Organization org) {
-		ArrayList<Document> ret = new ArrayList<Document>();
-		Document e = new Document();
+	private Document createBSONFromOrganization(Organization org) {
+		Document ret = new Document();
+		ArrayList<Document> e ;
 		boolean flag = false;
 		if(org.getLabel()!=null){
 			//			e = 
-			e.append(Archimate3Parser.LABEL_TAG, org.getLabel());
+			ret.put(Archimate3Parser.LABEL_TAG, org.getLabel());
 			flag=true;
 			//			ret.add(e);
 		}
@@ -496,38 +496,40 @@ implements GenericParserStorageConnectorManager {
 				Document d = new Document();
 				list.add(d.append(Archimate3Parser.ORGANIZATIONS_TYPE_IDENTIFIERREF, leaf));
 			}
-			e.append(Archimate3Parser.ITEM_TAG, list);
+			ret.append(Archimate3Parser.ITEM_TAG, list);
 			flag= true;
 			//			ret.add(e);
 		}
-		if (flag) ret.add(e);
+		//if (flag) ret.add(e);
 
 		List<Organization> list = org.getChildren();
+		list.remove(null);
 		if(list != null && !list.isEmpty()){
+			e = new ArrayList<Document>();
 			for(Organization o : list){
 				if(o!=null){
-					e = new Document();
-					e.append(Archimate3Parser.ITEM_TAG, createBSONFromOrganization(o));
-					ret.add(e);
+					e.add(createBSONFromOrganization(o));
+					//ArrayList<Document> e2 = createBSONFromOrganization(o);
 				}
 			}
+			ret.append(Archimate3Parser.ITEM_TAG, e);
 		}
 		return ret;
 	}
 
-	public void retireNodeDocument(String project, String branch, String uuid, long time){
-		retireDocument(project, branch, MongoDBAccess.COLLECTION_NODES, uuid, time);
+	public void retireNodeDocument(String project, String branch, String user, String uuid, long time){
+		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_NODES, uuid, time);
 	}
 	
-	public void retireRelationshipDocument(String project, String branch, String uuid, long time){
-		retireDocument(project, branch, MongoDBAccess.COLLECTION_RELATIONS, uuid, time);
+	public void retireRelationshipDocument(String project, String branch, String user, String uuid, long time){
+		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_RELATIONS, uuid, time);
 	}
 	
-	public void retireViewDocument(String project, String branch, String uuid, long time){
-		retireDocument(project, branch, MongoDBAccess.COLLECTION_VIEWS, uuid, time);
+	public void retireViewDocument(String project, String branch, String user, String uuid, long time){
+		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_VIEWS, uuid, time);
 	}
 	
-	protected void retireDocument(String project, String branch, String col, String uuid, long time){
+	protected void retireDocument(String project, String branch, String user, String col, String uuid, long time){
 		//	String query_retire = "db."+MongoDBAccess.COLLECTION_NODES+".update({'"+DOC_ID+"': {$eq: \""+uuid+"\"},"+ 
 		//	"'"+DOC_BRANCH+"':\""+branch+"\","+
 		//	"'"+DOC_END_DATE+"': -1,"+
@@ -539,8 +541,36 @@ implements GenericParserStorageConnectorManager {
 				append(DOC_END_DATE,-1).
 				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+"."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG,String.valueOf(-1) );
 		BasicDBObject set = new BasicDBObject("$set", new BasicDBObject(DOC_END_DATE, time).
-				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+".$."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG, String.valueOf(time)));
+				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+".$."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG, String.valueOf(time)).
+				append(DOC_END_USER, user));
 		mongo.retireDocument(project, col, query, set);
 	}
+
+	@Override
+	public Document retrieveManagementDocument(String project, String branch, String user, long time, Organization org) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retireManagementDocument(String project, String branch, String user, String ref, long time) {
+		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_MANAGEMENT, ref, time);
+	}
+
+	@Override
+	public GenericStorageResult insertManagementDocument(String project, String branch, String user, Document n, long time,
+			Vector<KeyValuePair> org) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void retireOrganizationDocument(String project, String branch, String user, String ref, long time) {
+		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_ORGANIZATIONS, ref, time);
+	}
+
+	@Override
+	public Set<String> retrieveAllOrganizationIDs(String project, String branch) {
+		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS);	}
 
 }

@@ -56,10 +56,10 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public boolean parseFile(String project, String branch, String filename){
+	public boolean parseFile(String project, String branch, String user, String filename){
 		boolean ret = false;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.parseFile(project, branch, filename);
+			ret = gp.parseFile(project, branch,filename);
 			if (ret) break;
 		}
 		return ret;
@@ -71,7 +71,7 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public boolean processXmlString(String project, String branch, String str){
+	public boolean processXmlString(String project, String branch, String user, String str){
 		boolean ret = false;
 		for(GenericParser gp: parsers.values()){
 			ret = gp.processXmlString(project, branch, str);
@@ -88,16 +88,16 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public boolean processJsonString(String project, String branch, String json){
+	public boolean processJsonString(String project, String branch, String user, String json){
 		boolean ret = false;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.processJsonString(project, branch, json);
+			ret = gp.processJsonString(project, branch, user, json);
 			if (ret) break;
 		}
 		return ret;
 	}
 
-	public Object parseJsonString(String project, String branch, String str){
+	public Object parseJsonString(String project, String branch, String user, String str){
 		Object ret = null;
 		for(GenericParser gp: parsers.values()){
 			ret = gp.parseJsonString(project, branch, str);
@@ -111,10 +111,10 @@ public class ParserFactory {
 	 * @param query
 	 * @return
 	 */
-	public void deriveFile(String parserName, String project, String branch, String filename, Date date){
+	public void deriveFile(String parserName, String project, String branch, String user, String filename, Date date){
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			gp.deriveFile(project, branch, filename, date);
+			gp.deriveFile(project, branch, user, filename, date);
 		}
 	}
 
@@ -123,11 +123,11 @@ public class ParserFactory {
 	 * @param query
 	 * @return String with the retrieved model
 	 */
-	public String deriveXmlString(String parserName, String project, String branch, Date date){
+	public String deriveXmlString(String parserName, String project, String branch, String user, Date date){
 		String ret = null;
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			ret = gp.deriveXmlString(project, branch, date);
+			ret = gp.deriveXmlString(project, branch, user, date);
 		}
 		return ret;
 	}
@@ -137,20 +137,20 @@ public class ParserFactory {
 	 * @param query
 	 * @return String with the retrieved model
 	 */
-	public String deriveJsonString(String parserName, String project, String branch, Date date){
+	public String deriveJsonString(String parserName, String project, String branch, String user, Date date){
 		String ret = null;
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			ret = gp.deriveJsonString(project, branch, date);
+			ret = gp.deriveJsonString(project, branch, user, date);
 		}
 		return ret;
 	}
 
-	public String retrieveJsonString(String parserName, String project, String branch, Date date){
+	public String retrieveJsonString(String parserName, String project, String branch, String user, Date date){
 		String ret = null;
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			ret = gp.retrieveJsonString(project, branch, date);
+			ret = gp.retrieveJsonString(project, branch, user, date);
 		}
 		return ret;
 	}
@@ -170,26 +170,30 @@ public class ParserFactory {
 		return flag;
 	}
 
-	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time, Organization org) {
-		return storage.retrieveNodeDocument(parser, project, branch,time, org);
+	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
+		return storage.retrieveNodeDocument(parser, project, branch, user,time, org);
 	}
-	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
-		return storage.retrieveRelationDocument(parser, project, branch,time, org);
+	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
+		return storage.retrieveRelationDocument(parser, project, branch, user,time, org);
 	}
-	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time, Organization org) {
-		return storage.retrieveViewDocument(parser, project, branch,time, org);
-	}
-
-	public Document insertNodeDocument(GenericParser parser, String project, String branch, Document n, long time, Vector<KeyValuePair> org) {
-		return storage.insertNodeDocument(parser, project, branch, n, time, org);
+	public Document retrieveViewDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
+		return storage.retrieveViewDocument(parser, project, branch, user,time, org);
 	}
 
-	public Document insertRelationDocument(GenericParser parser,String project, String branch, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
-		return storage.insertRelationDocument(parser, project, branch, rel, sourceUUID, source, targetUUID, target, time, org) ;
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org) {
+		return storage.insertNodeDocument(parser, project, branch, user, n, time, org);
 	}
 
-	public Document insertViewDocument(GenericParser parser, String project, String branch,String uuid, Document view, long time, Vector<KeyValuePair> org) {
-		return storage.insertViewDocument(parser, project, branch, uuid, view, time, org);
+	public Document insertManagementDocument(GenericParser parser, String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org) {
+		return storage.insertManagementDocument(parser, project, branch, user, n, time, org);
+	}
+
+	public Document insertRelationDocument(GenericParser parser,String project, String branch, String user, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
+		return storage.insertRelationDocument(parser, project, branch, user, rel, sourceUUID, source, targetUUID, target, time, org) ;
+	}
+
+	public Document insertViewDocument(GenericParser parser, String project, String branch, String user,String uuid, Document view, long time, Vector<KeyValuePair> org) {
+		return storage.insertViewDocument(parser, project, branch, user, uuid, view, time, org);
 	}
 
 	public String writeJSONtoXML(String parserName, String t) {
@@ -201,13 +205,17 @@ public class ParserFactory {
 		return ret;
 	}
 
-	public Document insertOrganizationDocument(GenericParser parser, String project, String branch,
+	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String user,
 			Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
-		return storage.insertOrganizationDocument(parser, project, branch, level, labelArr,  time) ;
+		return storage.insertOrganizationDocument(parser, project, branch, user, level, labelArr,  time) ;
 	}
 
-	public Document retrieveOrganizationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
-		return storage.retrieveOrganizationDocument(parser, project, branch, time, org);
+	public Document retrieveOrganizationDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
+		return storage.retrieveOrganizationDocument(parser, project, branch, user, time, org);
+	}
+
+	public Document retrieveManagementDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
+		return storage.retrieveManagementDocument(parser, project, branch, user, time, org);
 	}
 
 	public Set<String> retrieveAllNodeIDs(GenericParser parser, String project, String branch) {
@@ -222,21 +230,37 @@ public class ParserFactory {
 		return storage.retrieveAllViewIDs(parser, project, branch) ;
 	}
 
-	public void retireNodeDocument(GenericParser parser, String project, String branch, String ref, long time) {
-		storage.retireNodeDocument(parser, project, branch, ref, time) ;
+	public void retireNodeDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
+		storage.retireNodeDocument(parser, project, branch, user, ref, time) ;
 	}
 
-	public void retireRelationshipDocument(GenericParser parser, String project, String branch, String ref, long time) {
-		storage.retireRelationshipDocument(parser, project, branch, ref, time) ;
+	public void retireOrganizationDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
+		storage.retireOrganizationDocument(parser, project, branch, user, ref, time) ;
 	}
 
-	public void retireViewDocument(GenericParser parser, String project, String branch, String ref, long time) {
-		storage.retireViewDocument(parser, project, branch, ref, time) ;
+	public void retireManagementDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
+		storage.retireManagementDocument(parser, project, branch, user, ref, time) ;
 	}
 
-//	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String organizationsTypeLabel,
+	public void retireRelationshipDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
+		storage.retireRelationshipDocument(parser, project, branch, user, ref, time) ;
+	}
+
+	public void retireViewDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
+		storage.retireViewDocument(parser, project, branch, user, ref, time) ;
+	}
+
+	public void retrieveOrganization(GenericParser parser, String project, String branch, String user, long time,	Organization org) {
+		storage.retrieveOrganization(parser, project, branch, user, time, org) ;		
+	}
+
+	public Set<String> retrieveAllOrganizationIDs(GenericParser parser, String project, String branch) {
+		return storage.retrieveAllOrganizationIDs(parser, project, branch) ;
+	}
+
+//	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String user, String organizationsTypeLabel,
 //			JSONObject item, Vector<String> level, String value, long time) {
-//		return storage.insertOrganizationDocument(archimate3Parser, project, branch, organizationsTypeLabel, item, level, value, time);
+//		return storage.insertOrganizationDocument(archimate3Parser, project, branch, user, organizationsTypeLabel, item, level, value, time);
 //	}
 
 }

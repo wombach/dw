@@ -105,18 +105,18 @@ public class Archimate3FileIBasedInteractionTest {
 	public void givenJsonFile_processJsonString_expectTrue() {		
 		pf.dropProject("archimate3_test_project");
 		String json = readFile("demo_archimate3.json");
-		assertTrue(pf.processJsonString("archimate3_test_project","branch1",json));	
+		assertTrue(pf.processJsonString("archimate3_test_project","branch1","user1", json));	
 	}
 
 	public void givenJsonFile_processJsonString_no_updates_expectTrue() {		
 		String json = readFile("test3_output.json");
-		assertTrue(pf.processJsonString("archimate3_test_project","branch1",json));	
+		assertTrue(pf.processJsonString("archimate3_test_project","branch1","user1",json));	
 	}
 
 	public void givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile() {		
 		//String json = readFile("demo_archimate3.json");
 		Date date = new Date(System.currentTimeMillis());
-		String t = pf.retrieveJsonString("archimate3", "archimate3_test_project","branch1", date);
+		String t = pf.retrieveJsonString("archimate3", "archimate3_test_project","branch1", "user1", date);
 		//pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
 		//Get the file reference
 		Path path = Paths.get("test3_output.json");

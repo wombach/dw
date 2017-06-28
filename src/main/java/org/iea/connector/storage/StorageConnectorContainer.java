@@ -32,29 +32,29 @@ public class StorageConnectorContainer {
 		this.managingIDs = managingIDs;
 	}
 
-	public GenericStorageResult insertNodeDocumentManager(String project, String branch, Document n, long time, Vector<KeyValuePair> org){
+	public GenericStorageResult insertNodeDocumentManager(String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org){
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertNodeDocument(project, branch, n, time, org);
+			return ((GenericParserStorageConnectorManager) connector).insertNodeDocument(project, branch, user, n, time, org);
 		} 
 		return null;
 	}
 
-	public void insertNodeDocumentFollower(String project, String branch, Document n, long time){
+	public void insertNodeDocumentFollower(String project, String branch, String user, Document n, long time){
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertNodeDocument(project, branch, n, time);
+			((GenericParserStorageConnectorFollower) connector).insertNodeDocument(project, branch, user, n, time);
 		} 
 	}
 
-	public GenericStorageResult insertRelationDocumentManager(String project, String branch,  Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org){
+	public GenericStorageResult insertRelationDocumentManager(String project, String branch, String user,  Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org){
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertRelationDocument(project, branch, jsonObject, sourceUUID, source, targetUUID, target, time, org);
+			return ((GenericParserStorageConnectorManager) connector).insertRelationDocument(project, branch, user, jsonObject, sourceUUID, source, targetUUID, target, time, org);
 		} 
 		return null;
 	}
 
-	public void insertRelationDocumentFollower(String project, String branch, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time){
+	public void insertRelationDocumentFollower(String project, String branch, String user, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time){
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(project, branch, jsonObject, sourceUUID, source,  targetUUID, target, time);
+			((GenericParserStorageConnectorFollower) connector).insertRelationDocument(project, branch, user, jsonObject, sourceUUID, source,  targetUUID, target, time);
 		} 
 	}
 
@@ -62,9 +62,9 @@ public class StorageConnectorContainer {
 		return this.managingIDs;
 	}
 
-	public void updateNodeDocument(String project, String branch, Document n, long time) {
+	public void updateNodeDocument(String project, String branch, String user, Document n, long time) {
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).updateNodeDocument(project, branch, n, time);
+			((GenericParserStorageConnectorFollower) connector).updateNodeDocument(project, branch, user, n, time);
 		} 
 	}
 
@@ -78,16 +78,16 @@ public class StorageConnectorContainer {
 			
 	}
 
-	public GenericStorageResult insertViewDocumentManager(String project, String branch, String uuid, Document jsonObject, long time, Vector<KeyValuePair> org) {
+	public GenericStorageResult insertViewDocumentManager(String project, String branch, String user, String uuid, Document jsonObject, long time, Vector<KeyValuePair> org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertViewDocument(project, branch, jsonObject, time, org);
+			return ((GenericParserStorageConnectorManager) connector).insertViewDocument(project, branch, user, jsonObject, time, org);
 		} 
 		return null;
 	}
 
-	public void insertViewDocumentFollower(String project, String branch, String uuid, Document jsonObject, long time) {
+	public void insertViewDocumentFollower(String project, String branch, String user, String uuid, Document jsonObject, long time) {
 		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorFollower) connector).insertViewDocument(project, branch, uuid, jsonObject, time);
+			((GenericParserStorageConnectorFollower) connector).insertViewDocument(project, branch, user, uuid, jsonObject, time);
 		} 
 	}
 
@@ -109,39 +109,39 @@ public class StorageConnectorContainer {
 			} 		
 	}
 
-	public Document retrieveViewDocumentManager(String project, String branch, long time, Organization org) {
+	public Document retrieveViewDocumentManager(String project, String branch, String user, long time, Organization org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveViewDocument(project, branch, time, org);
+			return ((GenericParserStorageConnectorManager) connector).retrieveViewDocument(project, branch, user, time, org);
 		}
 		return null;
 	}
 
-	public Document retrieveNodeDocumentManager(String project, String branch, long time, Organization org) {
+	public Document retrieveNodeDocumentManager(String project, String branch, String user, long time, Organization org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveNodeDocument(project, branch, time, org);
+			return ((GenericParserStorageConnectorManager) connector).retrieveNodeDocument(project, branch, user, time, org);
 		}
 		return null;
 	}
 
-	public Document retrieveRelationDocumentManager(String project, String branch, long time, Organization org) {
+	public Document retrieveRelationDocumentManager(String project, String branch, String user, long time, Organization org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveRelationDocument(project, branch, time, org);
+			return ((GenericParserStorageConnectorManager) connector).retrieveRelationDocument(project, branch, user, time, org);
 		}
 		return null;
 	}
 
-	public GenericStorageResult insertRelationDocumentManager(String project, String branch, Vector<KeyValuePair> level,
+	public GenericStorageResult insertOrganizationDocumentManager(String project, String branch, String user, Vector<KeyValuePair> level,
 			ArrayList<Document> labelArr, long time) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertOrganizationDocument(project, branch,level, labelArr,  time);
+			return ((GenericParserStorageConnectorManager) connector).insertOrganizationDocument(project, branch, user,level, labelArr,  time);
 		}
 //		return null;
 		return null;
 	}
 
-	public Document retrieveOrganizationDocumentManager(String project, String branch, long time, Organization org) {
+	public Document retrieveOrganizationDocumentManager(String project, String branch, String user, long time, Organization org) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveOrganizationDocument(project, branch, time, org);
+			return ((GenericParserStorageConnectorManager) connector).retrieveOrganizationDocument(project, branch, user, time, org);
 		}
 		return null;
 	}
@@ -167,28 +167,81 @@ public class StorageConnectorContainer {
 		return null;
 	}
 
-	public void retireNodeDocument(String project, String branch, String ref, long time) {
+	public void retireNodeDocument(String project, String branch, String user, String ref, long time) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorManager) connector).retireNodeDocument(project, branch, ref, time);
+			((GenericParserStorageConnectorManager) connector).retireNodeDocument(project, branch, user, ref, time);
 		}
 	}
 
-	public void retireRelationshipDocument(String project, String branch, String ref, long time) {
+	public void retireRelationshipDocument(String project, String branch, String user, String ref, long time) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorManager) connector).retireRelationshipDocument(project, branch, ref, time);
+			((GenericParserStorageConnectorManager) connector).retireRelationshipDocument(project, branch, user, ref, time);
 		}		
 	}
 
-	public void retireViewDocument(String project, String branch, String ref, long time) {
+	public void retireViewDocument(String project, String branch, String user, String ref, long time) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			((GenericParserStorageConnectorManager) connector).retireViewDocument(project, branch, ref, time);
+			((GenericParserStorageConnectorManager) connector).retireViewDocument(project, branch, user, ref, time);
 		}		
 	}
 
-//	public GenericStorageResult insertOrganizationsDocumentManager(String project, String branch,
+	public void retireManagementDocument(String project, String branch, String user, String ref, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).retireManagementDocument(project, branch, user, ref, time);
+		}
+	}
+
+	public GenericStorageResult insertManagementDocumentManager(String project, String branch, String user, Document n, long time,
+			Vector<KeyValuePair> org) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).insertManagementDocument(project, branch, user, n, time, org);
+		} 
+		return null;
+	}
+
+	public void updateManagementDocument(String project, String branch, String user, Document n, long time) {
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).updateManagementDocument(project, branch, user, n, time);
+		} 	
+	}
+
+	public void insertManagementDocumentFollower(String project, String branch, String user, Document n, long time) {
+		if(GenericParserStorageConnectorFollower.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorFollower) connector).insertManagementDocument(project, branch, user, n, time);
+		} 
+	}
+
+	public Document retrieveManagementDocumentManager(String project, String branch, String user, long time, Organization org) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveManagementDocument(project, branch, user, time, org);
+		}
+		return null;
+	}
+
+	public void retireOrganizationDocument(String project, String branch, String user, String ref, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).retireOrganizationDocument(project, branch, user, ref, time);
+		}
+	}
+
+	public void retrieveOrganization(String project, String branch, String user, long time, Organization org) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).retrieveOrganization(project, branch, user, time, org);
+		}		
+	}
+
+	public Set<String> retrieveAllOrganizationIDsManager(String project, String branch) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveAllOrganizationIDs(project, branch);
+		}
+		return null;
+	}
+
+
+//	public GenericStorageResult insertOrganizationsDocumentManager(String project, String branch, String user,
 //			String organizationsTypeLabel, JSONObject item, Vector<String> level, String value, long time) {
 //		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-//			return ((GenericParserStorageConnectorManager) connector).insertOrganizationDocument(project, branch,organizationsTypeLabel, item, level, value, time);
+//			return ((GenericParserStorageConnectorManager) connector).insertOrganizationDocument(project, branch, user,organizationsTypeLabel, item, level, value, time);
 //		}
 //		return null;
 //	}

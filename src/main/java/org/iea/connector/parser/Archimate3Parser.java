@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +92,8 @@ public class Archimate3Parser extends GenericParser {
 	public static final String PROPERTY_DEFINITION_TAG = "ar3_propertyDefinition";
 	public static final String PROPERTY_DEFINITIONREF_TAG = "@propertyDefinitionRef";
 	public static final String PROPERTY_VALUE_TAG = "ar3_value";
+	public static final String VERSION_TAG = "@version";
+	private static final String DEFAULT_USER = "default";
 
 	public Archimate3Parser(){
 		this.type = "archimate3";
@@ -99,7 +102,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public boolean parseFile(String project, String branch,String filename) {
+	public boolean parseFile(String project, String branch, String filename) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = readXMLtoJSON(filename);
@@ -117,7 +120,7 @@ public class Archimate3Parser extends GenericParser {
 			els.remove("element");
 			for(int i=0;i<l.length();i++){
 				String identifier = l.getJSONObject(i).getString("identifier");
-				Document doc = insertNodeDocument(project,branch,l.getJSONObject(i),time);
+				Document doc = insertNodeDocument(project,branch,DEFAULT_USER, l.getJSONObject(i),time);
 				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				map.put(identifier, uuid);
@@ -136,21 +139,21 @@ public class Archimate3Parser extends GenericParser {
 				rel.put("source", sourceUUID);
 				rel.put("target", targetUUID);
 
-				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
+				Document doc = insertRelationDocument(project, branch, DEFAULT_USER, rel, sourceUUID, targetUUID, time);
 				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
 			// files
 			//			Document doc = 
-			insertFileDocument(project, branch, xmlJSONObj,time);
+			insertFileDocument(project, branch, DEFAULT_USER, xmlJSONObj,time);
 			//	}
 		}
 		return ret;
 	}
 
 	@Override
-	public void deriveFile(String project, String branch,String filename, Date date) {
+	public void deriveFile(String project, String branch, String user,String filename, Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -301,7 +304,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public boolean processXmlString(String project, String branch,String str) {
+	public boolean processXmlString(String project, String branch, String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		JSONObject xmlJSONObj = convertXMLtoJSON(str);
@@ -317,7 +320,7 @@ public class Archimate3Parser extends GenericParser {
 			JSONArray l = els.getJSONArray("element");
 			els.remove("element");
 			for(int i=0;i<l.length();i++){
-				Document doc = insertNodeDocument(project, branch, l.getJSONObject(i), time);
+				Document doc = insertNodeDocument(project, branch, DEFAULT_USER, l.getJSONObject(i), time);
 				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				String identifier = l.getJSONObject(i).getString("identifier");
@@ -334,21 +337,21 @@ public class Archimate3Parser extends GenericParser {
 				String target = rel.getString("target");
 				String sourceUUID = map.get(source);
 				String targetUUID = map.get(target);
-				Document doc = insertRelationDocument(project, branch, rel, sourceUUID, targetUUID, time);
+				Document doc = insertRelationDocument(project, branch, DEFAULT_USER, rel, sourceUUID, targetUUID, time);
 				//				String uuid = getUUID(doc);
 				String uuid = getUUID(null);
 				map.put(identifier, uuid);
 			}
 			// files
 			//			Document doc = 
-			insertFileDocument(project, branch, xmlJSONObj, time);
+			insertFileDocument(project, branch, DEFAULT_USER, xmlJSONObj, time);
 			//	}
 		}
 		return ret;
 	}
 
 	@Override
-	public String deriveXmlString(String project, String branch,Date date) {
+	public String deriveXmlString(String project, String branch, String user,Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -488,7 +491,7 @@ public class Archimate3Parser extends GenericParser {
 	//	}
 
 	@Override
-	public String deriveJsonString(String project, String branch,Date date) {
+	public String deriveJsonString(String project, String branch, String user,Date date) {
 		JSONObject ret = null;
 		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
 		Document doc = it.first();
@@ -596,7 +599,7 @@ public class Archimate3Parser extends GenericParser {
 		return false;
 	}
 
-	public String deriveJsonString(String project, String branch, long time){
+	public String deriveJsonString(String project, String branch, String user, long time){
 		//factory.deriveJsonString(, project, branch, date)
 		return null;
 	}
@@ -617,7 +620,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public boolean processJsonString(String project, String branch, String str) {
+	public boolean processJsonString(String project, String branch, String user, String str) {
 		boolean ret = false;
 		HashMap<String,String> map = new HashMap<String,String>();
 		//		JSONObject xmlJSONObj = new JSONObject(str);
@@ -626,8 +629,14 @@ public class Archimate3Parser extends GenericParser {
 		long time = System.currentTimeMillis();
 		String retMsg = "";
 		HashMap<String,Document> nodeMap = new HashMap<String,Document>();
+		boolean overall_insert = false;
+		boolean overall_update = false;
 		if( doc_all!=null && doc_all.containsKey(MODEL_TAG)){
 			Document obj = (Document) doc_all.get(MODEL_TAG);
+			String version = obj.getString(VERSION_TAG);
+			String model_id = obj.getString(IDENTIFIER_TAG);
+			// check whether document version is up to date and try to lock the document for commit
+			
 			//			String xmlns = obj.getString("xmlns");
 			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
 			ret = true;
@@ -635,11 +644,19 @@ public class Archimate3Parser extends GenericParser {
 			ArrayList<Document> orgs = (ArrayList<Document>) obj.get(ORGANIZATIONS_TAG);
 			// call a recursion function to parse the tree and add one document per element into the organizations collection
 			HashMap<String, Vector<KeyValuePair>> orgMap = new HashMap<String,Vector<KeyValuePair>>();
-			createOrganizationLookup(project, branch, orgs, orgMap, time, new Vector<KeyValuePair>());
+			Organization org = new Organization();
+			factory.retrieveOrganization(this, project, branch, user, time, org);
+			Set<String> refs  = factory.retrieveAllOrganizationIDs(this, project,branch);
+			createOrganizationLookup(project, branch, user, orgs, orgMap, time, new Vector<KeyValuePair>(), org,refs, overall_insert, overall_update);
+			// delete unreferenced items
+			LOGGER.info("#Organizations to be deleted: "+refs.size());
+			for(String ref : refs){
+				factory.retireOrganizationDocument(this,project, branch, user, ref, time);
+			}
 
 			//
 			// nodes
-			Set<String> refs = factory.retrieveAllNodeIDs(this, project,branch);
+			refs = factory.retrieveAllNodeIDs(this, project,branch);
 
 			Document els = (Document) obj.get(ELEMENTS_TAG);
 			ArrayList<Document> l = (ArrayList<Document>) els.get(ELEMENT_TAG);
@@ -675,9 +692,12 @@ public class Archimate3Parser extends GenericParser {
 				}
 				refs.remove(uuid);
 				if(insert){
-					if(update) 
-						factory.retireNodeDocument(this, project, branch, uuid, time);
-					factory.insertNodeDocument(this, project, branch, n, time, orgMap.get(identifier));
+					overall_insert = true;
+					if(update){ 
+						overall_update = true;
+						factory.retireNodeDocument(this, project, user, branch, uuid, time);
+					}
+					factory.insertNodeDocument(this, project, branch, user, n, time, orgMap.get(identifier));
 				}
 				//				String uuid = getUUID(doc);
 				ArrayList<Document> nameArr = (ArrayList<Document>) n.get("ar3_name");
@@ -694,7 +714,7 @@ public class Archimate3Parser extends GenericParser {
 			// delete deleted nodes by deleting the remaining elements in refs
 			LOGGER.info("#Elements to be deleted: "+refs.size());
 			for(String ref : refs){
-				factory.retireNodeDocument(this,project, branch, ref, time);
+				factory.retireNodeDocument(this,project, branch, user, ref, time);
 			}
 
 			//
@@ -750,7 +770,7 @@ public class Archimate3Parser extends GenericParser {
 			// delete deleted nodes by deleting the remaining elements in refs
 			LOGGER.info("#Relationships to be deleted: "+refs.size());
 			for(String ref : refs){
-				factory.retireRelationshipDocument(this,project, branch, ref, time);
+				factory.retireRelationshipDocument(this,project, branch, user, ref, time);
 			}
 			while(!v2.isEmpty()){
 				v = v2;
@@ -815,10 +835,13 @@ public class Archimate3Parser extends GenericParser {
 							rel.put(PROPERTIES_TAG, props);
 						}
 						if(insert){
-							if(update) 
-								factory.retireRelationshipDocument(this, project, branch, identifier, time);
+							overall_insert = true;
+							if(update){ 
+								overall_update = true;
+								factory.retireRelationshipDocument(this, project, branch, user, identifier, time);
+							}
 							//factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
-							factory.insertRelationDocument(this, project, branch, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
+							factory.insertRelationDocument(this, project, branch, user, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
 						}
 					}
 				}
@@ -830,7 +853,7 @@ public class Archimate3Parser extends GenericParser {
 				Document views =  (Document) obj.get(VIEWS_TAG);
 				Document diags = (Document) views.get(DIAGRAMS_TAG);
 				//			for( int ii=0;ii<diags.length();ii++){
-				ArrayList<Document> lo = (ArrayList<Document>) diags.get(VIEW_TAG);
+				ArrayList<Document> lo = (ArrayList<Document>) diags.remove(VIEW_TAG);
 				LOGGER.info("number of views: "+lo.size());
 				for( int ii=0;ii<lo.size();ii++){
 					int cnt=0;
@@ -910,10 +933,13 @@ public class Archimate3Parser extends GenericParser {
 					}
 
 					if(insert){
-						if(update) 
-							factory.retireViewDocument(this, project, branch, view_uuid, time);
+						overall_insert = true;
+						if(update){ 
+							overall_update = true;
+							factory.retireViewDocument(this, project, branch, user, view_uuid, time);
+						}
 						//factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
-						factory.insertViewDocument(this, project, branch, view_uuid, view, time, orgMap.get(view_id));
+						factory.insertViewDocument(this, project, branch, user,  view_uuid, view, time, orgMap.get(view_id));
 					}
 					//uuid = view.getString(IDENTIFIER_TAG);
 					//					Document doc = factory.insertViewDocument(this, project, branch,  view_id, view, time, orgMap.get(view_id));
@@ -922,18 +948,19 @@ public class Archimate3Parser extends GenericParser {
 				// delete views by deleting the remaining items in refs
 				LOGGER.info("#Views to be deleted: "+refs.size());
 				for(String ref : refs){
-					factory.retireViewDocument(this,project, branch, ref, time);
+					factory.retireViewDocument(this,project, branch, user, ref, time);
 				}
 
 			}
+			//
+			// handle Management information
+			int model_hash = doc_all.hashCode();
 			
-			//			rels.remove("relationship"); 
-			//			Vector<JSONObject> v;
-			//			Vector<JSONObject> v2 = new Vector<JSONObject>();
-
-			// files
-			//			Document doc = 
-			//insertFileDocument(project, branch,xmlJSONObj, time);
+			if(overall_insert){
+				if(overall_update){
+					
+				}
+			}
 		}
 		LOGGER.severe(retMsg);
 		return ret;
@@ -963,7 +990,8 @@ public class Archimate3Parser extends GenericParser {
 		return cnt;
 	}
 
-	private void createOrganizationLookup(String project, String branch, ArrayList<Document> orgs, HashMap<String, Vector<KeyValuePair>> orgMap, long time, Vector<KeyValuePair> level) {
+	private void createOrganizationLookup(String project, String branch, String user, ArrayList<Document> orgs, HashMap<String, Vector<KeyValuePair>> orgMap,
+					long time, Vector<KeyValuePair> level, Organization org, Set<String> refs, boolean overall_insert, boolean overall_update) {
 		//JSONArray l = orgs.getJSONArray(ITEM_TAG);
 		LOGGER.info("number of items on level ("+level.toString()+"): "+orgs.size());
 		String value = null;
@@ -979,7 +1007,24 @@ public class Archimate3Parser extends GenericParser {
 				Vector<KeyValuePair> level_call = (Vector<KeyValuePair>) level.clone();
 				KeyValuePair kv = new KeyValuePair(value,ii);
 				level_call.add(kv);
-				Document doc = factory.insertOrganizationDocument(this, project, branch, level_call, labelArr,  time);
+				//factory.retireOrganizationDocument(this, project, branch, ref, time);
+//				if(level.size()>0){
+//					KeyValuePair kvCall = level.get(level.size()-1);
+					if(org.contains(value)){
+						//LOGGER.info(org.getChildIDByName(value));
+						refs.remove(org.getChildIDByName(value));
+						// insert false
+						if(org.getChildPositionByName(value)!=ii){
+							// update required
+							overall_update = true;
+							factory.retireManagementDocument(this, project, branch, user, org.getChildIDByName(value), time);
+							factory.insertOrganizationDocument(this, project, branch, user, level_call, labelArr,  time);
+						}
+//					} 
+				}else {
+					overall_insert=true;
+					factory.insertOrganizationDocument(this, project, branch, user, level_call, labelArr,  time);
+				}
 			}
 			if(item.containsKey(ITEM_TAG)){
 				ArrayList<Document> item2 =  (ArrayList<Document>) item.get(ITEM_TAG);
@@ -988,7 +1033,9 @@ public class Archimate3Parser extends GenericParser {
 					KeyValuePair kv = new KeyValuePair(value,ii);
 					level_call.add(kv);
 				}
-				createOrganizationLookup(project, branch, item2, orgMap, time, level_call);
+				Organization org_call = org.getChildByName(value);
+				if(org_call==null) org_call=org;
+				createOrganizationLookup(project, branch, user, item2, orgMap, time, level_call, org_call, refs, overall_insert, overall_update);
 			}
 			//			} else if(ite instanceof JSONObject){
 			//				JSONObject item = (JSONObject) ite;
@@ -1004,7 +1051,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	public String retrieveJsonString(String project, String branch, Date date) {
+	public String retrieveJsonString(String project, String branch, String user, Date date) {
 		String ret1 = "{	\"ar3_model\": {\"@identifier\": \"model1\","+
 				"\"ar3_documentation\": [{\"value\": \"Part of the Enterprise Architecture exported to XML\",\"xml_lang\": \"en\"}],"+
 				"\"ar3_elements\": \n";
@@ -1027,10 +1074,10 @@ public class Archimate3Parser extends GenericParser {
 
 		long time =  date.getTime();
 		Organization org = new Organization();
-		Document n = factory.retrieveNodeDocument(this, project, branch,time, org);
-		Document r = factory.retrieveRelationDocument(this, project, branch, time, org);
-		Document v = factory.retrieveViewDocument(this, project, branch, time, org);
-		Document o = factory.retrieveOrganizationDocument(this, project, branch, time, org);
+		Document n = factory.retrieveNodeDocument(this, project, branch, user, time, org);
+		Document r = factory.retrieveRelationDocument(this, project, branch, user, time, org);
+		Document v = factory.retrieveViewDocument(this, project, branch, user, time, org);
+		Document o = factory.retrieveOrganizationDocument(this, project, branch, user, time, org);
 
 		String ret = ret1;
 		JsonWriterSettings writerSet = new JsonWriterSettings(true);
@@ -1175,7 +1222,7 @@ public class Archimate3Parser extends GenericParser {
 	@Override
 	public int getOrganizationHash(ArrayList<Document> labelArr) {
 		// TODO Auto-generated method stub
-		return 0;
+		return labelArr.hashCode();
 	}
 
 	@Override

@@ -52,57 +52,57 @@ public class StorageFactory {
 		} else vec.add(new StorageConnectorContainer(gs) );
 	}
 
-	public Document insertNodeDocument(GenericParser parser, String project, String branch, Document n, long time, Vector<KeyValuePair> org) {
+	public Document insertNodeDocument(GenericParser parser, String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertNodeDocumentManager(project, branch, n, time, org);
+				ret = v.insertNodeDocumentManager(project, branch, user, n, time, org);
 			} else { 
 				if(ret.isStatusUpdated()){
-					v.updateNodeDocument(project, branch, n, time);
+					v.updateNodeDocument(project, branch, user, n, time);
 				} else if(ret.isStatusInserted()){
-					v.insertNodeDocumentFollower(project, branch, n, time);
+					v.insertNodeDocumentFollower(project, branch, user, n, time);
 				}
 			}
 		}
 		return ret.getDoc();
 	}
 
-	public Document insertRelationDocument(GenericParser parser, String project, String branch, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
+	public Document insertRelationDocument(GenericParser parser, String project, String branch, String user, Document jsonObject, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertRelationDocumentManager(project, branch, jsonObject, sourceUUID, source, targetUUID, target, time, org);
+				ret = v.insertRelationDocumentManager(project, branch, user, jsonObject, sourceUUID, source, targetUUID, target, time, org);
 			} else { 
-				v.insertRelationDocumentFollower(project, branch, jsonObject, sourceUUID, source, targetUUID, target, time);
+				v.insertRelationDocumentFollower(project, branch, user, jsonObject, sourceUUID, source, targetUUID, target, time);
 			}
 		}
 		return ret.getDoc();
 	}
 
-	public Document insertOrganizationDocument(GenericParser parser, String project, String branch,
+	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String user,
 			Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertRelationDocumentManager(project, branch,level, labelArr, time);
+				ret = v.insertOrganizationDocumentManager(project, branch, user,level, labelArr, time);
 			}
 		}
 		return ret.getDoc();
 	}
 
-//	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String organizationsTypeLabel,
+//	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String user, String organizationsTypeLabel,
 //			JSONObject item, Vector<String> level, String value, long time) {
 //		GenericStorageResult ret = null;
 //		Vector<StorageConnectorContainer> vec = storage.get(parser);
 //		for(StorageConnectorContainer v:vec){
 //			if(v.isManagingIDs()){
-//				ret = v.insertOrganizationsDocumentManager(project, branch, organizationsTypeLabel, item, level, value, time);
+//				ret = v.insertOrganizationsDocumentManager(project, branch, user, organizationsTypeLabel, item, level, value, time);
 ////			} else { 
-////				v.insertRelationDocumentFollower(project, branch, uuid, jsonObject, sourceUUID, source, targetUUID, target, time);
+////				v.insertRelationDocumentFollower(project, branch, user, uuid, jsonObject, sourceUUID, source, targetUUID, target, time);
 //			}
 //		}
 //		return ret.getDoc();
@@ -117,14 +117,14 @@ public class StorageFactory {
 		}
 	}
 
-	public Document insertViewDocument(GenericParser parser, String project, String branch, String uuid, Document jsonObject, long time, Vector<KeyValuePair> org) {
+	public Document insertViewDocument(GenericParser parser, String project, String branch, String user, String uuid, Document jsonObject, long time, Vector<KeyValuePair> org) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertViewDocumentManager(project, branch, uuid, jsonObject, time, org);
+				ret = v.insertViewDocumentManager(project, branch, user, uuid, jsonObject, time, org);
 			} else { 
-				v.insertViewDocumentFollower(project, branch, uuid, jsonObject, time);
+				v.insertViewDocumentFollower(project, branch, user, uuid, jsonObject, time);
 			}
 		}
 		return ret.getDoc();
@@ -148,45 +148,45 @@ public class StorageFactory {
 		}		
 	}
 
-	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, long time, Organization org) {
+	public Document retrieveNodeDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveNodeDocumentManager(project, branch, time, org);
+				ret = v.retrieveNodeDocumentManager(project, branch, user, time, org);
 			}
 		}
 		return ret;
 	}
 
-	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
+	public Document retrieveRelationDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveRelationDocumentManager(project, branch, time, org);
+				ret = v.retrieveRelationDocumentManager(project, branch, user, time, org);
 			}
 		}
 		return ret;
 	}
 
-	public Document retrieveViewDocument(GenericParser parser, String project, String branch, long time, Organization org) {
+	public Document retrieveViewDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveViewDocumentManager(project, branch, time, org);
+				ret = v.retrieveViewDocumentManager(project, branch, user, time, org);
 			}
 		}
 		return ret;
 	}
 
-	public Document retrieveOrganizationDocument(GenericParser parser, String project, String branch, long time, Organization org) {
+	public Document retrieveOrganizationDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveOrganizationDocumentManager(project, branch, time, org);
+				ret = v.retrieveOrganizationDocumentManager(project, branch, user, time, org);
 			}
 		}
 		return ret;
@@ -226,29 +226,98 @@ public class StorageFactory {
 	}
 
 
-	public void retireNodeDocument(GenericParser parser, String project, String branch, String ref, long time) {
+	public void retireNodeDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				v.retireNodeDocument(project, branch, ref, time);
+				v.retireNodeDocument(project, branch, user, ref, time);
 			}
 		}
 	}
-	public void retireRelationshipDocument(GenericParser parser, String project, String branch, String ref, long time) {
+	public void retireRelationshipDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				v.retireRelationshipDocument(project, branch, ref, time);
+				v.retireRelationshipDocument(project, branch, user, ref, time);
 			}
 		}
 	}
-	public void retireViewDocument(GenericParser parser, String project, String branch, String ref, long time) {
+	public void retireViewDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				v.retireViewDocument(project, branch, ref, time);
+				v.retireViewDocument(project, branch, user, ref, time);
 			}
 		}
+	}
+
+	public Document insertManagementDocument(GenericParser parser, String project, String branch, String user, Document n, long time,
+			Vector<KeyValuePair> org) {
+		GenericStorageResult ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.insertManagementDocumentManager(project, branch, user, n, time, org);
+			} else { 
+				if(ret.isStatusUpdated()){
+					v.updateManagementDocument(project, branch, user, n, time);
+				} else if(ret.isStatusInserted()){
+					v.insertManagementDocumentFollower(project, branch, user, n, time);
+				}
+			}
+		}
+		return ret.getDoc();
+	}
+
+	public void retireManagementDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.retireManagementDocument(project, branch, user, ref, time);
+			}
+		}
+	}
+
+	public Document retrieveManagementDocument(GenericParser parser, String project, String branch, String user, long time,
+			Organization org) {
+		Document ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveManagementDocumentManager(project, branch, user, time, org);
+			}
+		}
+		return ret;
+	}
+
+	public void retireOrganizationDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.retireOrganizationDocument(project, branch, user, ref, time);
+			}
+		}
+	}
+
+	public void retrieveOrganization(GenericParser parser, String project, String branch, String user, long time,
+			Organization org) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.retrieveOrganization(project, branch, user, time, org);
+			}
+		}
+	}
+
+	public Set<String> retrieveAllOrganizationIDs(GenericParser parser, String project, String branch) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveAllOrganizationIDsManager(project, branch);
+			}
+		}
+		return ret;
 	}
 
 

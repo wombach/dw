@@ -25,6 +25,7 @@ public class MongoDBAccess {
 	public final static String COLLECTION_VIEWS = "views";
 	public final static String COLLECTION_RELATIONS = "relations";
 	public final static String COLLECTION_FILES = "files";
+	public final static String COLLECTION_MANAGEMENT = "management";
 	public static final String COLLECTION_ORGANIZATIONS = "organizations";
 
 	public MongoClient getClient(){
@@ -191,6 +192,8 @@ public class MongoDBAccess {
 		col = getCollection(db, COLLECTION_ORGANIZATIONS);
 		col.drop();
 		col = getCollection(db, COLLECTION_VIEWS);
+		col.drop();
+		col = getCollection(db, COLLECTION_MANAGEMENT);
 		col.drop();
 	}
 
