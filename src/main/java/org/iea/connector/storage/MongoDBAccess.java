@@ -214,11 +214,44 @@ public class MongoDBAccess {
 		FindIterable<Document> iterable = getCollection(project, col).find(query);
 		return iterable;
 	}
-	
+
 	public void retireDocument(String project, String col, BasicDBObject query, BasicDBObject set){
 		MongoCollection<Document> colDB = getCollection(project, col);
 		UpdateResult ret = colDB.updateMany(query, set);
 		LOGGER.info("found :"+ret.getMatchedCount()+"   changed:"+ret.getModifiedCount());
-		
+
+	}
+
+	public Set<String> queryDocumentFindFileIds(String project, String branch, String col, String fileID) {
+		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
+				append(Archimate3MongoDBConnector.DOC_END_DATE,  new BasicDBObject("$eq", -1));
+		//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
+		HashSet<String> ref =  new HashSet<String>();
+		//		Block<Document> extractID = new Block<Document>() {
+		//			@Override
+		//			public void apply(final Document document) {
+		//				ref.add(document.getString(Archimate3MongoDBConnector.DOC_ID));
+		//			}
+		//		};
+		FindIterable<Document> docs = getCollection(project, col).find(query);//.forEach(extractID);
+		if(docs !=null && docs.iterator()!=null){
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+				ref.add(doc.getString(Archimate3MongoDBConnector.DOC_ID));
+			}
+		}
+		// TODO: adjust to retrive the data from Management collection
+		return ref;
+	}
+
+	public boolean queryLockBranch(String project, String branch, String user, String model_id, long time) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public int retrieveModelHash(String project, String branch, String user, String model_id, long time) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

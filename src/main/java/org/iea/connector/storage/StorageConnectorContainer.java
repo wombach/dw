@@ -237,6 +237,48 @@ public class StorageConnectorContainer {
 		return null;
 	}
 
+	public Set<String> retrieveFileNodeIDsManager(String project, String branch, String fileID) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveFileNodeIDs(project, branch, fileID);
+		}
+		return null;
+	}
+
+	public Set<String> retrieveFileRelationshipIDsManager(String project, String branch, String fileID) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveFileRelationshipIDs(project, branch, fileID);
+		}
+		return null;
+	}
+
+	public Set<String> retrieveFileViewIDsManager(String project, String branch, String fileID) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveFileViewIDs(project, branch, fileID);
+		}
+		return null;
+	}
+
+	public Set<String> retrieveFileOrganizationIDsManager(String project, String branch, String fileID) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveFileOrganizationIDs(project, branch, fileID);
+		}
+		return null;
+	}
+
+	public boolean lockBranchManager(String project, String branch, String user, String model_id, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).lockBranch(project, branch, user, model_id, time);
+		}
+		return false;
+	}
+
+	public int retrieveModelHashManager(String project, String branch, String user, String model_id, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).retrieveModelHash(project, branch, user, model_id, time);
+		}
+		return 0;
+	}
+
 
 //	public GenericStorageResult insertOrganizationsDocumentManager(String project, String branch, String user,
 //			String organizationsTypeLabel, JSONObject item, Vector<String> level, String value, long time) {

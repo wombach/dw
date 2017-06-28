@@ -67,6 +67,18 @@ public interface GenericParserStorageConnectorManager {
 
 	public Set<String> retrieveAllOrganizationIDs(String project, String branch);
 
+	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID);
+
+	public Set<String> retrieveFileRelationshipIDs(String project, String branch, String fileID);
+
+	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID);
+
+	public Set<String> retrieveFileOrganizationIDs(String project, String branch, String fileID);
+
+	public boolean lockBranch(String project, String branch, String user, String model_id, long time);
+
+	public int retrieveModelHash(String project, String branch, String user, String model_id, long time);
+
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, String organizationsTypeLabel,
 //			JSONObject item, Vector<String> level, String value, long time);

@@ -262,7 +262,7 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public GenericStorageResult insertRelationDocument(String project, String branch, String user, Document jsonObject, String sourceUUID, Document sourceJson, String targetUUID, Document targetJson, long time, Vector<KeyValuePair> org) {
-		String compStr = parser.getRelationComparisonString(jsonObject);
+//		String compStr = parser.getRelationComparisonString(jsonObject);
 		int hash = parser.getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
@@ -280,7 +280,7 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
-		String compStr = parser.getOrganizationComparisonString(labelArr);
+//		String compStr = parser.getOrganizationComparisonString(labelArr);
 		int hash = parser.getOrganizationHash(labelArr);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(level, branch);
@@ -296,7 +296,7 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public GenericStorageResult insertViewDocument(String project, String branch, String user, Document jsonObject, long time, Vector<KeyValuePair> org) {
-		String compStr = parser.getViewComparisonString(jsonObject);
+//		String compStr = parser.getViewComparisonString(jsonObject);
 		int hash = parser.getViewHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
@@ -571,6 +571,37 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public Set<String> retrieveAllOrganizationIDs(String project, String branch) {
-		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS);	}
+		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS);	
+	}
+	
+	@Override
+	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID) {
+		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_NODES, fileID);	
+	}
+
+	@Override
+	public Set<String> retrieveFileRelationshipIDs(String project, String branch, String fileID) {
+		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_RELATIONS, fileID);	
+	}
+
+	@Override
+	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID) {
+		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_VIEWS, fileID);	
+	}
+
+	@Override
+	public Set<String> retrieveFileOrganizationIDs(String project, String branch, String fileID) {
+		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS, fileID);	
+	}
+
+	@Override
+	public boolean lockBranch(String project, String branch, String user, String model_id, long time) {
+		return mongo.queryLockBranch(project,branch, user, model_id, time);
+	}
+
+	@Override
+	public int retrieveModelHash(String project, String branch, String user, String model_id, long time) {
+		return mongo.retrieveModelHash(project,branch, user, model_id, time);
+	}
 
 }

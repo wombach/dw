@@ -320,6 +320,73 @@ public class StorageFactory {
 		return ret;
 	}
 
+	public Set<String> retrieveFileNodeIDs(GenericParser parser, String project, String branch, String fileID) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveFileNodeIDsManager(project, branch, fileID);
+			}
+		}
+		return ret;
+	}
+
+	public Set<String> retrieveFileRelationshipIDs(GenericParser parser, String project, String branch, String fileID) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveFileRelationshipIDsManager(project, branch, fileID);
+			}
+		}
+		return ret;
+	}
+
+	public Set<String> retrieveFileViewIDs(GenericParser parser, String project, String branch, String fileID) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveFileViewIDsManager(project, branch, fileID);
+			}
+		}
+		return ret;
+	}
+
+	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
+		Set<String> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveFileOrganizationIDsManager(project, branch, fileID);
+			}
+		}
+		return ret;
+	}
+
+	public boolean lockBranch(GenericParser parser, String project, String branch, String user, String model_id, long time) {
+		boolean ret = false;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.lockBranchManager(project, branch, user, model_id, time);
+			}
+		}
+		return ret;
+	}
+
+	public int retrieveModelHash(GenericParser parser, String project, String branch, String user, String model_id,
+			long time) {
+		int ret = 0;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.retrieveModelHashManager(project, branch, user, model_id, time);
+			}
+		}
+		return ret;
+	}
+
 
 
 }

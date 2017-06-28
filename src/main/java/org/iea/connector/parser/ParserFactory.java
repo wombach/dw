@@ -56,14 +56,14 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public boolean parseFile(String project, String branch, String user, String filename){
-		boolean ret = false;
-		for(GenericParser gp: parsers.values()){
-			ret = gp.parseFile(project, branch,filename);
-			if (ret) break;
-		}
-		return ret;
-	}
+//	public boolean parseFile(String project, String branch, String user, String filename){
+//		boolean ret = false;
+//		for(GenericParser gp: parsers.values()){
+//			ret = gp.parseFile(project, branch,filename);
+//			if (ret) break;
+//		}
+//		return ret;
+//	}
 
 	/**
 	 * find the right parser and parse a particular file.
@@ -71,14 +71,14 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public boolean processXmlString(String project, String branch, String user, String str){
-		boolean ret = false;
-		for(GenericParser gp: parsers.values()){
-			ret = gp.processXmlString(project, branch, str);
-			if (ret) break;
-		}
-		return ret;
-	}
+//	public boolean processXmlString(String project, String branch, String user, String str){
+//		boolean ret = false;
+//		for(GenericParser gp: parsers.values()){
+//			ret = gp.processXmlString(project, branch, str);
+//			if (ret) break;
+//		}
+//		return ret;
+//	}
 
 	/**
 	 * find the right parser and parse a particular file.
@@ -97,54 +97,54 @@ public class ParserFactory {
 		return ret;
 	}
 
-	public Object parseJsonString(String project, String branch, String user, String str){
-		Object ret = null;
-		for(GenericParser gp: parsers.values()){
-			ret = gp.parseJsonString(project, branch, str);
-			if (ret!=null) break;
-		}
-		return ret;
-	}
+//	public Object parseJsonString(String project, String branch, String user, String str){
+//		Object ret = null;
+//		for(GenericParser gp: parsers.values()){
+//			ret = gp.parseJsonString(project, branch, str);
+//			if (ret!=null) break;
+//		}
+//		return ret;
+//	}
 
 	/**
 	 * derive the file from mongoDB based on the specified query
 	 * @param query
 	 * @return
 	 */
-	public void deriveFile(String parserName, String project, String branch, String user, String filename, Date date){
-		if(parsers.containsKey(parserName)){
-			GenericParser gp = parsers.get(parserName);
-			gp.deriveFile(project, branch, user, filename, date);
-		}
-	}
+//	public void deriveFile(String parserName, String project, String branch, String user, String filename, Date date){
+//		if(parsers.containsKey(parserName)){
+//			GenericParser gp = parsers.get(parserName);
+//			gp.deriveFile(project, branch, user, filename, date);
+//		}
+//	}
 
 	/**
 	 * derive the file from mongoDB based on the specified query
 	 * @param query
 	 * @return String with the retrieved model
 	 */
-	public String deriveXmlString(String parserName, String project, String branch, String user, Date date){
-		String ret = null;
-		if(parsers.containsKey(parserName)){
-			GenericParser gp = parsers.get(parserName);
-			ret = gp.deriveXmlString(project, branch, user, date);
-		}
-		return ret;
-	}
+//	public String deriveXmlString(String parserName, String project, String branch, String user, Date date){
+//		String ret = null;
+//		if(parsers.containsKey(parserName)){
+//			GenericParser gp = parsers.get(parserName);
+//			ret = gp.deriveXmlString(project, branch, user, date);
+//		}
+//		return ret;
+//	}
 
 	/**
 	 * derive the file from mongoDB based on the specified query
 	 * @param query
 	 * @return String with the retrieved model
 	 */
-	public String deriveJsonString(String parserName, String project, String branch, String user, Date date){
-		String ret = null;
-		if(parsers.containsKey(parserName)){
-			GenericParser gp = parsers.get(parserName);
-			ret = gp.deriveJsonString(project, branch, user, date);
-		}
-		return ret;
-	}
+//	public String deriveJsonString(String parserName, String project, String branch, String user, Date date){
+//		String ret = null;
+//		if(parsers.containsKey(parserName)){
+//			GenericParser gp = parsers.get(parserName);
+//			ret = gp.deriveJsonString(project, branch, user, date);
+//		}
+//		return ret;
+//	}
 
 	public String retrieveJsonString(String parserName, String project, String branch, String user, Date date){
 		String ret = null;
@@ -196,14 +196,14 @@ public class ParserFactory {
 		return storage.insertViewDocument(parser, project, branch, user, uuid, view, time, org);
 	}
 
-	public String writeJSONtoXML(String parserName, String t) {
-		String ret = null;
-		if(parsers.containsKey(parserName)){
-			GenericParser gp = parsers.get(parserName);
-			ret = gp.writeJSONtoXML(t);
-		}
-		return ret;
-	}
+//	public String writeJSONtoXML(String parserName, String t) {
+//		String ret = null;
+//		if(parsers.containsKey(parserName)){
+//			GenericParser gp = parsers.get(parserName);
+//			ret = gp.writeJSONtoXML(t);
+//		}
+//		return ret;
+//	}
 
 	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String user,
 			Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
@@ -230,6 +230,26 @@ public class ParserFactory {
 		return storage.retrieveAllViewIDs(parser, project, branch) ;
 	}
 
+	public Set<String> retrieveAllOrganizationIDs(GenericParser parser, String project, String branch) {
+		return storage.retrieveAllOrganizationIDs(parser, project, branch) ;
+	}
+
+	public Set<String> retrieveFileNodeIDs(GenericParser parser, String project, String branch, String fileID) {
+		return storage.retrieveFileNodeIDs(parser, project, branch, fileID) ;
+	}
+
+	public Set<String> retrieveFileRelationshipIDs(GenericParser parser, String project, String branch, String fileID) {
+		return storage.retrieveFileRelationshipIDs(parser, project, branch, fileID) ;
+	}
+
+	public Set<String> retrieveFileViewIDs(GenericParser parser, String project, String branch, String fileID) {
+		return storage.retrieveFileViewIDs(parser, project, branch, fileID) ;
+	}
+
+	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
+		return storage.retrieveFileOrganizationIDs(parser, project, branch, fileID) ;
+	}
+
 	public void retireNodeDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
 		storage.retireNodeDocument(parser, project, branch, user, ref, time) ;
 	}
@@ -254,9 +274,14 @@ public class ParserFactory {
 		storage.retrieveOrganization(parser, project, branch, user, time, org) ;		
 	}
 
-	public Set<String> retrieveAllOrganizationIDs(GenericParser parser, String project, String branch) {
-		return storage.retrieveAllOrganizationIDs(parser, project, branch) ;
+	public boolean lockBranch(GenericParser parser, String project, String branch, String user, String model_id, long time) {
+		return storage.lockBranch(parser, project, branch, user, model_id, time) ;
 	}
+
+	public int retrieveModelHash(GenericParser parser, String project, String branch, String user, String model_id, long time) {
+		return storage.retrieveModelHash(parser, project, branch, user, model_id, time) ;
+	}
+
 
 //	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String user, String organizationsTypeLabel,
 //			JSONObject item, Vector<String> level, String value, long time) {

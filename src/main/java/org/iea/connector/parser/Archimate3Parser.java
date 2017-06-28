@@ -2,8 +2,12 @@ package org.iea.connector.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StringBufferInputStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -101,112 +105,112 @@ public class Archimate3Parser extends GenericParser {
 		this.MODEL_CLASS = ModelType.class;
 	}
 
-	@Override
-	public boolean parseFile(String project, String branch, String filename) {
-		boolean ret = false;
-		HashMap<String,String> map = new HashMap<String,String>();
-		JSONObject xmlJSONObj = readXMLtoJSON(filename);
-		LOGGER.info(xmlJSONObj.toString(2));
-		long time = System.currentTimeMillis();
-		// check that the file is indeed an archimate file
-		if( xmlJSONObj!=null && xmlJSONObj.has("model")){
-			JSONObject obj = xmlJSONObj.getJSONObject("model");
-			//			String xmlns = obj.getString("xmlns");
-			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
-			ret = true;
-			// nodes
-			JSONObject els =  obj.getJSONObject("elements");
-			JSONArray l = els.getJSONArray("element");
-			els.remove("element");
-			for(int i=0;i<l.length();i++){
-				String identifier = l.getJSONObject(i).getString("identifier");
-				Document doc = insertNodeDocument(project,branch,DEFAULT_USER, l.getJSONObject(i),time);
-				//				String uuid = getUUID(doc);
-				String uuid = getUUID(null);
-				map.put(identifier, uuid);
-			}
-			// relations
-			JSONObject rels =  obj.getJSONObject("relationships");
-			l = rels.getJSONArray("relationship");
-			rels.remove("relationship");
-			for(int i=0;i<l.length();i++){
-				JSONObject rel = l.getJSONObject(i);
-				String identifier = rel.getString("identifier");
-				String source = (String) rel.remove("source");
-				String target = (String) rel.remove("target");
-				String sourceUUID = map.get(source);
-				String targetUUID = map.get(target);
-				rel.put("source", sourceUUID);
-				rel.put("target", targetUUID);
+	//	@Override
+	//	public boolean parseFile(String project, String branch, String filename) {
+	//		boolean ret = false;
+	//		HashMap<String,String> map = new HashMap<String,String>();
+	//		JSONObject xmlJSONObj = readXMLtoJSON(filename);
+	//		LOGGER.info(xmlJSONObj.toString(2));
+	//		long time = System.currentTimeMillis();
+	//		// check that the file is indeed an archimate file
+	//		if( xmlJSONObj!=null && xmlJSONObj.has("model")){
+	//			JSONObject obj = xmlJSONObj.getJSONObject("model");
+	//			//			String xmlns = obj.getString("xmlns");
+	//			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
+	//			ret = true;
+	//			// nodes
+	//			JSONObject els =  obj.getJSONObject("elements");
+	//			JSONArray l = els.getJSONArray("element");
+	//			els.remove("element");
+	//			for(int i=0;i<l.length();i++){
+	//				String identifier = l.getJSONObject(i).getString("identifier");
+	//				Document doc = insertNodeDocument(project,branch,DEFAULT_USER, l.getJSONObject(i),time);
+	//				//				String uuid = getUUID(doc);
+	//				String uuid = getUUID(null);
+	//				map.put(identifier, uuid);
+	//			}
+	//			// relations
+	//			JSONObject rels =  obj.getJSONObject("relationships");
+	//			l = rels.getJSONArray("relationship");
+	//			rels.remove("relationship");
+	//			for(int i=0;i<l.length();i++){
+	//				JSONObject rel = l.getJSONObject(i);
+	//				String identifier = rel.getString("identifier");
+	//				String source = (String) rel.remove("source");
+	//				String target = (String) rel.remove("target");
+	//				String sourceUUID = map.get(source);
+	//				String targetUUID = map.get(target);
+	//				rel.put("source", sourceUUID);
+	//				rel.put("target", targetUUID);
+	//
+	//				Document doc = insertRelationDocument(project, branch, DEFAULT_USER, rel, sourceUUID, targetUUID, time);
+	//				//				String uuid = getUUID(doc);
+	//				String uuid = getUUID(null);
+	//				map.put(identifier, uuid);
+	//			}
+	//			// files
+	//			//			Document doc = 
+	//			insertFileDocument(project, branch, DEFAULT_USER, xmlJSONObj,time);
+	//			//	}
+	//		}
+	//		return ret;
+	//	}
 
-				Document doc = insertRelationDocument(project, branch, DEFAULT_USER, rel, sourceUUID, targetUUID, time);
-				//				String uuid = getUUID(doc);
-				String uuid = getUUID(null);
-				map.put(identifier, uuid);
-			}
-			// files
-			//			Document doc = 
-			insertFileDocument(project, branch, DEFAULT_USER, xmlJSONObj,time);
-			//	}
-		}
-		return ret;
-	}
-
-	@Override
-	public void deriveFile(String project, String branch, String user,String filename, Date date) {
-		JSONObject ret = null;
-		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
-		Document doc = it.first();
-		if(doc!=null){
-			String s =doc.toJson();
-			ret =  new JSONObject(s);
-			JSONObject raw = ret.getJSONObject("raw");
-			JSONObject mod = raw.getJSONObject("model");
-			JSONObject els =  mod.getJSONObject("elements");
-			JSONArray elm = new JSONArray();
-			els.put("element", elm);
-			JSONObject rels =  mod.getJSONObject("relationships");
-			JSONArray rel = new JSONArray();
-			rels.put("relationship", rel);
-			// derive the identifiers for the standard properties
-			//LOGGER.info(prettyPrintJSON(raw));
-			addPropertyStandardTypeDefs(mod);
-			// mapping to check whether there are missing references
-			Vector<String> v = new Vector<String>();
-
-			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
-			MongoCursor<Document> h = it.iterator();
-			while(h.hasNext()){
-				doc = h.next();
-				String id = doc.getString("id");
-				long start_date = doc.getLong("start_date");
-				long end_date = doc.getLong("end_date");
-				s =doc.toJson();
-				JSONObject ret1 =  new JSONObject(s);
-				JSONObject raw1 = ret1.getJSONObject("raw");
-				elm.put(raw1);
-				enrichNodeWithProperties(raw1, id, start_date, end_date);
-				v.add(id);
-			}
-
-			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
-			h = it.iterator();
-			while(h.hasNext()){
-				doc = h.next();
-				String sourceid = doc.getString("sourceUUID");
-				String targetid = doc.getString("targetUUID");
-				s =doc.toJson();
-				JSONObject ret2 =  new JSONObject(s);
-				JSONObject raw2 = ret2.getJSONObject("raw");
-				rel.put(raw2);
-				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
-				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
-			}
-			//			LOGGER.info(ret.toString());
-			LOGGER.info(prettyPrintJSON(raw));
-			//			this.writeJSONtoXML(filename, raw );
-		}
-	} 
+	//	@Override
+	//	public void deriveFile(String project, String branch, String user,String filename, Date date) {
+	//		JSONObject ret = null;
+	//		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
+	//		Document doc = it.first();
+	//		if(doc!=null){
+	//			String s =doc.toJson();
+	//			ret =  new JSONObject(s);
+	//			JSONObject raw = ret.getJSONObject("raw");
+	//			JSONObject mod = raw.getJSONObject("model");
+	//			JSONObject els =  mod.getJSONObject("elements");
+	//			JSONArray elm = new JSONArray();
+	//			els.put("element", elm);
+	//			JSONObject rels =  mod.getJSONObject("relationships");
+	//			JSONArray rel = new JSONArray();
+	//			rels.put("relationship", rel);
+	//			// derive the identifiers for the standard properties
+	//			//LOGGER.info(prettyPrintJSON(raw));
+	//			addPropertyStandardTypeDefs(mod);
+	//			// mapping to check whether there are missing references
+	//			Vector<String> v = new Vector<String>();
+	//
+	//			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
+	//			MongoCursor<Document> h = it.iterator();
+	//			while(h.hasNext()){
+	//				doc = h.next();
+	//				String id = doc.getString("id");
+	//				long start_date = doc.getLong("start_date");
+	//				long end_date = doc.getLong("end_date");
+	//				s =doc.toJson();
+	//				JSONObject ret1 =  new JSONObject(s);
+	//				JSONObject raw1 = ret1.getJSONObject("raw");
+	//				elm.put(raw1);
+	//				enrichNodeWithProperties(raw1, id, start_date, end_date);
+	//				v.add(id);
+	//			}
+	//
+	//			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
+	//			h = it.iterator();
+	//			while(h.hasNext()){
+	//				doc = h.next();
+	//				String sourceid = doc.getString("sourceUUID");
+	//				String targetid = doc.getString("targetUUID");
+	//				s =doc.toJson();
+	//				JSONObject ret2 =  new JSONObject(s);
+	//				JSONObject raw2 = ret2.getJSONObject("raw");
+	//				rel.put(raw2);
+	//				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+	//				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+	//			}
+	//			//			LOGGER.info(ret.toString());
+	//			LOGGER.info(prettyPrintJSON(raw));
+	//			//			this.writeJSONtoXML(filename, raw );
+	//		}
+	//	} 
 
 	private void addPropertyStandardTypeDefs(JSONObject jobj) {
 		/**
@@ -263,177 +267,178 @@ public class Archimate3Parser extends GenericParser {
 		}
 	}
 
-	private void enrichNodeWithProperties(JSONObject obj, String id, long start_date, long end_date) {
-		JSONObject props = null;
-		JSONObject prop = null;
-		JSONArray parr =  null;
-		if(!obj.has("properties")){
-			props = new JSONObject();
-			obj.put("properties", props);
-			parr = new JSONArray();
-			props.put("property", parr);
-		} else {
-			props = obj.getJSONObject("properties");
-			Object oobj = props.get("property");
-			if(oobj instanceof JSONObject) prop = (JSONObject) oobj;
-			else if(oobj instanceof JSONArray) parr = (JSONArray) oobj;
-			else LOGGER.severe("not the right object type found");
-		}
-		if(prop!=null){
-			// only a single property in the JSON
-			// remove the property and make it a JSONArray
-			props.remove("property");
-			parr = new JSONArray();
-			parr.put(prop);
-			props.put("property", parr);
-		}
-		if(parr!=null){
-			prop = new JSONObject().put("propertyDefinitionRef","propidIEAStartDate").
-					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_start_date").
-					put("value", new JSONObject().put("xml:lang","en").put("value", String.valueOf(start_date)));
-			parr.put(prop);
-			prop = new JSONObject().put("propertyDefinitionRef","propidIEAEndDate").
-					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_end_date").
-					put("value", new JSONObject().put("xml:lang","en").put("value", String.valueOf(end_date)));
-			parr.put(prop);
-			prop = new JSONObject().put("propertyDefinitionRef","propidIEAIdentifier").
-					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_identifier").
-					put("value", new JSONObject().put("xml:lang","en").put("value", id));
-			parr.put(prop);
-		}
-	}
+	//	private void enrichNodeWithProperties(JSONObject obj, String id, long start_date, long end_date) {
+	//		JSONObject props = null;
+	//		JSONObject prop = null;
+	//		JSONArray parr =  null;
+	//		if(!obj.has("properties")){
+	//			props = new JSONObject();
+	//			obj.put("properties", props);
+	//			parr = new JSONArray();
+	//			props.put("property", parr);
+	//		} else {
+	//			props = obj.getJSONObject("properties");
+	//			Object oobj = props.get("property");
+	//			if(oobj instanceof JSONObject) prop = (JSONObject) oobj;
+	//			else if(oobj instanceof JSONArray) parr = (JSONArray) oobj;
+	//			else LOGGER.severe("not the right object type found");
+	//		}
+	//		if(prop!=null){
+	//			// only a single property in the JSON
+	//			// remove the property and make it a JSONArray
+	//			props.remove("property");
+	//			parr = new JSONArray();
+	//			parr.put(prop);
+	//			props.put("property", parr);
+	//		}
+	//		if(parr!=null){
+	//			prop = new JSONObject().put("propertyDefinitionRef","propidIEAStartDate").
+	//					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_start_date").
+	//					put("value", new JSONObject().put("xml:lang","en").put("value", String.valueOf(start_date)));
+	//			parr.put(prop);
+	//			prop = new JSONObject().put("propertyDefinitionRef","propidIEAEndDate").
+	//					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_end_date").
+	//					put("value", new JSONObject().put("xml:lang","en").put("value", String.valueOf(end_date)));
+	//			parr.put(prop);
+	//			prop = new JSONObject().put("propertyDefinitionRef","propidIEAIdentifier").
+	//					//					prop = new JSONObject().put("propertyDefinitionRef","propid_iea_identifier").
+	//					put("value", new JSONObject().put("xml:lang","en").put("value", id));
+	//			parr.put(prop);
+	//		}
+	//	}
 
-	@Override
-	public boolean processXmlString(String project, String branch, String str) {
-		boolean ret = false;
-		HashMap<String,String> map = new HashMap<String,String>();
-		JSONObject xmlJSONObj = convertXMLtoJSON(str);
-		long time = System.currentTimeMillis();
-		// check that the file is indeed an archimate file
-		if( xmlJSONObj!=null && xmlJSONObj.has("model")){
-			JSONObject obj = xmlJSONObj.getJSONObject("model");
-			//			String xmlns = obj.getString("xmlns");
-			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
-			ret = true;
-			// nodes
-			JSONObject els =  obj.getJSONObject("elements");
-			JSONArray l = els.getJSONArray("element");
-			els.remove("element");
-			for(int i=0;i<l.length();i++){
-				Document doc = insertNodeDocument(project, branch, DEFAULT_USER, l.getJSONObject(i), time);
-				//				String uuid = getUUID(doc);
-				String uuid = getUUID(null);
-				String identifier = l.getJSONObject(i).getString("identifier");
-				map.put(identifier, uuid);
-			}
-			// relations
-			JSONObject rels =  obj.getJSONObject("relationships");
-			l = rels.getJSONArray("relationship");
-			rels.remove("relationship");
-			for(int i=0;i<l.length();i++){
-				JSONObject rel = l.getJSONObject(i);
-				String identifier = rel.getString("identifier");
-				String source = rel.getString("source");
-				String target = rel.getString("target");
-				String sourceUUID = map.get(source);
-				String targetUUID = map.get(target);
-				Document doc = insertRelationDocument(project, branch, DEFAULT_USER, rel, sourceUUID, targetUUID, time);
-				//				String uuid = getUUID(doc);
-				String uuid = getUUID(null);
-				map.put(identifier, uuid);
-			}
-			// files
-			//			Document doc = 
-			insertFileDocument(project, branch, DEFAULT_USER, xmlJSONObj, time);
-			//	}
-		}
-		return ret;
-	}
+	//	@Override
+	//	public boolean processXmlString(String project, String branch, String user, String str) {
+	//		boolean ret = false;
+	////		HashMap<String,String> map = new HashMap<String,String>();
+	//		JSONObject xmlJSONObj = convertXMLtoJSON(str);
+	//		ret = processJsonString(project, branch, user, xmlJSONObj.toString());
+	////		long time = System.currentTimeMillis();
+	//		// check that the file is indeed an archimate file
+	////		if( xmlJSONObj!=null && xmlJSONObj.has("model")){
+	////			JSONObject obj = xmlJSONObj.getJSONObject("model");
+	////			//			String xmlns = obj.getString("xmlns");
+	////			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
+	////			ret = true;
+	////			// nodes
+	////			JSONObject els =  obj.getJSONObject("elements");
+	////			JSONArray l = els.getJSONArray("element");
+	////			els.remove("element");
+	////			for(int i=0;i<l.length();i++){
+	////				Document doc = insertNodeDocument(project, branch, DEFAULT_USER, l.getJSONObject(i), time);
+	////				//				String uuid = getUUID(doc);
+	////				String uuid = getUUID(null);
+	////				String identifier = l.getJSONObject(i).getString("identifier");
+	////				map.put(identifier, uuid);
+	////			}
+	////			// relations
+	////			JSONObject rels =  obj.getJSONObject("relationships");
+	////			l = rels.getJSONArray("relationship");
+	////			rels.remove("relationship");
+	////			for(int i=0;i<l.length();i++){
+	////				JSONObject rel = l.getJSONObject(i);
+	////				String identifier = rel.getString("identifier");
+	////				String source = rel.getString("source");
+	////				String target = rel.getString("target");
+	////				String sourceUUID = map.get(source);
+	////				String targetUUID = map.get(target);
+	////				Document doc = insertRelationDocument(project, branch, DEFAULT_USER, rel, sourceUUID, targetUUID, time);
+	////				//				String uuid = getUUID(doc);
+	////				String uuid = getUUID(null);
+	////				map.put(identifier, uuid);
+	////			}
+	////			// files
+	////			//			Document doc = 
+	////			insertFileDocument(project, branch, DEFAULT_USER, xmlJSONObj, time);
+	////			//	}
+	////		}
+	//		return ret;
+	//	}
 
-	@Override
-	public String deriveXmlString(String project, String branch, String user,Date date) {
-		JSONObject ret = null;
-		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
-		Document doc = it.first();
-		if(doc!=null){
-			String s =doc.toJson();
-			ret =  new JSONObject(s);
-			JSONObject raw = ret.getJSONObject("raw");
-			JSONObject mod = raw.getJSONObject("model");
-			JSONObject els =  mod.getJSONObject("elements");
-			JSONArray elm = new JSONArray();
-			els.put("element", elm);
-			JSONObject rels =  mod.getJSONObject("relationships");
-			JSONArray rel = new JSONArray();
-			rels.put("relationship", rel);
-			// derive the identifiers for the standard properties
-			//LOGGER.info(prettyPrintJSON(raw));
-			addPropertyStandardTypeDefs(mod);
-			// mapping to check whether there are missing references
-			Vector<String> v = new Vector<String>();
+	//	@Override
+	//	public String deriveXmlString(String project, String branch, String user,Date date) {
+	//		JSONObject ret = null;
+	//		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
+	//		Document doc = it.first();
+	//		if(doc!=null){
+	//			String s =doc.toJson();
+	//			ret =  new JSONObject(s);
+	//			JSONObject raw = ret.getJSONObject("raw");
+	//			JSONObject mod = raw.getJSONObject("model");
+	//			JSONObject els =  mod.getJSONObject("elements");
+	//			JSONArray elm = new JSONArray();
+	//			els.put("element", elm);
+	//			JSONObject rels =  mod.getJSONObject("relationships");
+	//			JSONArray rel = new JSONArray();
+	//			rels.put("relationship", rel);
+	//			// derive the identifiers for the standard properties
+	//			//LOGGER.info(prettyPrintJSON(raw));
+	//			addPropertyStandardTypeDefs(mod);
+	//			// mapping to check whether there are missing references
+	//			Vector<String> v = new Vector<String>();
+	//
+	//			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
+	//			MongoCursor<Document> h = it.iterator();
+	//			while(h.hasNext()){
+	//				doc = h.next();
+	//				String id = doc.getString("id");
+	//				long start_date = doc.getLong("start_date");
+	//				long end_date = doc.getLong("end_date");
+	//				s =doc.toJson();
+	//				JSONObject ret1 =  new JSONObject(s);
+	//				JSONObject raw1 = ret1.getJSONObject("raw");
+	//				elm.put(raw1);
+	//				enrichNodeWithProperties(raw1, id, start_date, end_date);
+	//				v.add(id);
+	//			}
+	//
+	//			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
+	//			h = it.iterator();
+	//			while(h.hasNext()){
+	//				doc = h.next();
+	//				String sourceid = doc.getString("sourceUUID");
+	//				String targetid = doc.getString("targetUUID");
+	//				s =doc.toJson();
+	//				JSONObject ret2 =  new JSONObject(s);
+	//				JSONObject raw2 = ret2.getJSONObject("raw");
+	//				rel.put(raw2);
+	//				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+	//				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+	//			}
+	//			//			LOGGER.info(ret.toString());
+	//			//			LOGGER.info(prettyPrintJSON(ret));
+	//			return this.writeJSONtoXML( raw.toString() );
+	//		}
+	//		return "";
+	//	}
 
-			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
-			MongoCursor<Document> h = it.iterator();
-			while(h.hasNext()){
-				doc = h.next();
-				String id = doc.getString("id");
-				long start_date = doc.getLong("start_date");
-				long end_date = doc.getLong("end_date");
-				s =doc.toJson();
-				JSONObject ret1 =  new JSONObject(s);
-				JSONObject raw1 = ret1.getJSONObject("raw");
-				elm.put(raw1);
-				enrichNodeWithProperties(raw1, id, start_date, end_date);
-				v.add(id);
-			}
-
-			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
-			h = it.iterator();
-			while(h.hasNext()){
-				doc = h.next();
-				String sourceid = doc.getString("sourceUUID");
-				String targetid = doc.getString("targetUUID");
-				s =doc.toJson();
-				JSONObject ret2 =  new JSONObject(s);
-				JSONObject raw2 = ret2.getJSONObject("raw");
-				rel.put(raw2);
-				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
-				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
-			}
-			//			LOGGER.info(ret.toString());
-			//			LOGGER.info(prettyPrintJSON(ret));
-			return this.writeJSONtoXML( raw.toString() );
-		}
-		return "";
-	}
-
-	@Override
-	public String getNodeComparisonString(Document jsonObject) {
-		String name="";
-		if(jsonObject.get("name")!=null){
-			Document nameObj = ((ArrayList<Document>)jsonObject.get("name")).get(0);
-			name = nameObj.getString("value");
-		}
-		String node_type = jsonObject.getString("type");
-		return type+"|"+node_type+"|"+name.toString();
-	}
+	//	@Override
+	//	public String getNodeComparisonString(Document jsonObject) {
+	//		String name="";
+	//		if(jsonObject.get("name")!=null){
+	//			Document nameObj = ((ArrayList<Document>)jsonObject.get("name")).get(0);
+	//			name = nameObj.getString("value");
+	//		}
+	//		String node_type = jsonObject.getString("type");
+	//		return type+"|"+node_type+"|"+name.toString();
+	//	}
 
 	@Override
 	public int getNodeHash(Document jsonObject) {
 		return jsonObject.hashCode();
 	}
 
-	@Override
-	public String getRelationComparisonString(Document jsonObject) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	//	@Override
+	//	public String getRelationComparisonString(Document jsonObject) {
+	//		// TODO Auto-generated method stub
+	//		return null;
+	//	}
 
-	@Override
-	protected String getFileComparisonString(JSONObject jsonObject) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	//	@Override
+	//	protected String getFileComparisonString(JSONObject jsonObject) {
+	//		// TODO Auto-generated method stub
+	//		return null;
+	//	}
 
 	@Override
 	public int getRelationHash(Document jsonObject) {
@@ -490,119 +495,119 @@ public class Archimate3Parser extends GenericParser {
 	//		return ret;
 	//	}
 
-	@Override
-	public String deriveJsonString(String project, String branch, String user,Date date) {
-		JSONObject ret = null;
-		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
-		Document doc = it.first();
-		if(doc!=null){
-			LOGGER.info("found document");
-			String s =doc.toJson();
-			LOGGER.info("doc: "+s);
-			ret =  new JSONObject(s);
-			JSONObject raw = ret.getJSONObject("raw");
-			JSONObject mod = raw.getJSONObject("model");
-			JSONObject els =  mod.getJSONObject("elements");
-			JSONArray elm = new JSONArray();
-			els.put("element", elm);
-			JSONObject rels =  mod.getJSONObject("relationships");
-			JSONArray rel = new JSONArray();
-			rels.put("relationship", rel);
-			// derive the identifiers for the standard properties
-			//LOGGER.info(prettyPrintJSON(raw));
-			addPropertyStandardTypeDefs(mod);
-			// mapping to check whether there are missing references
-			Vector<String> v = new Vector<String>();
+	//	@Override
+	//	public String deriveJsonString(String project, String branch, String user,Date date) {
+	//		JSONObject ret = null;
+	//		FindIterable<Document> it = queryDocument(MongoDBAccess.COLLECTION_FILES, date);
+	//		Document doc = it.first();
+	//		if(doc!=null){
+	//			LOGGER.info("found document");
+	//			String s =doc.toJson();
+	//			LOGGER.info("doc: "+s);
+	//			ret =  new JSONObject(s);
+	//			JSONObject raw = ret.getJSONObject("raw");
+	//			JSONObject mod = raw.getJSONObject("model");
+	//			JSONObject els =  mod.getJSONObject("elements");
+	//			JSONArray elm = new JSONArray();
+	//			els.put("element", elm);
+	//			JSONObject rels =  mod.getJSONObject("relationships");
+	//			JSONArray rel = new JSONArray();
+	//			rels.put("relationship", rel);
+	//			// derive the identifiers for the standard properties
+	//			//LOGGER.info(prettyPrintJSON(raw));
+	//			addPropertyStandardTypeDefs(mod);
+	//			// mapping to check whether there are missing references
+	//			Vector<String> v = new Vector<String>();
+	//
+	//			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
+	//			MongoCursor<Document> h = it.iterator();
+	//			while(h.hasNext()){
+	//				doc = h.next();
+	//				String id = doc.getString("id");
+	//				long start_date = doc.getLong("start_date");
+	//				long end_date = doc.getLong("end_date");
+	//				s =doc.toJson();
+	//				JSONObject ret1 =  new JSONObject(s);
+	//				JSONObject raw1 = ret1.getJSONObject("raw");
+	//				elm.put(raw1);
+	//				enrichNodeWithProperties(raw1, id, start_date, end_date);
+	//				v.add(id);
+	//			}
+	//
+	//			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
+	//			h = it.iterator();
+	//			while(h.hasNext()){
+	//				doc = h.next();
+	//				String sourceid = doc.getString("sourceUUID");
+	//				String targetid = doc.getString("targetUUID");
+	//				s =doc.toJson();
+	//				JSONObject ret2 =  new JSONObject(s);
+	//				JSONObject raw2 = ret2.getJSONObject("raw");
+	//				rel.put(raw2);
+	//				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+	//				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
+	//			}
+	//			//			LOGGER.info(ret.toString());
+	//			//			LOGGER.info(prettyPrintJSON(ret));
+	//			return raw.toString();
+	//		}
+	//		return "";
+	//	}
 
-			it = queryDocument(MongoDBAccess.COLLECTION_NODES, date);
-			MongoCursor<Document> h = it.iterator();
-			while(h.hasNext()){
-				doc = h.next();
-				String id = doc.getString("id");
-				long start_date = doc.getLong("start_date");
-				long end_date = doc.getLong("end_date");
-				s =doc.toJson();
-				JSONObject ret1 =  new JSONObject(s);
-				JSONObject raw1 = ret1.getJSONObject("raw");
-				elm.put(raw1);
-				enrichNodeWithProperties(raw1, id, start_date, end_date);
-				v.add(id);
-			}
+	//	@Override
+	//	public Object parseXmlString(String str) {
+	//		JAXBContext jaxbContext;
+	//		ModelType model2 = null;
+	//		try {
+	//			jaxbContext = JAXBContext.newInstance(ModelType.class);
+	//			ByteArrayInputStream in = new ByteArrayInputStream(str.getBytes());
+	//			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+	//			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+	//			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+	//			//		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+	//			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+	//			StreamSource source2 = new StreamSource(in);
+	//			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source2, ModelType.class);
+	//			model2 = (ModelType) result.getValue();
+	//		} catch (JAXBException e) {
+	//			// TODO Auto-generated catch block
+	//			e.printStackTrace();
+	//		}
+	//		return model2;
+	//	}
+	//
+	//	@Override
+	//	public Object parseJsonString(String project, String branch,String str) {
+	//		JAXBContext jaxbContext;
+	//		ModelType model2 = null;
+	//		try {
+	//			jaxbContext = JAXBContext.newInstance(ModelType.class);
+	//			ByteArrayInputStream in = new ByteArrayInputStream(str.getBytes());
+	//			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+	//			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+	//			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+	//			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+	//			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+	//			StreamSource source2 = new StreamSource(in);
+	//			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source2, ModelType.class);
+	//			model2 = (ModelType) result.getValue();
+	//		} catch (JAXBException e) {
+	//			// TODO Auto-generated catch block
+	//			e.printStackTrace();
+	//		}
+	//		return model2;
+	//	}
 
-			it = queryDocument(MongoDBAccess.COLLECTION_RELATIONS, date);
-			h = it.iterator();
-			while(h.hasNext()){
-				doc = h.next();
-				String sourceid = doc.getString("sourceUUID");
-				String targetid = doc.getString("targetUUID");
-				s =doc.toJson();
-				JSONObject ret2 =  new JSONObject(s);
-				JSONObject raw2 = ret2.getJSONObject("raw");
-				rel.put(raw2);
-				if(!v.contains(sourceid)) LOGGER.severe("source node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
-				if(!v.contains(targetid)) LOGGER.severe("target node referenced by uuid ("+sourceid+") is not contained in the model! Model inconsistent!");;
-			}
-			//			LOGGER.info(ret.toString());
-			//			LOGGER.info(prettyPrintJSON(ret));
-			return raw.toString();
-		}
-		return "";
-	}
+	//	@Override
+	//	public boolean storeObject(Object elm) {
+	//		// TODO Auto-generated method stub
+	//		return false;
+	//	}
 
-	@Override
-	public Object parseXmlString(String str) {
-		JAXBContext jaxbContext;
-		ModelType model2 = null;
-		try {
-			jaxbContext = JAXBContext.newInstance(ModelType.class);
-			ByteArrayInputStream in = new ByteArrayInputStream(str.getBytes());
-			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
-			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
-			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
-			//		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
-			StreamSource source2 = new StreamSource(in);
-			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source2, ModelType.class);
-			model2 = (ModelType) result.getValue();
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return model2;
-	}
-
-	@Override
-	public Object parseJsonString(String project, String branch,String str) {
-		JAXBContext jaxbContext;
-		ModelType model2 = null;
-		try {
-			jaxbContext = JAXBContext.newInstance(ModelType.class);
-			ByteArrayInputStream in = new ByteArrayInputStream(str.getBytes());
-			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
-			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
-			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
-			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
-			StreamSource source2 = new StreamSource(in);
-			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source2, ModelType.class);
-			model2 = (ModelType) result.getValue();
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return model2;
-	}
-
-	@Override
-	public boolean storeObject(Object elm) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public String deriveJsonString(String project, String branch, String user, long time){
-		//factory.deriveJsonString(, project, branch, date)
-		return null;
-	}
+	//	public String deriveJsonString(String project, String branch, String user, long time){
+	//		//factory.deriveJsonString(, project, branch, date)
+	//		return null;
+	//	}
 
 	protected Object getPropid(Document props, String propid){
 		Object ret = null;
@@ -636,7 +641,10 @@ public class Archimate3Parser extends GenericParser {
 			String version = obj.getString(VERSION_TAG);
 			String model_id = obj.getString(IDENTIFIER_TAG);
 			// check whether document version is up to date and try to lock the document for commit
-			
+			// locking is done on branch level!
+			boolean lock_successfull = factory.lockBranch(this, project, branch, user, model_id, time);
+			int model_hash = factory.retrieveModelHash(this, project, branch, user, model_id, time);
+
 			//			String xmlns = obj.getString("xmlns");
 			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
 			ret = true;
@@ -646,7 +654,7 @@ public class Archimate3Parser extends GenericParser {
 			HashMap<String, Vector<KeyValuePair>> orgMap = new HashMap<String,Vector<KeyValuePair>>();
 			Organization org = new Organization();
 			factory.retrieveOrganization(this, project, branch, user, time, org);
-			Set<String> refs  = factory.retrieveAllOrganizationIDs(this, project,branch);
+			Set<String> refs  = factory.retrieveFileOrganizationIDs(this, project,branch, model_id);
 			createOrganizationLookup(project, branch, user, orgs, orgMap, time, new Vector<KeyValuePair>(), org,refs, overall_insert, overall_update);
 			// delete unreferenced items
 			LOGGER.info("#Organizations to be deleted: "+refs.size());
@@ -656,7 +664,7 @@ public class Archimate3Parser extends GenericParser {
 
 			//
 			// nodes
-			refs = factory.retrieveAllNodeIDs(this, project,branch);
+			refs = factory.retrieveFileNodeIDs(this, project,branch, model_id);
 
 			Document els = (Document) obj.get(ELEMENTS_TAG);
 			ArrayList<Document> l = (ArrayList<Document>) els.get(ELEMENT_TAG);
@@ -719,7 +727,7 @@ public class Archimate3Parser extends GenericParser {
 
 			//
 			// relations
-			refs = factory.retrieveAllRelationshipIDs(this, project,branch);
+			refs = factory.retrieveFileRelationshipIDs(this, project,branch, model_id);
 			Document rels =  (Document) obj.get(RELATIONSHIPS_TAG);
 			l = (ArrayList<Document>) rels.get(RELATIONSHIP_TAG);
 			LOGGER.info("number of relationships: "+l.size());
@@ -849,7 +857,7 @@ public class Archimate3Parser extends GenericParser {
 
 			// views
 			if(obj.containsKey(VIEWS_TAG)){
-				refs = factory.retrieveAllViewIDs(this, project,branch);
+				refs = factory.retrieveFileViewIDs(this, project,branch, model_id);
 				Document views =  (Document) obj.get(VIEWS_TAG);
 				Document diags = (Document) views.get(DIAGRAMS_TAG);
 				//			for( int ii=0;ii<diags.length();ii++){
@@ -954,11 +962,11 @@ public class Archimate3Parser extends GenericParser {
 			}
 			//
 			// handle Management information
-			int model_hash = doc_all.hashCode();
+//			int model_hash = doc_all.hashCode();
 			
 			if(overall_insert){
 				if(overall_update){
-					
+
 				}
 			}
 		}
@@ -991,7 +999,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	private void createOrganizationLookup(String project, String branch, String user, ArrayList<Document> orgs, HashMap<String, Vector<KeyValuePair>> orgMap,
-					long time, Vector<KeyValuePair> level, Organization org, Set<String> refs, boolean overall_insert, boolean overall_update) {
+			long time, Vector<KeyValuePair> level, Organization org, Set<String> refs, boolean overall_insert, boolean overall_update) {
 		//JSONArray l = orgs.getJSONArray(ITEM_TAG);
 		LOGGER.info("number of items on level ("+level.toString()+"): "+orgs.size());
 		String value = null;
@@ -1008,19 +1016,19 @@ public class Archimate3Parser extends GenericParser {
 				KeyValuePair kv = new KeyValuePair(value,ii);
 				level_call.add(kv);
 				//factory.retireOrganizationDocument(this, project, branch, ref, time);
-//				if(level.size()>0){
-//					KeyValuePair kvCall = level.get(level.size()-1);
-					if(org.contains(value)){
-						//LOGGER.info(org.getChildIDByName(value));
-						refs.remove(org.getChildIDByName(value));
-						// insert false
-						if(org.getChildPositionByName(value)!=ii){
-							// update required
-							overall_update = true;
-							factory.retireManagementDocument(this, project, branch, user, org.getChildIDByName(value), time);
-							factory.insertOrganizationDocument(this, project, branch, user, level_call, labelArr,  time);
-						}
-//					} 
+				//				if(level.size()>0){
+				//					KeyValuePair kvCall = level.get(level.size()-1);
+				if(org.contains(value)){
+					//LOGGER.info(org.getChildIDByName(value));
+					refs.remove(org.getChildIDByName(value));
+					// insert false
+					if(org.getChildPositionByName(value)!=ii){
+						// update required
+						overall_update = true;
+						factory.retireManagementDocument(this, project, branch, user, org.getChildIDByName(value), time);
+						factory.insertOrganizationDocument(this, project, branch, user, level_call, labelArr,  time);
+					}
+					//					} 
 				}else {
 					overall_insert=true;
 					factory.insertOrganizationDocument(this, project, branch, user, level_call, labelArr,  time);
@@ -1116,91 +1124,160 @@ public class Archimate3Parser extends GenericParser {
 		return ret;
 	}
 
+	//	@Override
+	//	public String writeJSONtoXML(String st){
+	//		JAXBContext jaxbContext;
+	//		JAXBElement result = null;
+	//		String ret = "";
+	//		try {
+	//			//			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
+	//			//			Map<String, Object> properties = new HashMap<String, Object>();
+	//			//			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+	//
+	//			//			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
+	//			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+	//			// parse JSON
+	//			//String st = jobj.toString();
+	//			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
+	//			Map<String, String> namespaces = new HashMap<String, String>();
+	//
+	//			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
+	//			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+	//			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
+	//
+	//			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+	//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+	//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+	//			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+	//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+	//			unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
+	//			//			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source, ModelType.class);
+	//
+	//			StreamSource source2 = new StreamSource(in);
+	//			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
+	//
+	//			// write XML
+	//			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+	//			Marshaller marshaller = jaxbContext.createMarshaller();
+	//			//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+	//			//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+	//			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+	//			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
+	//			StringWriter out;
+	//			out = new StringWriter();
+	//			// Create the Document
+	//			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+	//			DocumentBuilder db = dbf.newDocumentBuilder();
+	//			org.w3c.dom.Document document = db.newDocument();
+	//
+	//			//			marshaller.marshal(result, out);
+	//			//			out.close();
+	//			marshaller.marshal(result, document);
+	//
+	//			// remove elements without namespace
+	//			Element root = document.getDocumentElement();
+	//			HashMap<Node, Node> m = new HashMap<Node,Node>();
+	//			m.put(root, null);
+	//			while(!m.isEmpty()){
+	//				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
+	//				for( Node n : m.keySet()){
+	//					if(n instanceof Element){
+	//						Node nn = m.get(n);
+	//						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
+	//							if(nn !=null) nn.removeChild(n);
+	//						} else {
+	//							NodeList nodes = ((Element)n).getChildNodes();
+	//							for(int i=nodes.getLength()-1;i>=0;i--){
+	//								m2.put(nodes.item(i),n);
+	//							}
+	//						}
+	//					}
+	//				}
+	//				m = m2;
+	//			}
+	//			// Output the Document
+	//			TransformerFactory tf = TransformerFactory.newInstance();
+	//			Transformer t = tf.newTransformer();
+	//			DOMSource source = new DOMSource(document);
+	//			StreamResult result2 = new StreamResult(out);
+	//			t.transform(source, result2);	
+	//			ret = out.toString();
+	//		} catch (JAXBException  e) {
+	//			// TODO Auto-generated catch block
+	//			e.printStackTrace();
+	//		} catch (ParserConfigurationException e) {
+	//			// TODO Auto-generated catch block
+	//			e.printStackTrace();
+	//		} catch (TransformerException e) {
+	//			// TODO Auto-generated catch block
+	//			e.printStackTrace();
+	//		}
+	//		return ret;
+	//	}
+
+	//	@Override
+	//	protected int getFileHash(JSONObject jsonObject) {
+	//		// TODO Auto-generated method stub
+	//		return 0;
+	//	}
+
+	//	@Override
+	//	public String getOrganizationComparisonString(ArrayList<Document> labelArr) {
+	//		// TODO Auto-generated method stub
+	//		return null;
+	//	}
+
 	@Override
-	public String writeJSONtoXML(String st){
+	public int getOrganizationHash(ArrayList<Document> labelArr) {
+		return labelArr.hashCode();
+	}
+
+	@Override
+	protected int getFileHash(JSONObject jsonObject) {
+		return jsonObject.hashCode();
+	}
+
+	@Override
+	protected String convertXMLtoJSON(String xml) {
 		JAXBContext jaxbContext;
-		JAXBElement result = null;
-		String ret = "";
+		String ret = null;
 		try {
-			//			InputStream iStream = GenericParser.class.getClassLoader().getResourceAsStream("META-INF/binding.xml");
-			//			Map<String, Object> properties = new HashMap<String, Object>();
-			//			properties.put(JAXBContextProperties.OXM_METADATA_SOURCE, iStream);
+			jaxbContext = JAXBContext.newInstance(ModelType.class);
 
-			//			jaxbContext = JAXBContext.newInstance(new Class[] {MODEL_CLASS},properties );
-			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
-			// parse JSON
-			//String st = jobj.toString();
-			ByteArrayInputStream in = new ByteArrayInputStream(st.getBytes());
 			Map<String, String> namespaces = new HashMap<String, String>();
-
 			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
-			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+			//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
+			//		File file = new File("test3_output.json");
+			//			StreamSource source = new StreamSource(new StringBufferInputStream(xml));
+			StringReader reader = new StringReader(xml);
 			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
-			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
-			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
-			unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
-			//			JAXBElement<ModelType> result = unmarshaller2.unmarshal(source, ModelType.class);
+			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			//		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
+			JAXBElement<ModelType> result = (JAXBElement<ModelType>) unmarshaller2.unmarshal(reader);
+			ModelType model = (ModelType) result.getValue();
 
-			StreamSource source2 = new StreamSource(in);
-			result = unmarshaller2.unmarshal(source2, MODEL_CLASS );
-
-			// write XML
-			jaxbContext =  JAXBContext.newInstance(MODEL_CLASS);
+			namespaces = new HashMap<String, String>();
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
+			//		jaxbContext =  JAXBContext.newInstance(ModelType.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
-			//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
-			//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-			//			marshaller.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@");
-			StringWriter out;
-			out = new StringWriter();
-			// Create the Document
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			org.w3c.dom.Document document = db.newDocument();
-
-			//			marshaller.marshal(result, out);
-			//			out.close();
-			marshaller.marshal(result, document);
-
-			// remove elements without namespace
-			Element root = document.getDocumentElement();
-			HashMap<Node, Node> m = new HashMap<Node,Node>();
-			m.put(root, null);
-			while(!m.isEmpty()){
-				HashMap<Node, Node> m2 = new HashMap<Node,Node>();
-				for( Node n : m.keySet()){
-					if(n instanceof Element){
-						Node nn = m.get(n);
-						if(nn!=null && (n.getNamespaceURI() == null || n.getNamespaceURI().isEmpty())){
-							if(nn !=null) nn.removeChild(n);
-						} else {
-							NodeList nodes = ((Element)n).getChildNodes();
-							for(int i=nodes.getLength()-1;i>=0;i--){
-								m2.put(nodes.item(i),n);
-							}
-						}
-					}
-				}
-				m = m2;
-			}
-			// Output the Document
-			TransformerFactory tf = TransformerFactory.newInstance();
-			Transformer t = tf.newTransformer();
-			DOMSource source = new DOMSource(document);
-			StreamResult result2 = new StreamResult(out);
-			t.transform(source, result2);	
+			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
+			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
+			StringWriter out = new StringWriter( );
+			marshaller.marshal(model, out);
 			ret = out.toString();
-		} catch (JAXBException  e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TransformerException e) {
+			//			out.flush();
+			//			out.close();
+		} catch (JAXBException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -1208,28 +1285,57 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	protected int getFileHash(JSONObject jsonObject) {
-		// TODO Auto-generated method stub
-		return 0;
+	protected String convertJSONtoXML(String json) {
+		JAXBContext jaxbContext;
+		String ret = null;
+		try {
+			jaxbContext = JAXBContext.newInstance(ModelType.class);
+
+			Map<String, String> namespaces = new HashMap<String, String>();
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+			//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
+
+			//		File file = new File("test3_output.json");
+			//			StreamSource source = new StreamSource(new StringBufferInputStream(xml));
+			StringReader reader = new StringReader(json);
+			Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+			unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
+			JAXBElement<ModelType> result = (JAXBElement<ModelType>) unmarshaller2.unmarshal(reader);
+			ModelType model = (ModelType) result.getValue();
+
+			namespaces = new HashMap<String, String>();
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
+			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
+			//		jaxbContext =  JAXBContext.newInstance(ModelType.class);
+			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+//			marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+//			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
+//			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
+			StringWriter out = new StringWriter( );
+			marshaller.marshal(model, out);
+			ret = out.toString();
+			//			out.flush();
+			//			out.close();
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
 	}
 
-	@Override
-	public String getOrganizationComparisonString(ArrayList<Document> labelArr) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int getOrganizationHash(ArrayList<Document> labelArr) {
-		// TODO Auto-generated method stub
-		return labelArr.hashCode();
-	}
-
-	@Override
-	public String getViewComparisonString(Document jsonObject) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	//	@Override
+	//	public String getViewComparisonString(Document jsonObject) {
+	//		// TODO Auto-generated method stub
+	//		return null;
+	//	}
 
 
 
