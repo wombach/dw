@@ -1,6 +1,7 @@
 package org.iea.connector.parser.storage;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 import java.util.Vector;
 
@@ -54,12 +55,12 @@ public interface GenericParserStorageConnectorManager {
 
 	public void retireViewDocument(String project, String branch, String user, String ref, long time);
 
-	public Document retrieveManagementDocument(String project, String branch, String user, long time, Organization org);
+	public Document retrieveManagementDocument(String project, String branch, String user, long time);
 
 	public void retireManagementDocument(String project, String branch, String user, String ref, long time);
 
 	public GenericStorageResult insertManagementDocument(String project, String branch, String user, Document n, long time,
-			Vector<KeyValuePair> org);
+			Collection<String> ref_elements, Collection<String> ref_relations, Collection<String> ref_views);
 
 	public void retireOrganizationDocument(String project, String branch, String user, String ref, long time);
 
@@ -78,6 +79,8 @@ public interface GenericParserStorageConnectorManager {
 	public boolean lockBranch(String project, String branch, String user, String model_id, long time);
 
 	public int retrieveModelHash(String project, String branch, String user, String model_id, long time);
+
+	public void releaseBranch(String project, String branch, String user);
 
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, String organizationsTypeLabel,

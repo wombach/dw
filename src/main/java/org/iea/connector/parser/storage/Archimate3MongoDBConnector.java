@@ -26,6 +26,8 @@ import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -53,14 +55,22 @@ implements GenericParserStorageConnectorManager {
 	public static final String DOC_ORGANIZATION_CONTENT = "content";
 	public static final String DOC_END_USER = "end_user";
 	public static final String DOC_START_USER = "start_user";
+	public static final String DOC_VERSION = "version";
 
 	public static final String PROPID_IEA_HASH = "propidIEAHash";
 	public static final String PROPID_IEA_END_DATE = "propidIEAEndDate";
 	public static final String PROPID_IEA_START_DATE = "propidIEAStartDate";
 	public static final String PROPID_IEA_IDENTIFIER = "propidIEAIdentifier";
+	public static final ImmutableMap<String,String> PROPID_MAP = ImmutableMap.of(PROPID_IEA_HASH,"string",
+																				  PROPID_IEA_END_DATE,"number",
+																				  PROPID_IEA_START_DATE,"number",
+																				  PROPID_IEA_IDENTIFIER, "string" );
 
 	private final static Logger LOGGER = Logger.getLogger(Archimate3MongoDBConnector.class.getName());
-
+	private static final String DOC_ELEMENTS_LIST = "element_list";
+	private static final String DOC_RELATIONS_LIST = "relationship_list";
+	private static final String DOC_VIEWS_LIST = "view_list";
+	
 	private MongoDBAccess mongo ;
 
 	public Archimate3MongoDBConnector(){
@@ -471,11 +481,8 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public Document retrieveOrganizationDocument(String project, String branch, String user, long time, Organization org) {
 		retrieveOrganization(project, branch, user, time, org);
-		Document ret = new Document();
 		Document elem = createBSONFromOrganization(org);
-//		ret.append(Archimate3Parser.ITEM_TAG, elem);
-		ret = elem;
-		return ret;
+		return elem;
 	}
 
 	private Document createBSONFromOrganization(Organization org) {
@@ -547,9 +554,20 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public Document retrieveManagementDocument(String project, String branch, String user, long time, Organization org) {
-		// TODO Auto-generated method stub
-		return null;
+	public Document retrieveManagementDocument(String project, String branch, String user, long time) {
+		Document ret = null;
+		Iterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_MANAGEMENT, parser.getType(), time);
+		if(docs !=null && docs.iterator()!=null){
+			MongoCursor<Document> it = (MongoCursor<Document>) docs.iterator();
+			if(it.hasNext()){
+				Document doc = it.next();
+				ret = (Document) doc.get(DOC_RAW);
+//				if(it.hasNext()){
+//					LOGGER.severe("Inconsistency with the management documents of project:"+project+"   branch:"+branch+"    user:"+user+"    time:"+time);
+//				}
+			}
+		}
+		return ret;
 	}
 
 	@Override
@@ -558,10 +576,40 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	@Override
-	public GenericStorageResult insertManagementDocument(String project, String branch, String user, Document n, long time,
-			Vector<KeyValuePair> org) {
-		// TODO Auto-generated method stub
-		return null;
+	public GenericStorageResult insertManagementDocument(String project, String branch, String user, Document jsonObject, long time,
+			Collection<String> ref_elements, Collection<String> ref_relations, Collection<String> ref_views) {
+		int hash = parser.getManagmentHash(jsonObject);
+		GenericStorageResult ret = new GenericStorageResult();
+		//ArrayList<Document> orgJson = createOrganizationPath(org, branch);
+		//Document doc = enrichDocument( jsonObject,branch, user, time, hash, null);
+		String uuid = jsonObject.getString(Archimate3Parser.IDENTIFIER_TAG);
+		String version = jsonObject.getString(Archimate3Parser.VERSION_TAG);
+		Document doc = new Document(DOC_NAME, DOC_NAME_NODE)
+				.append(DOC_TYPE, parser.getType())
+				.append(DOC_ID, uuid)
+				.append(DOC_START_DATE, time)
+				.append(DOC_START_USER, user)
+				.append(DOC_END_DATE, -1L)
+				.append(DOC_HASH, hash)
+				//	.append(DOC_BRANCH, branchArr)
+				.append(DOC_BRANCH, branch)
+				//				.append(DOC_RAW, jsonObject);
+				.append(DOC_VERSION, version)
+				.append(DOC_RAW, jsonObject);
+		ArrayList<String> list = new ArrayList<String>();
+		list.addAll(ref_elements);
+		doc.append(DOC_ELEMENTS_LIST,list);
+		list = new ArrayList<String>();
+		list.addAll(ref_relations);
+		doc.append(DOC_RELATIONS_LIST,list);
+		list = new ArrayList<String>();
+		list.addAll(ref_views);
+		doc.append(DOC_VIEWS_LIST,list);
+		mongo.insertDocument(project,MongoDBAccess.COLLECTION_MANAGEMENT, doc);
+		
+		ret.setDoc(doc);
+		ret.setStatusInserted();
+		return ret;
 	}
 
 	@Override
@@ -576,17 +624,17 @@ implements GenericParserStorageConnectorManager {
 	
 	@Override
 	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID) {
-		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_NODES, fileID);	
+		return mongo.queryDocumentFindFileIds(project, branch, DOC_ELEMENTS_LIST, fileID);	
 	}
 
 	@Override
 	public Set<String> retrieveFileRelationshipIDs(String project, String branch, String fileID) {
-		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_RELATIONS, fileID);	
+		return mongo.queryDocumentFindFileIds(project, branch, DOC_RELATIONS_LIST, fileID);	
 	}
 
 	@Override
 	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID) {
-		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_VIEWS, fileID);	
+		return mongo.queryDocumentFindFileIds(project, branch, DOC_VIEWS_LIST, fileID);	
 	}
 
 	@Override
@@ -597,6 +645,11 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public boolean lockBranch(String project, String branch, String user, String model_id, long time) {
 		return mongo.queryLockBranch(project,branch, user, model_id, time);
+	}
+
+	@Override
+	public void releaseBranch(String project, String branch, String user) {
+		mongo.queryReleaseBranch(project,branch, user);
 	}
 
 	@Override

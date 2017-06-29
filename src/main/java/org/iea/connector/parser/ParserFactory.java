@@ -1,6 +1,7 @@
 package org.iea.connector.parser;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Set;
@@ -184,8 +185,9 @@ public class ParserFactory {
 		return storage.insertNodeDocument(parser, project, branch, user, n, time, org);
 	}
 
-	public Document insertManagementDocument(GenericParser parser, String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org) {
-		return storage.insertManagementDocument(parser, project, branch, user, n, time, org);
+	public Document insertManagementDocument(GenericParser parser, String project, String branch, String user, Document n, long time, 
+			Collection<String> ref_elements, Collection<String> ref_relations, Collection<String> ref_views) {
+		return storage.insertManagementDocument(parser, project, branch, user, n, time, ref_elements, ref_relations, ref_views);
 	}
 
 	public Document insertRelationDocument(GenericParser parser,String project, String branch, String user, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
@@ -214,8 +216,8 @@ public class ParserFactory {
 		return storage.retrieveOrganizationDocument(parser, project, branch, user, time, org);
 	}
 
-	public Document retrieveManagementDocument(GenericParser parser, String project, String branch, String user, long time, Organization org) {
-		return storage.retrieveManagementDocument(parser, project, branch, user, time, org);
+	public Document retrieveManagementDocument(GenericParser parser, String project, String branch, String user, long time) {
+		return storage.retrieveManagementDocument(parser, project, branch, user, time);
 	}
 
 	public Set<String> retrieveAllNodeIDs(GenericParser parser, String project, String branch) {
@@ -278,9 +280,14 @@ public class ParserFactory {
 		return storage.lockBranch(parser, project, branch, user, model_id, time) ;
 	}
 
+	public void releaseBranch(GenericParser parser, String project, String branch, String user) {
+		storage.releaseBranch(parser, project, branch, user) ;
+	}
+
 	public int retrieveModelHash(GenericParser parser, String project, String branch, String user, String model_id, long time) {
 		return storage.retrieveModelHash(parser, project, branch, user, model_id, time) ;
 	}
+
 
 
 //	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String user, String organizationsTypeLabel,

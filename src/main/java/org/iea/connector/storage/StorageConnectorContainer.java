@@ -1,6 +1,7 @@
 package org.iea.connector.storage;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -192,9 +193,10 @@ public class StorageConnectorContainer {
 	}
 
 	public GenericStorageResult insertManagementDocumentManager(String project, String branch, String user, Document n, long time,
-			Vector<KeyValuePair> org) {
+			Collection<String> ref_elements, Collection<String> ref_relations, Collection<String> ref_views) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).insertManagementDocument(project, branch, user, n, time, org);
+			return ((GenericParserStorageConnectorManager) connector).insertManagementDocument(project, branch, user, n, time, 
+					ref_elements, ref_relations, ref_views);
 		} 
 		return null;
 	}
@@ -211,9 +213,9 @@ public class StorageConnectorContainer {
 		} 
 	}
 
-	public Document retrieveManagementDocumentManager(String project, String branch, String user, long time, Organization org) {
+	public Document retrieveManagementDocumentManager(String project, String branch, String user, long time) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveManagementDocument(project, branch, user, time, org);
+			return ((GenericParserStorageConnectorManager) connector).retrieveManagementDocument(project, branch, user, time);
 		}
 		return null;
 	}
@@ -277,6 +279,12 @@ public class StorageConnectorContainer {
 			return ((GenericParserStorageConnectorManager) connector).retrieveModelHash(project, branch, user, model_id, time);
 		}
 		return 0;
+	}
+
+	public void releaseBranchManager(String project, String branch, String user) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).releaseBranch(project, branch, user);
+		}
 	}
 
 

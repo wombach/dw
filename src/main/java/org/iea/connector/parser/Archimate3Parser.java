@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -93,11 +94,14 @@ public class Archimate3Parser extends GenericParser {
 	public static final String ORGANIZATION_JSON_POSITION = "organization_position";
 	public static final String PROPERTIES_TAG = "ar3_properties";
 	public static final String PROPERTY_TAG = "ar3_property";
+	public static final String PROPERTY_DEFINITIONS_TAG = "ar3_propertyDefinitions";
 	public static final String PROPERTY_DEFINITION_TAG = "ar3_propertyDefinition";
 	public static final String PROPERTY_DEFINITIONREF_TAG = "@propertyDefinitionRef";
 	public static final String PROPERTY_VALUE_TAG = "ar3_value";
+	public static final String PROPERTY_DEFINITION_TYPE_TAG = "@type";
 	public static final String VERSION_TAG = "@version";
 	private static final String DEFAULT_USER = "default";
+
 
 	public Archimate3Parser(){
 		this.type = "archimate3";
@@ -428,6 +432,12 @@ public class Archimate3Parser extends GenericParser {
 		return jsonObject.hashCode();
 	}
 
+	@Override
+	public int getManagmentHash(Document jsonObject) {
+		return jsonObject.hashCode();
+	}
+
+
 	//	@Override
 	//	public String getRelationComparisonString(Document jsonObject) {
 	//		// TODO Auto-generated method stub
@@ -636,6 +646,9 @@ public class Archimate3Parser extends GenericParser {
 		HashMap<String,Document> nodeMap = new HashMap<String,Document>();
 		boolean overall_insert = false;
 		boolean overall_update = false;
+		Set<String> ref_elements = new HashSet<String>();
+		Set<String> ref_relations = new HashSet<String>();
+		Set<String> ref_views = new HashSet<String>();
 		if( doc_all!=null && doc_all.containsKey(MODEL_TAG)){
 			Document obj = (Document) doc_all.get(MODEL_TAG);
 			String version = obj.getString(VERSION_TAG);
@@ -643,348 +656,380 @@ public class Archimate3Parser extends GenericParser {
 			// check whether document version is up to date and try to lock the document for commit
 			// locking is done on branch level!
 			boolean lock_successfull = factory.lockBranch(this, project, branch, user, model_id, time);
-			int model_hash = factory.retrieveModelHash(this, project, branch, user, model_id, time);
+			if(lock_successfull){
+				int model_hash_old = factory.retrieveModelHash(this, project, branch, user, model_id, time);
 
-			//			String xmlns = obj.getString("xmlns");
-			//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
-			ret = true;
-			// organizations
-			ArrayList<Document> orgs = (ArrayList<Document>) obj.get(ORGANIZATIONS_TAG);
-			// call a recursion function to parse the tree and add one document per element into the organizations collection
-			HashMap<String, Vector<KeyValuePair>> orgMap = new HashMap<String,Vector<KeyValuePair>>();
-			Organization org = new Organization();
-			factory.retrieveOrganization(this, project, branch, user, time, org);
-			Set<String> refs  = factory.retrieveFileOrganizationIDs(this, project,branch, model_id);
-			createOrganizationLookup(project, branch, user, orgs, orgMap, time, new Vector<KeyValuePair>(), org,refs, overall_insert, overall_update);
-			// delete unreferenced items
-			LOGGER.info("#Organizations to be deleted: "+refs.size());
-			for(String ref : refs){
-				factory.retireOrganizationDocument(this,project, branch, user, ref, time);
-			}
-
-			//
-			// nodes
-			refs = factory.retrieveFileNodeIDs(this, project,branch, model_id);
-
-			Document els = (Document) obj.get(ELEMENTS_TAG);
-			ArrayList<Document> l = (ArrayList<Document>) els.get(ELEMENT_TAG);
-			LOGGER.info("number of lements: "+l.size());
-			els.remove(ELEMENT_TAG);
-			for(int i=0;i<l.size();i++){
-				boolean insert = true; // false means no action required
-				boolean update = false; 
-				Document n = l.get(i);
-				// need to remove properties for calculating the hash
-				String identifier = (String) n.remove(IDENTIFIER_TAG);
-				Document props = (Document) n.remove(PROPERTIES_TAG);
-				String uuid = "id-"+UUID.randomUUID().toString();
-				if(props!=null){
-					String old_uuid = (String) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER);
-					if(old_uuid!=null && !old_uuid.isEmpty()){
-						uuid = old_uuid;
-						update = true;
-					}
-					n.put(IDENTIFIER_TAG, uuid);
-					int old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
-					//					if(hashStr!=null && !hashStr.isEmpty()){
-					//int old_hash = Integer.valueOf(hashStr).intValue(); 
-					int hash = getNodeHash(n);
-					// it is an update
-					if(old_hash==hash){
-						insert = false; // no update or insert needed
-					}
-					//	add properties after calculating the hash				}
-					n.put(PROPERTIES_TAG, props);
-				} else {
-					n.put(IDENTIFIER_TAG, uuid);
+				//			String xmlns = obj.getString("xmlns");
+				//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
+				ret = true;
+				// organizations
+				ArrayList<Document> orgs = (ArrayList<Document>) obj.remove(ORGANIZATIONS_TAG);
+				// call a recursion function to parse the tree and add one document per element into the organizations collection
+				HashMap<String, Vector<KeyValuePair>> orgMap = new HashMap<String,Vector<KeyValuePair>>();
+				Organization org = new Organization();
+				factory.retrieveOrganization(this, project, branch, user, time, org);
+				Set<String> refs  = factory.retrieveFileOrganizationIDs(this, project,branch, model_id);
+				createOrganizationLookup(project, branch, user, orgs, orgMap, time, new Vector<KeyValuePair>(), org,refs, overall_insert, overall_update);
+				// delete unreferenced items
+				LOGGER.info("#Organizations to be deleted: "+refs.size());
+				for(String ref : refs){
+					factory.retireOrganizationDocument(this,project, branch, user, ref, time);
 				}
-				refs.remove(uuid);
-				if(insert){
-					overall_insert = true;
-					if(update){ 
-						overall_update = true;
-						factory.retireNodeDocument(this, project, user, branch, uuid, time);
-					}
-					factory.insertNodeDocument(this, project, branch, user, n, time, orgMap.get(identifier));
-				}
-				//				String uuid = getUUID(doc);
-				ArrayList<Document> nameArr = (ArrayList<Document>) n.get("ar3_name");
-				Document nameObj = nameArr.get(0);
-				String name = nameObj.getString("value");
-				map.put(identifier, uuid);
-				Document s = new Document();
-				s.put("name", name);
-				s.put("time", time);
-				s.put("type", getType());
-				s.put("branch",branch);
-				nodeMap.put(uuid, s );
-			}
-			// delete deleted nodes by deleting the remaining elements in refs
-			LOGGER.info("#Elements to be deleted: "+refs.size());
-			for(String ref : refs){
-				factory.retireNodeDocument(this,project, branch, user, ref, time);
-			}
 
-			//
-			// relations
-			refs = factory.retrieveFileRelationshipIDs(this, project,branch, model_id);
-			Document rels =  (Document) obj.get(RELATIONSHIPS_TAG);
-			l = (ArrayList<Document>) rels.get(RELATIONSHIP_TAG);
-			LOGGER.info("number of relationships: "+l.size());
-			rels.remove(RELATIONSHIP_TAG); 
-			Vector<Document> v;
-			Vector<Document> v2 = new Vector<Document>();
-			//			HashMap<String,String> relIds = new HashMap<String,String>();
-			for(int i=0;i<l.size();i++){
-				//				boolean insert = true; // false means no action required
-				//				boolean update = false; 
-				Document rel = l.get(i);
-				//				String identifier = rel.getString(IDENTIFIER_TAG);
-				String identifier = (String) rel.get(IDENTIFIER_TAG);
-				Document props = (Document) rel.remove(PROPERTIES_TAG);
-				String uuid = "id-"+UUID.randomUUID().toString();
-				if(props!=null){
-					String old_uuid = (String) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER);
-					if(old_uuid!=null && !old_uuid.isEmpty()){
-						uuid = old_uuid;
-						//						update = true;
-					}
-					//rel.put(IDENTIFIER_TAG, uuid);
-					//					int old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
-					//					//					if(hashStr!=null && !hashStr.isEmpty()){
-					//					//int old_hash = Integer.valueOf(hashStr).intValue(); 
-					//					int hash = getNodeHash(rel);
-					//					// it is an update
-					//					if(old_hash==hash){
-					//						insert = false; // no update or insert needed
-					//					}
-					//					//	add properties after calculating the hash				}
-					rel.put(PROPERTIES_TAG, props);
-					//} else {
-					//rel.put(IDENTIFIER_TAG, uuid);
-				}
-				refs.remove(uuid);
-				//				if(insert){
-				//					if(update) 
-				//						factory.retireNodeDocument(this, project, branch, uuid, time);
-				//					factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
-				//				}
-				//				if (identifier.equals("relation-fcdb1ce9-89c7-e611-8309-5ce0c5d8efd6")){
-				//					LOGGER.info("found it");
-				//				}
-				map.put(identifier, uuid);
-				v2.add(rel);
-			}
-			// delete deleted nodes by deleting the remaining elements in refs
-			LOGGER.info("#Relationships to be deleted: "+refs.size());
-			for(String ref : refs){
-				factory.retireRelationshipDocument(this,project, branch, user, ref, time);
-			}
-			while(!v2.isEmpty()){
-				v = v2;
-				v2 = new Vector<Document>();
-				while(!v.isEmpty()){
+				//
+				// elements
+				refs = factory.retrieveFileNodeIDs(this, project,branch, model_id);
+
+				Document els = (Document) obj.get(ELEMENTS_TAG);
+				ArrayList<Document> l = (ArrayList<Document>) els.get(ELEMENT_TAG);
+				LOGGER.info("number of lements: "+l.size());
+				els.remove(ELEMENT_TAG);
+				for(int i=0;i<l.size();i++){
 					boolean insert = true; // false means no action required
 					boolean update = false; 
-					int i = (int) (Math.random() * v.size());
-					Document rel = v.remove(i);
-					String identifier = (String) rel.remove(IDENTIFIER_TAG);
-					//					if (identifier.equals("relation-f41438e9-89c7-e611-8309-5ce0c5d8efd6")){
-					//						LOGGER.info("found it");
-					//					}
-					String source = rel.getString(SOURCE_TAG);
-					String target = rel.getString(TARGET_TAG);
-					String sourceUUID = map.get(source);
-					if(sourceUUID==null){
-						if(map.containsKey(source)){
-							sourceUUID = map.get(source);
-						}
-					}
-					rel.remove(SOURCE_TAG);
-					rel.put(SOURCE_TAG, sourceUUID);
-					String targetUUID = map.get(target);
-					if(targetUUID==null){
-						if(map.containsKey(target)){
-							targetUUID = map.get(target);
-						}
-					}
-					rel.remove(TARGET_TAG);
-					rel.put(TARGET_TAG, targetUUID);
-					if (sourceUUID==null || sourceUUID.isEmpty() || 
-							targetUUID==null || targetUUID.isEmpty()){
-						String type = rel.getString(TYPE_TAG);
-						if(sourceUUID == null){
-							retMsg += "Relation "+identifier+" ("+type+") related source ID can not be found: "+source+"\n";
-						} else if(targetUUID==null){
-							retMsg += "Relation "+identifier+" ("+type+") related target ID can not be found: "+target+"\n";
-						} 
-					} else {
-						//						String uuid = map.get(identifier);
-						//						rel.put(IDENTIFIER_TAG,uuid);
-						//Document doc = factory.insertRelationDocument(this, project, branch, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
-						//map.put(identifier, uuid);
-						// handle insert/updates/do nothing
-						rel.put(IDENTIFIER_TAG, map.get(identifier));
-						Document props = (Document) rel.remove(PROPERTIES_TAG);
-						if(props!=null){
-							String old_uuid = (String) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER);
-							if(old_uuid!=null && !old_uuid.isEmpty()){
-								update = true;
-							}
-							int old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
-							//					if(hashStr!=null && !hashStr.isEmpty()){
-							//int old_hash = Integer.valueOf(hashStr).intValue(); 
-							int hash = getRelationHash(rel);
-							// it is an update
-							if(old_hash==hash){
-								insert = false; // no update or insert needed
-							}
-							//	add properties after calculating the hash				}
-							rel.put(PROPERTIES_TAG, props);
-						}
-						if(insert){
-							overall_insert = true;
-							if(update){ 
-								overall_update = true;
-								factory.retireRelationshipDocument(this, project, branch, user, identifier, time);
-							}
-							//factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
-							factory.insertRelationDocument(this, project, branch, user, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
-						}
-					}
-				}
-			}
-
-			// views
-			if(obj.containsKey(VIEWS_TAG)){
-				refs = factory.retrieveFileViewIDs(this, project,branch, model_id);
-				Document views =  (Document) obj.get(VIEWS_TAG);
-				Document diags = (Document) views.get(DIAGRAMS_TAG);
-				//			for( int ii=0;ii<diags.length();ii++){
-				ArrayList<Document> lo = (ArrayList<Document>) diags.remove(VIEW_TAG);
-				LOGGER.info("number of views: "+lo.size());
-				for( int ii=0;ii<lo.size();ii++){
-					int cnt=0;
-					Document view = lo.get(ii);
-					String view_id = (String) view.remove(IDENTIFIER_TAG);
-					String id;
-					String uuid = null; //"id-"+UUID.randomUUID().toString();
-					boolean insert = true; // false means no action required
-					boolean update = false; 
-					Document props = (Document) view.remove(PROPERTIES_TAG);
-					String view_uuid = "id-"+UUID.randomUUID().toString();
-					int old_hash = 0;
+					Document n = l.get(i);
+					// need to remove properties for calculating the hash
+					String identifier = (String) n.remove(IDENTIFIER_TAG);
+					Document props = (Document) n.remove(PROPERTIES_TAG);
+					String uuid = "id-"+UUID.randomUUID().toString();
 					if(props!=null){
 						String old_uuid = (String) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER);
 						if(old_uuid!=null && !old_uuid.isEmpty()){
-							view_uuid = old_uuid;
+							uuid = old_uuid;
 							update = true;
 						}
-						old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
+						n.put(IDENTIFIER_TAG, uuid);
+						int old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
 						//					if(hashStr!=null && !hashStr.isEmpty()){
 						//int old_hash = Integer.valueOf(hashStr).intValue(); 
-
-						//					view.put(IDENTIFIER_TAG, uuid);
-						//					map.put(view_id,  uuid);
-					}
-					if(view.containsKey(NODES_TAG)){
-						ArrayList<Document> nods = (ArrayList<Document>) view.get(NODES_TAG);
-						for(int jj=0;jj<nods.size();jj++){
-							Document ob = nods.get(jj);
-							cnt = changeIDsInNode(ob, map,view_uuid,cnt);
-							//							if( ob.containsKey(ELEMENTREF_TAG)){
-							//								String ref = ob.getString(ELEMENTREF_TAG);
-							//								uuid = map.get(ref);
-							//								ob.put(ELEMENTREF_TAG, uuid);
-							//							}
-							//							id = ob.getString(IDENTIFIER_TAG);
-							//							if(id.equals("id-1993f24b"))
-							//								LOGGER.info("found it");
-							//							uuid = "id-"+UUID.randomUUID().toString();
-							//							ob.put(IDENTIFIER_TAG, uuid);
-							//							map.put(id,  uuid);
-						}
-					}
-					if(view.containsKey(CONNECTION_TAG)){
-						ArrayList<Document> cons = (ArrayList<Document>) view.get(CONNECTION_TAG);
-						for(int jj=0;jj<cons.size();jj++){
-							Document ob = cons.get(jj);
-							if(ob.containsKey(RELATIONSHIPREF_TAG)){
-								String ref = ob.getString(RELATIONSHIPREF_TAG);
-								uuid = map.get(ref);
-								ob.put(RELATIONSHIPREF_TAG, uuid);
-							}
-							String src = ob.getString(SOURCE_TAG);
-							uuid = map.get(src);
-							ob.put(SOURCE_TAG, uuid);
-							String trg = ob.getString(TARGET_TAG);
-							uuid = map.get(trg);
-							ob.put(TARGET_TAG, uuid);
-							id = ob.getString(IDENTIFIER_TAG);
-							uuid = view_uuid+"-r-"+jj;
-							ob.put(IDENTIFIER_TAG, uuid);
-							map.put(id,  uuid);
-							//					LOGGER.info(ob.toString());
-						}
-					}
-					view.put(IDENTIFIER_TAG, view_uuid);
-					map.put(view_id,  view_uuid);
-					refs.remove(view_uuid);
-					if(props!=null){
-						int hash = getViewHash(view);
+						int hash = getNodeHash(n);
 						// it is an update
 						if(old_hash==hash){
 							insert = false; // no update or insert needed
 						}
 						//	add properties after calculating the hash				}
-						view.put(PROPERTIES_TAG, props);
+						n.put(PROPERTIES_TAG, props);
+					} else {
+						n.put(IDENTIFIER_TAG, uuid);
 					}
-
+					refs.remove(uuid);
+					ref_elements.add(uuid);
 					if(insert){
 						overall_insert = true;
 						if(update){ 
 							overall_update = true;
-							factory.retireViewDocument(this, project, branch, user, view_uuid, time);
+							factory.retireNodeDocument(this, project, user, branch, uuid, time);
 						}
-						//factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
-						factory.insertViewDocument(this, project, branch, user,  view_uuid, view, time, orgMap.get(view_id));
+						factory.insertNodeDocument(this, project, branch, user, n, time, orgMap.get(identifier));
 					}
-					//uuid = view.getString(IDENTIFIER_TAG);
-					//					Document doc = factory.insertViewDocument(this, project, branch,  view_id, view, time, orgMap.get(view_id));
-					//map.put(id, uuid);
+					//				String uuid = getUUID(doc);
+					ArrayList<Document> nameArr = (ArrayList<Document>) n.get("ar3_name");
+					Document nameObj = nameArr.get(0);
+					String name = nameObj.getString("value");
+					map.put(identifier, uuid);
+					Document s = new Document();
+					s.put("name", name);
+					s.put("time", time);
+					s.put("type", getType());
+					s.put("branch",branch);
+					nodeMap.put(uuid, s );
 				}
-				// delete views by deleting the remaining items in refs
-				LOGGER.info("#Views to be deleted: "+refs.size());
+				// delete deleted nodes by deleting the remaining elements in refs
+				LOGGER.info("#Elements to be deleted: "+refs.size());
 				for(String ref : refs){
-					factory.retireViewDocument(this,project, branch, user, ref, time);
+					factory.retireNodeDocument(this,project, branch, user, ref, time);
 				}
 
-			}
-			//
-			// handle Management information
-//			int model_hash = doc_all.hashCode();
-			
-			if(overall_insert){
-				if(overall_update){
+				//
+				// relations
+				refs = factory.retrieveFileRelationshipIDs(this, project,branch, model_id);
+				Document rels =  (Document) obj.get(RELATIONSHIPS_TAG);
+				l = (ArrayList<Document>) rels.get(RELATIONSHIP_TAG);
+				LOGGER.info("number of relationships: "+l.size());
+				rels.remove(RELATIONSHIP_TAG); 
+				Vector<Document> v;
+				Vector<Document> v2 = new Vector<Document>();
+				//			HashMap<String,String> relIds = new HashMap<String,String>();
+				for(int i=0;i<l.size();i++){
+					//				boolean insert = true; // false means no action required
+					//				boolean update = false; 
+					Document rel = l.get(i);
+					//				String identifier = rel.getString(IDENTIFIER_TAG);
+					String identifier = (String) rel.get(IDENTIFIER_TAG);
+					Document props = (Document) rel.remove(PROPERTIES_TAG);
+					String uuid = "id-"+UUID.randomUUID().toString();
+					if(props!=null){
+						String old_uuid = (String) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER);
+						if(old_uuid!=null && !old_uuid.isEmpty()){
+							uuid = old_uuid;
+							//						update = true;
+						}
+						//rel.put(IDENTIFIER_TAG, uuid);
+						//					int old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
+						//					//					if(hashStr!=null && !hashStr.isEmpty()){
+						//					//int old_hash = Integer.valueOf(hashStr).intValue(); 
+						//					int hash = getNodeHash(rel);
+						//					// it is an update
+						//					if(old_hash==hash){
+						//						insert = false; // no update or insert needed
+						//					}
+						//					//	add properties after calculating the hash				}
+						rel.put(PROPERTIES_TAG, props);
+						//} else {
+						//rel.put(IDENTIFIER_TAG, uuid);
+					}
+					refs.remove(uuid);
+					ref_relations.add(uuid);
+					//				if(insert){
+					//					if(update) 
+					//						factory.retireNodeDocument(this, project, branch, uuid, time);
+					//					factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
+					//				}
+					//				if (identifier.equals("relation-fcdb1ce9-89c7-e611-8309-5ce0c5d8efd6")){
+					//					LOGGER.info("found it");
+					//				}
+					map.put(identifier, uuid);
+					v2.add(rel);
+				}
+				// delete deleted nodes by deleting the remaining elements in refs
+				LOGGER.info("#Relationships to be deleted: "+refs.size());
+				for(String ref : refs){
+					factory.retireRelationshipDocument(this,project, branch, user, ref, time);
+				}
+				while(!v2.isEmpty()){
+					v = v2;
+					v2 = new Vector<Document>();
+					while(!v.isEmpty()){
+						boolean insert = true; // false means no action required
+						boolean update = false; 
+						int i = (int) (Math.random() * v.size());
+						Document rel = v.remove(i);
+						String identifier = (String) rel.remove(IDENTIFIER_TAG);
+						//					if (identifier.equals("relation-f41438e9-89c7-e611-8309-5ce0c5d8efd6")){
+						//						LOGGER.info("found it");
+						//					}
+						String source = rel.getString(SOURCE_TAG);
+						String target = rel.getString(TARGET_TAG);
+						String sourceUUID = map.get(source);
+						if(sourceUUID==null){
+							if(map.containsKey(source)){
+								sourceUUID = map.get(source);
+							}
+						}
+						rel.remove(SOURCE_TAG);
+						rel.put(SOURCE_TAG, sourceUUID);
+						String targetUUID = map.get(target);
+						if(targetUUID==null){
+							if(map.containsKey(target)){
+								targetUUID = map.get(target);
+							}
+						}
+						rel.remove(TARGET_TAG);
+						rel.put(TARGET_TAG, targetUUID);
+						if (sourceUUID==null || sourceUUID.isEmpty() || 
+								targetUUID==null || targetUUID.isEmpty()){
+							String type = rel.getString(TYPE_TAG);
+							if(sourceUUID == null){
+								retMsg += "Relation "+identifier+" ("+type+") related source ID can not be found: "+source+"\n";
+							} else if(targetUUID==null){
+								retMsg += "Relation "+identifier+" ("+type+") related target ID can not be found: "+target+"\n";
+							} 
+						} else {
+							//						String uuid = map.get(identifier);
+							//						rel.put(IDENTIFIER_TAG,uuid);
+							//Document doc = factory.insertRelationDocument(this, project, branch, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
+							//map.put(identifier, uuid);
+							// handle insert/updates/do nothing
+							rel.put(IDENTIFIER_TAG, map.get(identifier));
+							Document props = (Document) rel.remove(PROPERTIES_TAG);
+							if(props!=null){
+								String old_uuid = (String) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER);
+								if(old_uuid!=null && !old_uuid.isEmpty()){
+									update = true;
+								}
+								int old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
+								//					if(hashStr!=null && !hashStr.isEmpty()){
+								//int old_hash = Integer.valueOf(hashStr).intValue(); 
+								int hash = getRelationHash(rel);
+								// it is an update
+								if(old_hash==hash){
+									insert = false; // no update or insert needed
+								}
+								//	add properties after calculating the hash				}
+								rel.put(PROPERTIES_TAG, props);
+							}
+							if(insert){
+								overall_insert = true;
+								if(update){ 
+									overall_update = true;
+									factory.retireRelationshipDocument(this, project, branch, user, identifier, time);
+								}
+								//factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
+								factory.insertRelationDocument(this, project, branch, user, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
+							}
+						}
+					}
+				}
+
+				// views
+				if(obj.containsKey(VIEWS_TAG)){
+					refs = factory.retrieveFileViewIDs(this, project,branch, model_id);
+					Document views =  (Document) obj.get(VIEWS_TAG);
+					Document diags = (Document) views.get(DIAGRAMS_TAG);
+					//			for( int ii=0;ii<diags.length();ii++){
+					ArrayList<Document> lo = (ArrayList<Document>) diags.remove(VIEW_TAG);
+					LOGGER.info("number of views: "+lo.size());
+					for( int ii=0;ii<lo.size();ii++){
+						int cnt=0;
+						Document view = lo.get(ii);
+						String view_id = (String) view.remove(IDENTIFIER_TAG);
+						String id;
+						String uuid = null; //"id-"+UUID.randomUUID().toString();
+						boolean insert = true; // false means no action required
+						boolean update = false; 
+						Document props = (Document) view.remove(PROPERTIES_TAG);
+						String view_uuid = "id-"+UUID.randomUUID().toString();
+						int old_hash = 0;
+						if(props!=null){
+							String old_uuid = (String) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_IDENTIFIER);
+							if(old_uuid!=null && !old_uuid.isEmpty()){
+								view_uuid = old_uuid;
+								update = true;
+							}
+							old_hash = (int) getPropid(props, Archimate3MongoDBConnector.PROPID_IEA_HASH);
+							//					if(hashStr!=null && !hashStr.isEmpty()){
+							//int old_hash = Integer.valueOf(hashStr).intValue(); 
+
+							//					view.put(IDENTIFIER_TAG, uuid);
+							//					map.put(view_id,  uuid);
+						}
+						if(view.containsKey(NODES_TAG)){
+							ArrayList<Document> nods = (ArrayList<Document>) view.get(NODES_TAG);
+							for(int jj=0;jj<nods.size();jj++){
+								Document ob = nods.get(jj);
+								cnt = changeIDsInNode(ob, map,view_uuid,cnt, ii);
+								//							if( ob.containsKey(ELEMENTREF_TAG)){
+								//								String ref = ob.getString(ELEMENTREF_TAG);
+								//								uuid = map.get(ref);
+								//								ob.put(ELEMENTREF_TAG, uuid);
+								//							}
+								//							id = ob.getString(IDENTIFIER_TAG);
+								//							if(id.equals("id-1993f24b"))
+								//								LOGGER.info("found it");
+								//							uuid = "id-"+UUID.randomUUID().toString();
+								//							ob.put(IDENTIFIER_TAG, uuid);
+								//							map.put(id,  uuid);
+							}
+						}
+						if(view.containsKey(CONNECTION_TAG)){
+							ArrayList<Document> cons = (ArrayList<Document>) view.get(CONNECTION_TAG);
+							for(int jj=0;jj<cons.size();jj++){
+								Document ob = cons.get(jj);
+								if(ob.containsKey(RELATIONSHIPREF_TAG)){
+									String ref = ob.getString(RELATIONSHIPREF_TAG);
+									uuid = map.get(ref);
+									ob.put(RELATIONSHIPREF_TAG, uuid);
+								}
+								String src = ob.getString(SOURCE_TAG);
+								uuid = map.get(src);
+								ob.put(SOURCE_TAG, uuid);
+								String trg = ob.getString(TARGET_TAG);
+								uuid = map.get(trg);
+								ob.put(TARGET_TAG, uuid);
+								id = ob.getString(IDENTIFIER_TAG);
+								uuid = view_uuid+"-r-"+jj;
+								ob.put(IDENTIFIER_TAG, uuid);
+								map.put(id,  uuid);
+								//					LOGGER.info(ob.toString());
+							}
+						}
+						view.put(IDENTIFIER_TAG, view_uuid);
+						map.put(view_id,  view_uuid);
+						refs.remove(view_uuid);
+						ref_views.add(uuid);
+						if(props!=null){
+							int hash = getViewHash(view);
+							// it is an update
+							if(old_hash==hash){
+								insert = false; // no update or insert needed
+							}
+							//	add properties after calculating the hash				}
+							view.put(PROPERTIES_TAG, props);
+						}
+
+						if(insert){
+							overall_insert = true;
+							if(update){ 
+								overall_update = true;
+								factory.retireViewDocument(this, project, branch, user, view_uuid, time);
+							}
+							factory.insertViewDocument(this, project, branch, user,  view_uuid, view, time, orgMap.get(view_id));
+						}
+						//uuid = view.getString(IDENTIFIER_TAG);
+						//					Document doc = factory.insertViewDocument(this, project, branch,  view_id, view, time, orgMap.get(view_id));
+						//map.put(id, uuid);
+					}
+					// delete views by deleting the remaining items in refs
+					LOGGER.info("#Views to be deleted: "+refs.size());
+					for(String ref : refs){
+						factory.retireViewDocument(this,project, branch, user, ref, time);
+					}
 
 				}
-			}
+				//
+				// handle Management information
+				boolean insert = true; // false means no action required
+				boolean update = false; 
+				int model_hash_new = obj.hashCode();
+				String ver = "id-"+UUID.randomUUID().toString();
+				if(model_hash_old != 0){
+					// there is an entry in the database
+					update = true;
+					obj.replace(VERSION_TAG, ver);
+				} else {
+					// there is no entry in the database for this model yet.
+					// to make sure that the id is according to our expectation we overwrite the ID
+					String old_id = (String) obj.remove(Archimate3Parser.IDENTIFIER_TAG);
+					// this is necssary since the JAXB is not compliant with specification; it expects the attributes to be at the beginning of the document
+					Set<Entry<String, Object>> entryset = obj.entrySet();
+					Document obj2 = new Document();
+					obj2.put(Archimate3Parser.IDENTIFIER_TAG, "id-"+UUID.randomUUID().toString());
+					obj2.put(Archimate3Parser.VERSION_TAG, ver);
+					for(Entry<String,Object> e : entryset){
+						if(!e.getKey().equals(Archimate3Parser.IDENTIFIER_TAG) &&
+								!e.getKey().equals(Archimate3Parser.VERSION_TAG)){
+							obj2.append(e.getKey(), e.getValue());
+						}
+					}
+					obj = obj2;
+				}
+				if (model_hash_new == model_hash_old) {
+					insert = false; // no update or insert needed
+				}
+				if(overall_insert || insert){
+					if(overall_update || update){
+						factory.retireManagementDocument(this, project, branch, user, model_id, time);
+					}
+					factory.insertManagementDocument(this, project, branch, user, obj, time, ref_elements, ref_relations, ref_views);
+				}
+				factory.releaseBranch(this, project, branch, user);
+			} // end of if(lock_successull
 		}
 		LOGGER.severe(retMsg);
 		return ret;
 	}
 
 
-	private int changeIDsInNode(Document ob, HashMap<String, String> map, String view_id, int cnt) {
+	private int changeIDsInNode(Document ob, HashMap<String, String> map, String view_id, int cnt, int view_cnt) {
 		String uuid = "";
 		if( ob.containsKey(ELEMENTREF_TAG)){
 			String ref = ob.getString(ELEMENTREF_TAG);
 			uuid = map.get(ref);
 			ob.put(ELEMENTREF_TAG, uuid);
 		} else {
-			uuid = view_id+"-n-"+(cnt++);	
+			uuid = view_id+"-"+view_cnt+"-n-"+(cnt++);	
 		}
-		uuid = uuid+"-0";
+		uuid = uuid+"-"+view_cnt+"-0";
 		String id = ob.getString(IDENTIFIER_TAG);
 		ob.put(IDENTIFIER_TAG, uuid);
 		map.put(id,  uuid);
@@ -992,7 +1037,7 @@ public class Archimate3Parser extends GenericParser {
 			ArrayList<Document> nods = (ArrayList<Document>) ob.get(NODES_TAG);
 			for(int jj=0;jj<nods.size();jj++){
 				Document ob2 = nods.get(jj);
-				cnt = changeIDsInNode(ob2, map,uuid,cnt);
+				cnt = changeIDsInNode(ob2, map,uuid,cnt, view_cnt);
 			}
 		}
 		return cnt;
@@ -1081,22 +1126,73 @@ public class Archimate3Parser extends GenericParser {
 		String ret5 = "\n}}}";
 
 		long time =  date.getTime();
+		String ver = "id-"+UUID.randomUUID().toString();
+		Document base = factory.retrieveManagementDocument(this, project, branch, user, time);
+		Document model = new Document(MODEL_TAG,base);
+
+		// handling propertyDefintions
+		Document props = (Document) base.get(PROPERTY_DEFINITIONS_TAG);
+		if (props==null){
+			props = new Document();
+			base.append(PROPERTY_DEFINITIONS_TAG, props);
+		}
+		ArrayList<Document> prop = (ArrayList<Document>) props.get(PROPERTY_DEFINITION_TAG);
+		if(prop==null){
+			prop = new ArrayList<Document>();
+			props.append(PROPERTY_DEFINITION_TAG, prop);
+		}
+		HashMap<String, String> propIDs = new HashMap<String,String>();
+		propIDs.putAll(Archimate3MongoDBConnector.PROPID_MAP);
+		for(int ii=0;ii<prop.size();ii++){
+			Document p = prop.get(ii);
+			String s = p.getString(IDENTIFIER_TAG);
+			propIDs.remove(s);
+		}
+		// add missing properties
+		Iterator<Entry<String, String>> it = propIDs.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<String, String>e = it.next();
+			Document p = new Document(IDENTIFIER_TAG, e.getKey()).
+					append(PROPERTY_DEFINITION_TYPE_TAG, e.getValue());
+			ArrayList<Document> names = new ArrayList<Document>(); 
+			names.add(new Document(PROPERTY_VALUE_TAG, e.getKey()));
+			p.append(NAME_TAG, names);
+			prop.add(p);
+		}
+
+		base.replace(VERSION_TAG, ver);
+		Collection<String> ref_elements = factory.retrieveAllNodeIDs(this, project,branch);
+		Collection<String> ref_relations = factory.retrieveAllRelationshipIDs(this, project,branch);
+		Collection<String> ref_views = factory.retrieveAllViewIDs(this, project,branch);
+		factory.insertManagementDocument(this, project, branch, user, base, time, ref_elements, ref_relations, ref_views);
+		// retrieve the individual pieces
 		Organization org = new Organization();
 		Document n = factory.retrieveNodeDocument(this, project, branch, user, time, org);
 		Document r = factory.retrieveRelationDocument(this, project, branch, user, time, org);
 		Document v = factory.retrieveViewDocument(this, project, branch, user, time, org);
 		Document o = factory.retrieveOrganizationDocument(this, project, branch, user, time, org);
-
-		String ret = ret1;
+		base.replace(VERSION_TAG, ver);
+		base.replace(ELEMENTS_TAG,n);
+		base.replace(RELATIONSHIPS_TAG,r);
+		Document diags = (Document) base.get(VIEWS_TAG);
+		diags.replace(DIAGRAMS_TAG,v);
+		ArrayList<Document> list = new ArrayList<Document>();
+		list.add(o);
+		base.put(ORGANIZATIONS_TAG,list);
 		JsonWriterSettings writerSet = new JsonWriterSettings(true);
-		ret = ret+n.toJson(writerSet)+ret2;
-		ret = ret+r.toJson(writerSet)+ret3;
-		//		ret = ret+o.toJson(writerSet)+ret4;
-		String str = o.toJson(writerSet);
-		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
-		//str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
-		ret = ret + str + ret4;
-		ret = ret+v.toJson(writerSet)+ret5;
+		return model.toJson(writerSet);
+
+		//		Document 
+		//		String ret = ret1;
+		//		JsonWriterSettings writerSet = new JsonWriterSettings(true);
+		//		ret = ret+n.toJson(writerSet)+ret2;
+		//		ret = ret+r.toJson(writerSet)+ret3;
+		//		//		ret = ret+o.toJson(writerSet)+ret4;
+		//		String str = o.toJson(writerSet);
+		//		// cutting off the leading and tailing brackets since it is not a JSONObject on its own.
+		//		//str = str.substring(str.indexOf("{")+1,str.lastIndexOf("}"));
+		//		ret = ret + str + ret4;
+		//		ret = ret+v.toJson(writerSet)+ret5;
 
 		//		ob = new JSONObject(v);
 		//		ret = ret+ob.toString(Archimate3MongoDBConnector.PRETTY_PRINT_INDENT_FACTOR)+ret5;
@@ -1121,7 +1217,7 @@ public class Archimate3Parser extends GenericParser {
 		//ret = ret+ret4+v.toJson()+ret5; 
 		//ob = new JSONObject(ret);
 		//ret = ob.toString(4);
-		return ret;
+		//		return ret;
 	}
 
 	//	@Override
@@ -1314,11 +1410,11 @@ public class Archimate3Parser extends GenericParser {
 			//		jaxbContext =  JAXBContext.newInstance(ModelType.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
-//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
-//			marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
-//			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
-//			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
+			//			marshaller.setProperty(MarshallerProperties.NAMESPACE_PREFIX_MAPPER, namespaces);
+			//			marshaller.setProperty(MarshallerProperties.JSON_NAMESPACE_SEPARATOR, '_');
+			//			marshaller.setProperty(MarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
+			//			marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
+			//			marshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
 			StringWriter out = new StringWriter( );
 			marshaller.marshal(model, out);
 			ret = out.toString();

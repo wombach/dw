@@ -475,4 +475,6 @@ public abstract class GenericParser {
 
 	public abstract int getViewHash(Document jsonObject);
 
+	public abstract int getManagmentHash(Document jsonObject);
+	
 }

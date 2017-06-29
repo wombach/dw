@@ -7,21 +7,24 @@ import java.util.logging.Logger;
 import org.bson.Document;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoDBSingleton {
-	private static final String DOC_BRANCHES = "branches";
-	private static final String DOC_START_TIME = "start_time";
-	private static final String DOC_MODEL_ID = "model_id";
-	private static final String DOC_LOCK = "lock";
-	private static final String DOC_USER = "user";
-	private static final String DOC_BRANCH = "branch";
-	private static final String DOC_PROJECT = "project";
-	private final static Logger LOGGER = Logger.getLogger(MongoDBSingleton.class.getName()); 
-	private static MongoClient mongoClient = null;
+	public static final String DOC_BRANCHES = "branches";
+	public static final String DOC_START_TIME = "start_time";
+	public static final String DOC_MODEL_ID = "model_id";
+	public static final String DOC_LOCK = "lock";
+	public static final String DOC_USER = "user";
+	public static final String DOC_BRANCH = "branch";
+	public static final String DOC_PROJECT = "project";
 	public final static String MANAGEMENT_DATABASE = "management";
 	public final static String MANAGEMENT_COLLECTION = "management";
+
+	private static MongoClient mongoClient = null;
+	private final static Logger LOGGER = Logger.getLogger(MongoDBSingleton.class.getName()); 
 	
 	private static HashMap<String, HashMap<String, Boolean>> lock = loadLock();
 //	private HashMap<String,MongoClient> mongoClients = new HashMap<String,MongoClient>();
@@ -61,8 +64,28 @@ public class MongoDBSingleton {
 	}
 
 	private static HashMap<String, HashMap<String, Boolean>> loadLock() {
-		MongoCollection<Document> collection = getCollection();
 		HashMap<String, HashMap<String, Boolean>> ret = new HashMap<String, HashMap<String, Boolean>>();
+		HashMap<String, Boolean> proj;
+		MongoCollection<Document> col = getCollection();
+		FindIterable<Document> res = col.find();
+		MongoCursor<Document> it = res.iterator();
+		while(it.hasNext()){
+			Document doc = it.next();
+			String project = doc.getString(DOC_PROJECT);
+			if(ret.containsKey(project)){
+				proj = ret.get(project);
+			} else {
+				proj = new HashMap<String, Boolean>();
+				ret.put(project, proj);
+			}
+			ArrayList<Document> branches = (ArrayList<Document>) doc.get(DOC_BRANCHES);
+			for(int ii=0;ii<branches.size();ii++){
+				Document elm = branches.get(ii);
+				String branch = elm.getString(DOC_BRANCH);
+				boolean flag = elm.getBoolean(DOC_LOCK, false);
+				proj.put(branch, flag);
+			}
+		}
 		return ret;
 	}
 	
@@ -135,6 +158,11 @@ public class MongoDBSingleton {
 		MongoClient mongo = getClient();
 		MongoDatabase database = mongoClient.getDatabase(MANAGEMENT_DATABASE);
 		return database.getCollection(MANAGEMENT_COLLECTION);
+	}
+	
+	public static void dropCollection(){
+		MongoCollection<Document> col = getCollection();
+			col.drop();
 	}
 	
 	private static void insertBranchLock(String project, String branch, String user, String model_id, long time) {

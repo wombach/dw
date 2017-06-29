@@ -187,8 +187,8 @@ public class MongoDBAccess {
 		col.drop();
 		col = getCollection(db, COLLECTION_RELATIONS);
 		col.drop();
-		col = getCollection(db, COLLECTION_FILES);
-		col.drop();
+//		col = getCollection(db, COLLECTION_FILES);
+//		col.drop();
 		col = getCollection(db, COLLECTION_ORGANIZATIONS);
 		col.drop();
 		col = getCollection(db, COLLECTION_VIEWS);
@@ -224,21 +224,16 @@ public class MongoDBAccess {
 
 	public Set<String> queryDocumentFindFileIds(String project, String branch, String col, String fileID) {
 		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
-				append(Archimate3MongoDBConnector.DOC_END_DATE,  new BasicDBObject("$eq", -1));
-		//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
+				append(Archimate3MongoDBConnector.DOC_END_DATE,  -1);
 		HashSet<String> ref =  new HashSet<String>();
-		//		Block<Document> extractID = new Block<Document>() {
-		//			@Override
-		//			public void apply(final Document document) {
-		//				ref.add(document.getString(Archimate3MongoDBConnector.DOC_ID));
-		//			}
-		//		};
-		FindIterable<Document> docs = getCollection(project, col).find(query);//.forEach(extractID);
+		FindIterable<Document> docs = getCollection(project, COLLECTION_MANAGEMENT).find(query);
 		if(docs !=null && docs.iterator()!=null){
 			MongoCursor<Document> it = docs.iterator();
 			while(it.hasNext()){
 				Document doc = it.next();
-				ref.add(doc.getString(Archimate3MongoDBConnector.DOC_ID));
+				ref = (HashSet<String>) doc.get(col);  
+				break;
+				//ref.add(doc.getString(Archimate3MongoDBConnector.DOC_ID));
 			}
 		}
 		// TODO: adjust to retrive the data from Management collection
@@ -246,12 +241,26 @@ public class MongoDBAccess {
 	}
 
 	public boolean queryLockBranch(String project, String branch, String user, String model_id, long time) {
-		// TODO Auto-generated method stub
-		return false;
+		return MongoDBSingleton.getLock(project, branch, user, model_id, time);
 	}
 
 	public int retrieveModelHash(String project, String branch, String user, String model_id, long time) {
-		// TODO Auto-generated method stub
-		return 0;
+		int hash = 0;
+		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
+				append(Archimate3MongoDBConnector.DOC_END_DATE,  -1)
+				.append(Archimate3Parser.DOC_ID, model_id);
+		FindIterable<Document> docs = getCollection(project, COLLECTION_MANAGEMENT).find(query);//.forEach(extractID);
+		if(docs !=null && docs.iterator()!=null){
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+				hash = doc.getInteger(Archimate3MongoDBConnector.DOC_HASH,0);
+			}
+		}
+		return hash;
+	}
+
+	public void queryReleaseBranch(String project, String branch, String user) {
+		MongoDBSingleton.releaseLock(project, branch, user);
 	}
 }

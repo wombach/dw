@@ -29,6 +29,7 @@ import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.parser.ParserFactory;
 import org.iea.connector.parser.storage.Archimate3MongoDBConnector;
+import org.iea.connector.storage.MongoDBSingleton;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -98,12 +99,13 @@ public class Archimate3FileIBasedInteractionTest {
 //		givenXMLFile_unmarshalJson_marshalXML();
 //		givenJsonFile_processJsonString_expectTrue();
 //		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
-//				givenJsonFile_unmarshalJson_marshalXML();
-		givenJsonFile_processJsonString_no_updates_expectTrue();
+				givenJsonFile_unmarshalJson_marshalXML();
+//		givenJsonFile_processJsonString_no_updates_expectTrue();
 	}
 
 	public void givenJsonFile_processJsonString_expectTrue() {		
 		pf.dropProject("archimate3_test_project");
+		MongoDBSingleton.dropCollection();
 		String json = readFile("demo_archimate3.json");
 		assertTrue(pf.processJsonString("archimate3_test_project","branch1","user1", json));	
 	}

@@ -252,12 +252,12 @@ public class StorageFactory {
 	}
 
 	public Document insertManagementDocument(GenericParser parser, String project, String branch, String user, Document n, long time,
-			Vector<KeyValuePair> org) {
+			Collection<String> ref_elements, Collection<String> ref_relations, Collection<String> ref_views) {
 		GenericStorageResult ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.insertManagementDocumentManager(project, branch, user, n, time, org);
+				ret = v.insertManagementDocumentManager(project, branch, user, n, time, ref_elements, ref_relations, ref_views);
 			} else { 
 				if(ret.isStatusUpdated()){
 					v.updateManagementDocument(project, branch, user, n, time);
@@ -278,13 +278,12 @@ public class StorageFactory {
 		}
 	}
 
-	public Document retrieveManagementDocument(GenericParser parser, String project, String branch, String user, long time,
-			Organization org) {
+	public Document retrieveManagementDocument(GenericParser parser, String project, String branch, String user, long time) {
 		Document ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveManagementDocumentManager(project, branch, user, time, org);
+				ret = v.retrieveManagementDocumentManager(project, branch, user, time);
 			}
 		}
 		return ret;
@@ -385,6 +384,16 @@ public class StorageFactory {
 			}
 		}
 		return ret;
+	}
+
+	public void releaseBranch(GenericParser parser, String project, String branch, String user) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.releaseBranchManager(project, branch, user);
+			}
+		}
+
 	}
 
 
