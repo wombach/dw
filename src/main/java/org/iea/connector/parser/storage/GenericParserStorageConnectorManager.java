@@ -68,19 +68,21 @@ public interface GenericParserStorageConnectorManager {
 
 	public Set<String> retrieveAllOrganizationIDs(String project, String branch);
 
-	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID);
+	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID, String version);
 
-	public Set<String> retrieveFileRelationshipIDs(String project, String branch, String fileID);
+	public Set<String> retrieveFileRelationshipIDs(String project, String branch, String fileID, String version);
 
-	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID);
+	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID, String version);
 
-	public Set<String> retrieveFileOrganizationIDs(String project, String branch, String fileID);
+//	public Set<String> retrieveFileOrganizationIDs(String project, String branch, String fileID);
 
 	public boolean lockBranch(String project, String branch, String user, String model_id, long time);
 
 	public int retrieveModelHash(String project, String branch, String user, String model_id, long time);
 
 	public void releaseBranch(String project, String branch, String user);
+
+	public boolean checkModelCommit(String project, String branch, String model_id, String version);
 
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, String organizationsTypeLabel,

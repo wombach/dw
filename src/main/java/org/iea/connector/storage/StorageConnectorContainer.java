@@ -239,33 +239,33 @@ public class StorageConnectorContainer {
 		return null;
 	}
 
-	public Set<String> retrieveFileNodeIDsManager(String project, String branch, String fileID) {
+	public Set<String> retrieveFileNodeIDsManager(String project, String branch, String fileID, String version) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveFileNodeIDs(project, branch, fileID);
+			return ((GenericParserStorageConnectorManager) connector).retrieveFileNodeIDs(project, branch, fileID, version);
 		}
 		return null;
 	}
 
-	public Set<String> retrieveFileRelationshipIDsManager(String project, String branch, String fileID) {
+	public Set<String> retrieveFileRelationshipIDsManager(String project, String branch, String fileID, String version) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveFileRelationshipIDs(project, branch, fileID);
+			return ((GenericParserStorageConnectorManager) connector).retrieveFileRelationshipIDs(project, branch, fileID, version);
 		}
 		return null;
 	}
 
-	public Set<String> retrieveFileViewIDsManager(String project, String branch, String fileID) {
+	public Set<String> retrieveFileViewIDsManager(String project, String branch, String fileID, String version) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveFileViewIDs(project, branch, fileID);
+			return ((GenericParserStorageConnectorManager) connector).retrieveFileViewIDs(project, branch, fileID, version);
 		}
 		return null;
 	}
 
-	public Set<String> retrieveFileOrganizationIDsManager(String project, String branch, String fileID) {
-		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
-			return ((GenericParserStorageConnectorManager) connector).retrieveFileOrganizationIDs(project, branch, fileID);
-		}
-		return null;
-	}
+//	public Set<String> retrieveFileOrganizationIDsManager(String project, String branch, String fileID) {
+//		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+//			return ((GenericParserStorageConnectorManager) connector).retrieveFileOrganizationIDs(project, branch, fileID);
+//		}
+//		return null;
+//	}
 
 	public boolean lockBranchManager(String project, String branch, String user, String model_id, long time) {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
@@ -285,6 +285,13 @@ public class StorageConnectorContainer {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
 			((GenericParserStorageConnectorManager) connector).releaseBranch(project, branch, user);
 		}
+	}
+
+	public boolean checkModelCommit(String project, String branch, String model_id, String version) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).checkModelCommit(project, branch, model_id, version);
+		}
+		return false;
 	}
 
 

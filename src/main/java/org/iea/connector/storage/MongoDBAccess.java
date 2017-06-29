@@ -1,5 +1,6 @@
 package org.iea.connector.storage;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -222,21 +223,22 @@ public class MongoDBAccess {
 
 	}
 
-	public Set<String> queryDocumentFindFileIds(String project, String branch, String col, String fileID) {
+	public Set<String> queryDocumentFindFileIds(String project, String branch, String col, String fileID, String version) {
 		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
-				append(Archimate3MongoDBConnector.DOC_END_DATE,  -1);
+				append(Archimate3MongoDBConnector.DOC_END_DATE,  -1).
+				append(Archimate3MongoDBConnector.DOC_ID,  fileID).
+				append(Archimate3MongoDBConnector.DOC_VERSION,  version);
 		HashSet<String> ref =  new HashSet<String>();
 		FindIterable<Document> docs = getCollection(project, COLLECTION_MANAGEMENT).find(query);
 		if(docs !=null && docs.iterator()!=null){
 			MongoCursor<Document> it = docs.iterator();
 			while(it.hasNext()){
 				Document doc = it.next();
-				ref = (HashSet<String>) doc.get(col);  
+				ref.addAll((Collection<String>) doc.get(col));  
 				break;
 				//ref.add(doc.getString(Archimate3MongoDBConnector.DOC_ID));
 			}
 		}
-		// TODO: adjust to retrive the data from Management collection
 		return ref;
 	}
 
@@ -262,5 +264,25 @@ public class MongoDBAccess {
 
 	public void queryReleaseBranch(String project, String branch, String user) {
 		MongoDBSingleton.releaseLock(project, branch, user);
+	}
+
+	public boolean checkModelCommit(String project, String branch, String model_id, String version) {
+		boolean ret = false;
+		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
+				append(Archimate3Parser.DOC_ID, model_id)
+				.append(Archimate3MongoDBConnector.DOC_VERSION, version);
+		FindIterable<Document> docs = getCollection(project, COLLECTION_MANAGEMENT).find(query);//.forEach(extractID);
+		if(docs !=null && docs.iterator()!=null ){
+			if( docs.iterator().hasNext()== false){
+				// new document/ new model
+				ret = true;
+			} else {
+				Document doc = docs.iterator().next();
+				long end = doc.getLong(Archimate3MongoDBConnector.DOC_END_DATE);
+				ret = end==-1;
+			}
+			
+		}
+		return ret;
 	}
 }

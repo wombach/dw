@@ -623,24 +623,24 @@ implements GenericParserStorageConnectorManager {
 	}
 	
 	@Override
-	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID) {
-		return mongo.queryDocumentFindFileIds(project, branch, DOC_ELEMENTS_LIST, fileID);	
+	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID, String version) {
+		return mongo.queryDocumentFindFileIds(project, branch, DOC_ELEMENTS_LIST, fileID, version);	
 	}
 
 	@Override
-	public Set<String> retrieveFileRelationshipIDs(String project, String branch, String fileID) {
-		return mongo.queryDocumentFindFileIds(project, branch, DOC_RELATIONS_LIST, fileID);	
+	public Set<String> retrieveFileRelationshipIDs(String project, String branch, String fileID, String version) {
+		return mongo.queryDocumentFindFileIds(project, branch, DOC_RELATIONS_LIST, fileID, version);	
 	}
 
 	@Override
-	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID) {
-		return mongo.queryDocumentFindFileIds(project, branch, DOC_VIEWS_LIST, fileID);	
+	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID, String version) {
+		return mongo.queryDocumentFindFileIds(project, branch, DOC_VIEWS_LIST, fileID, version);	
 	}
 
-	@Override
-	public Set<String> retrieveFileOrganizationIDs(String project, String branch, String fileID) {
-		return mongo.queryDocumentFindFileIds(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS, fileID);	
-	}
+//	@Override
+//	public Set<String> retrieveFileOrganizationIDs(String project, String branch, String fileID) {
+//		return mongo.queryDocumentFindFileIds(project, branch, DOC_ORGANIZATIONS_LIST, fileID);	
+//	}
 
 	@Override
 	public boolean lockBranch(String project, String branch, String user, String model_id, long time) {
@@ -655,6 +655,11 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public int retrieveModelHash(String project, String branch, String user, String model_id, long time) {
 		return mongo.retrieveModelHash(project,branch, user, model_id, time);
+	}
+
+	@Override
+	public boolean checkModelCommit(String project, String branch, String model_id, String version) {
+		return mongo.checkModelCommit(project,branch, model_id, version);
 	}
 
 }

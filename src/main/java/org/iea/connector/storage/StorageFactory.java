@@ -319,49 +319,49 @@ public class StorageFactory {
 		return ret;
 	}
 
-	public Set<String> retrieveFileNodeIDs(GenericParser parser, String project, String branch, String fileID) {
+	public Set<String> retrieveFileNodeIDs(GenericParser parser, String project, String branch, String fileID, String version) {
 		Set<String> ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveFileNodeIDsManager(project, branch, fileID);
+				ret = v.retrieveFileNodeIDsManager(project, branch, fileID, version);
 			}
 		}
 		return ret;
 	}
 
-	public Set<String> retrieveFileRelationshipIDs(GenericParser parser, String project, String branch, String fileID) {
+	public Set<String> retrieveFileRelationshipIDs(GenericParser parser, String project, String branch, String fileID, String version) {
 		Set<String> ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveFileRelationshipIDsManager(project, branch, fileID);
+				ret = v.retrieveFileRelationshipIDsManager(project, branch, fileID, version);
 			}
 		}
 		return ret;
 	}
 
-	public Set<String> retrieveFileViewIDs(GenericParser parser, String project, String branch, String fileID) {
+	public Set<String> retrieveFileViewIDs(GenericParser parser, String project, String branch, String fileID, String version) {
 		Set<String> ret = null;
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
-				ret = v.retrieveFileViewIDsManager(project, branch, fileID);
+				ret = v.retrieveFileViewIDsManager(project, branch, fileID, version);
 			}
 		}
 		return ret;
 	}
 
-	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
-		Set<String> ret = null;
-		Vector<StorageConnectorContainer> vec = storage.get(parser);
-		for(StorageConnectorContainer v:vec){
-			if(v.isManagingIDs()){
-				ret = v.retrieveFileOrganizationIDsManager(project, branch, fileID);
-			}
-		}
-		return ret;
-	}
+//	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
+//		Set<String> ret = null;
+//		Vector<StorageConnectorContainer> vec = storage.get(parser);
+//		for(StorageConnectorContainer v:vec){
+//			if(v.isManagingIDs()){
+//				ret = v.retrieveFileOrganizationIDsManager(project, branch, fileID);
+//			}
+//		}
+//		return ret;
+//	}
 
 	public boolean lockBranch(GenericParser parser, String project, String branch, String user, String model_id, long time) {
 		boolean ret = false;
@@ -395,6 +395,18 @@ public class StorageFactory {
 		}
 
 	}
+
+	public boolean checkModelCommit(GenericParser parser, String project, String branch, String model_id,
+			String version) {
+		boolean ret = false;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.checkModelCommit(project, branch,model_id, version);
+			}
+		}
+		return ret;
+		}
 
 
 

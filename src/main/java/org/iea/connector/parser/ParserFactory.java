@@ -236,21 +236,21 @@ public class ParserFactory {
 		return storage.retrieveAllOrganizationIDs(parser, project, branch) ;
 	}
 
-	public Set<String> retrieveFileNodeIDs(GenericParser parser, String project, String branch, String fileID) {
-		return storage.retrieveFileNodeIDs(parser, project, branch, fileID) ;
+	public Set<String> retrieveFileNodeIDs(GenericParser parser, String project, String branch, String fileID, String version) {
+		return storage.retrieveFileNodeIDs(parser, project, branch, fileID, version) ;
 	}
 
-	public Set<String> retrieveFileRelationshipIDs(GenericParser parser, String project, String branch, String fileID) {
-		return storage.retrieveFileRelationshipIDs(parser, project, branch, fileID) ;
+	public Set<String> retrieveFileRelationshipIDs(GenericParser parser, String project, String branch, String fileID, String version) {
+		return storage.retrieveFileRelationshipIDs(parser, project, branch, fileID, version) ;
 	}
 
-	public Set<String> retrieveFileViewIDs(GenericParser parser, String project, String branch, String fileID) {
-		return storage.retrieveFileViewIDs(parser, project, branch, fileID) ;
+	public Set<String> retrieveFileViewIDs(GenericParser parser, String project, String branch, String fileID, String version) {
+		return storage.retrieveFileViewIDs(parser, project, branch, fileID, version) ;
 	}
 
-	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
-		return storage.retrieveFileOrganizationIDs(parser, project, branch, fileID) ;
-	}
+//	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
+//		return storage.retrieveFileOrganizationIDs(parser, project, branch, fileID) ;
+//	}
 
 	public void retireNodeDocument(GenericParser parser, String project, String branch, String user, String ref, long time) {
 		storage.retireNodeDocument(parser, project, branch, user, ref, time) ;
@@ -286,6 +286,11 @@ public class ParserFactory {
 
 	public int retrieveModelHash(GenericParser parser, String project, String branch, String user, String model_id, long time) {
 		return storage.retrieveModelHash(parser, project, branch, user, model_id, time) ;
+	}
+
+	public boolean checkModelCommit(GenericParser parser, String project, String branch, String model_id,
+			String version) {
+		return storage.checkModelCommit(parser, project, branch, model_id, version) ;
 	}
 
 
