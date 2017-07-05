@@ -96,15 +96,15 @@ public class Archimate3FileIBasedInteractionTest {
 
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
-//		givenXMLFile_unmarshalJson_marshalXML();
-//		givenJsonFile_processJsonString_expectTrue();
+		givenXMLFile_unmarshalJson_marshalXML();
+		givenJsonFile_processJsonString_expectTrue();
 //		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
 //				givenJsonFile_unmarshalJson_marshalXML();
-		givenJsonFile_processJsonString_no_updates_expectTrue();
+//		givenJsonFile_processJsonString_no_updates_expectTrue();
 	}
 
 	public void givenJsonFile_processJsonString_expectTrue() {		
-		pf.dropProject("archimate3_test_project");
+		pf.dropProject("archimate3_test_project2");
 		MongoDBSingleton.dropCollection();
 		String json = readFile("demo_archimate3.json");
 		assertTrue(pf.processJsonString("archimate3_test_project","branch1","user1", json));	
