@@ -68,7 +68,7 @@
 			<artifactId>ModelParser</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-				<dependency>
+		<dependency>
 			<groupId>org.xmlunit</groupId>
 			<artifactId>xmlunit-matchers</artifactId>
 			<version>2.3.0</version>
@@ -110,7 +110,7 @@
 			<version>1.5.0</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 	</dependencies>
 	<repositories>
 		<repository>
@@ -119,4 +119,38 @@
 			<url>https://oss.sonatype.org/content/groups/staging</url>
 		</repository>
 	</repositories>
+	<build>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<excludes>
+						<exclude>**/UIControl.java</exclude>
+						<exclude>**/ArchimateParser.java</exclude>
+						<exclude>**/BPMNParser.java</exclude>
+						<exclude>**/DiscoResultParser.java</exclude>
+						<exclude>**/Archimate3Neo4jConnector.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

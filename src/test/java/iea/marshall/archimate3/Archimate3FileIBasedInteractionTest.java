@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -47,6 +48,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 public class Archimate3FileIBasedInteractionTest {
 
 	public ParserFactory pf = new ParserFactory();
+	public String taskId = UUID.randomUUID().toString();
 
 	public Archimate3FileIBasedInteractionTest(){
 		super();
@@ -54,7 +56,6 @@ public class Archimate3FileIBasedInteractionTest {
 		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		pf.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
 		//		pf.registerParser("archimate", new ArchimateParser());
-		
 	}
 
 	/**
@@ -107,19 +108,19 @@ public class Archimate3FileIBasedInteractionTest {
 		pf.dropProject("archimate3_test_project2");
 		MongoDBSingleton.dropCollection();
 		String json = readFile("demo_archimate3.json");
-		assertTrue(pf.processJsonString("archimate3_test_project","branch1","user1", json));	
+		assertTrue(pf.processJsonString(taskId, "archimate3_test_project","branch1","user1", json, false));	
 	}
 
 	public void givenJsonFile_processJsonString_no_updates_expectTrue() {		
 		String json = readFile("test3_output.json");
 		MongoDBSingleton.dropCollection();
-		assertTrue(pf.processJsonString("archimate3_test_project","branch1","user1",json));	
+		assertTrue(pf.processJsonString(taskId, "archimate3_test_project","branch1","user1",json, false));	
 	}
 
 	public void givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile() {		
 		//String json = readFile("demo_archimate3.json");
 		Date date = new Date(System.currentTimeMillis());
-		String t = pf.retrieveJsonString("archimate3", "archimate3_test_project","branch1", "user1", date);
+		String t = pf.retrieveJsonString(taskId, "archimate3", "archimate3_test_project","branch1", "user1", date);
 		//pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
 		//Get the file reference
 		Path path = Paths.get("test3_output.json");

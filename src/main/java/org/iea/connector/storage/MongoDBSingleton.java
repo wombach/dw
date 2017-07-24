@@ -27,34 +27,6 @@ public class MongoDBSingleton {
 	private final static Logger LOGGER = Logger.getLogger(MongoDBSingleton.class.getName()); 
 	
 	private static HashMap<String, HashMap<String, Boolean>> lock = loadLock();
-//	private HashMap<String,MongoClient> mongoClients = new HashMap<String,MongoClient>();
-
-//	public MongoClient getClient(String database, String userName, String password){
-//		String ref = database+"|";
-//		if (userName!=null && !userName.isEmpty()) ref +=userName;
-//		ref+="|";
-//		if (password!=null && !password.isEmpty()) ref +=password;
-//		ref+="|";
-//		MongoClient cl = null;
-//		cl = mongoClients.get(ref);
-//		if(cl == null){
-//			MongoCredential credential = MongoCredential.createCredential(userName, database, password.toCharArray());
-//			cl = new MongoClient(new ServerAddress(), Arrays.asList(credential));
-//			if(cl!=null)
-//				mongoClients.put(ref, cl);
-//		}
-//		return cl;
-//	}
-	
-//	public MongoClient getClient(){
-//		MongoClient mongoClient = null;
-//		mongoClient = mongoClients.get("||");
-//		if(mongoClient == null){
-//			mongoClient = new MongoClient();
-//			mongoClients.put("||", mongoClient);
-//		}
-//		return mongoClient;
-//	}
 	
 	public static MongoClient getClient(){
 		if (mongoClient == null){

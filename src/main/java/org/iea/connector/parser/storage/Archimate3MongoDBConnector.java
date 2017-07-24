@@ -165,19 +165,6 @@ implements GenericParserStorageConnectorManager {
 		return doc;
 	}
 
-	//	protected String getNodeComparisonString(Document jsonObject) {
-	//		Document nameObj =   ((ArrayList<Document>) jsonObject.get(Archimate3Parser.NAME_TAG)).get(0);
-	//		String name = nameObj.getString(Archimate3Parser.VALUE_TAG);
-	//		String node_type = jsonObject.getString(Archimate3Parser.TYPE_TAG);
-	//		return parser.getType()+"|"+node_type+"|"+name.toString();
-	//	}
-
-	//	protected int getNodeHash(Document jsonObject) {
-	//		BSONObject jsonDoc = (BSONObject)com.mongodb.util.JSON.parse(jsonObject.toString());
-	//		jsonDoc.removeField(Archimate3Parser.IDENTIFIER_TAG);
-	//		return jsonDoc.hashCode();
-	//	}
-
 	private ArrayList<Document> createOrganizationPath(Vector<KeyValuePair> org, String branch) {
 		ArrayList<Document> root = new ArrayList<Document>();
 		if (org!=null && org.size()>0){
@@ -205,10 +192,6 @@ implements GenericParserStorageConnectorManager {
 	}
 
 	public Set<String> retrieveAllNodeIDs(String project, String branch){
-		//		String query_all_ids = "db."+MongoDBAccess.COLLECTION_NODES+".find({"+
-		//							"'"+DOC_BRANCH+"':\""+branch+"\","+
-		//							"'"+DOC_END_DATE+"': -1,},{'"+DOC_ID+"':true})."+
-		//							"forEach( function(myDoc){print(tojson(myDoc."+DOC_ID+")); })";
 		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_NODES);
 	}
 
@@ -229,34 +212,7 @@ implements GenericParserStorageConnectorManager {
 		GenericStorageResult ret = new GenericStorageResult();
 		String uuid = jsonObject.getString(Archimate3Parser.IDENTIFIER_TAG);
 		boolean insert = true;
-		//		long time = System.currentTimeMillis();
-		//		FindIterable<Document> docs = mongo.queryDocument(project, branch, MongoDBAccess.COLLECTION_NODES, DOC_COMPARISON_STRING, compStr, new Date(System.currentTimeMillis()));
-
-		//		if(docs !=null && docs.iterator()!=null && docs.iterator().hasNext()){
-		//			LOGGER.warning("the document to be inserted has at least one element in the collection with the same comparison string");
-		//			MongoCursor<Document> it = docs.iterator();
-		//			doc = it.next();
-		//			if(it.hasNext()) {
-		//				LOGGER.severe("Comparison strings are supposed to be unique! The database is corrupted!");
-		//			}
-		//			String uuid = doc.getString(DOC_ID);
-		//			int docHash = doc.getInteger(DOC_HASH, 0);
-		//			if(hash!=docHash) {
-		//				insert = true;
-		//				// update existing node by marking it as expired
-		//				ret.setStatusUpdated();
-		//				// check whether the update is allowed or whether there is a conflict!
-		//				// a version conflict exists if the end date in the document to be updated is not -1
-		//				if(doc.getLong(DOC_END_DATE)==-1){
-		//					mongo.updateDocument(MongoDBAccess.COLLECTION_NODES, DOC_ID, uuid, DOC_END_DATE, time);
-		//				} else {
-		//					LOGGER.severe("there is a conflict in the versions); the update has not been completed.");
-		//				}
-		//			}
-		//
-		//		} else {
 		ret.setStatusInserted();
-		//		}
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
 		if (insert){
 			doc = enrichDocument( jsonObject, branch, user, time, hash, orgJson);
@@ -316,11 +272,6 @@ implements GenericParserStorageConnectorManager {
 		ret.setStatusInserted();
 		return ret;
 	} 
-
-//	private int getRelationHash(Document jsonObject) {
-//		// 
-//		return 0;
-//	}
 
 	public void updateNodeDocument(JSONObject jsonObject, long time) {
 		// TODO Auto-generated method stub
@@ -423,15 +374,6 @@ implements GenericParserStorageConnectorManager {
 			Document raw = (Document) doc.get("raw");
 			ArrayList<Document> oDoc = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
 			Organization item  = org;
-			//			for(int ii=0;ii<oDoc.size();ii++){
-			//				String na = oDoc.get(ii).getString(DOC_ORGANIZATION_LABEL);
-			//				int pos = oDoc.get(ii).getInteger(DOC_ORGANIZATION_POSITION);
-			//				item.setChildPosition(na, pos);
-			//				item = item.getChildByName(na);
-			//			}
-			//			item.addLeaf(doc.getString(DOC_ID), doc.getString(DOC_ID));
-			//			elem.add(raw);
-
 			for(int ii=0;ii<oDoc.size();ii++){
 				String na = oDoc.get(ii).getString(DOC_ORGANIZATION_LABEL);
 				int pos = oDoc.get(ii).getInteger(DOC_ORGANIZATION_POSITION);
@@ -636,11 +578,6 @@ implements GenericParserStorageConnectorManager {
 	public Set<String> retrieveFileViewIDs(String project, String branch, String fileID, String version) {
 		return mongo.queryDocumentFindFileIds(project, branch, DOC_VIEWS_LIST, fileID, version);	
 	}
-
-//	@Override
-//	public Set<String> retrieveFileOrganizationIDs(String project, String branch, String fileID) {
-//		return mongo.queryDocumentFindFileIds(project, branch, DOC_ORGANIZATIONS_LIST, fileID);	
-//	}
 
 	@Override
 	public boolean lockBranch(String project, String branch, String user, String model_id, long time) {

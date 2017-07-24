@@ -6,18 +6,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.bson.Document;
 import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.storage.StorageFactory;
 import org.iea.connector.storage.StorageRegistrationException;
+import org.iea.pool.TaskState;
+import org.iea.pool.TaskStatus;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.mongodb.BasicDBObject;
+
 
 /**
  * Holds all available parsers and allows to dynamically determine the type of a file 
@@ -29,16 +33,28 @@ public class ParserFactory {
 	private final static Logger LOGGER = Logger.getLogger(ParserFactory.class.getName()); 
 
 	private HashMap<String,GenericParser> parsers = new HashMap<String,GenericParser>();
+//	private HashMap<String,Class<? extends GenericParser>> parserClasses = new HashMap<String,Class<? extends GenericParser>>();
 	private StorageFactory storage = new StorageFactory();
-
+	public ConcurrentHashMap<String, TaskStatus> statusMap; 
+	
 	public ParserFactory(){
+		statusMap = new ConcurrentHashMap<String, TaskStatus>();
 	}
 
 	public void registerParser(String parserName, GenericParser gp){
 		parsers.put(parserName, gp);
+//		parserClasses.put(parserName, gp.getClass());
 		gp.setFactory(this);
 	}
 
+	public void addTaskStatus(String taskId, TaskStatus taskStatus){
+		statusMap.put(taskId,  taskStatus);
+	}
+	
+	public TaskStatus getTaskStatus(String taskId){
+		return statusMap.get(taskId);
+	}
+	
 	public void dropDB(){
 		storage.dropDB();
 	}
@@ -89,12 +105,39 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public boolean processJsonString(String project, String branch, String user, String json){
+	public boolean processJsonString(String taskId, String project, String branch, String user, String json, boolean overwrite){
 		boolean ret = false;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.processJsonString(project, branch, user, json);
+			ret = gp.processJsonString(taskId, project, branch, user, json, overwrite);
 			if (ret) break;
 		}
+		return ret;
+	}
+
+	public boolean processJsonString(String taskId, String parserName, String project, String branch, String user, String json, boolean overwrite) throws InstantiationException, IllegalAccessException{
+		boolean ret = false;
+//		Class<? extends GenericParser> klass = parserClasses.get(parserName);
+		GenericParser gp = parsers.get(parserName);
+		if(gp==null) {
+			TaskStatus taskStatus = getTaskStatus(taskId);
+			if(taskStatus!=null){
+				taskStatus.setMsg("parser name does not exist!");
+				taskStatus.setState(TaskState.FAILURE);
+				statusMap.put(taskId, taskStatus);
+			}
+			return false;
+		}
+//		gp.setTaskId(taskId);
+		TaskStatus taskStatus = getTaskStatus(taskId);
+		if(taskStatus!=null){
+			taskStatus.setMsg("start json processing");
+			statusMap.put(taskId, taskStatus);
+		}
+		ret = gp.processJsonString(taskId, project, branch, user, json, overwrite);
+		if(taskStatus!=null){
+			taskStatus.setMsg("ended json processing");
+			statusMap.put(taskId, taskStatus);
+		}		
 		return ret;
 	}
 
@@ -147,11 +190,31 @@ public class ParserFactory {
 //		return ret;
 //	}
 
-	public String retrieveJsonString(String parserName, String project, String branch, String user, Date date){
+	public String retrieveJsonString(String taskId, String parserName, String project, String branch, String user, Date date){
 		String ret = null;
 		if(parsers.containsKey(parserName)){
 			GenericParser gp = parsers.get(parserName);
-			ret = gp.retrieveJsonString(project, branch, user, date);
+			if(gp==null) {
+				TaskStatus taskStatus = getTaskStatus(taskId);
+				if(taskStatus!=null){
+					taskStatus.setMsg("parser name does not exist!");
+					taskStatus.setState(TaskState.FAILURE);
+					statusMap.put(taskId, taskStatus);
+				}
+				return "";
+			}
+//			gp.setTaskId(taskId);
+			TaskStatus taskStatus = getTaskStatus(taskId);
+			if(taskStatus!=null){
+				taskStatus.setMsg("start retrieving json");
+				statusMap.put(taskId, taskStatus);
+			}
+			ret = gp.retrieveJsonString(taskId, project, branch, user, date);
+			if(taskStatus!=null){
+				taskStatus.setMsg("ended retrieving json");
+				statusMap.put(taskId, taskStatus);
+			}		
+			
 		}
 		return ret;
 	}
@@ -181,7 +244,8 @@ public class ParserFactory {
 		return storage.retrieveViewDocument(parser, project, branch, user,time, org);
 	}
 
-	public Document insertNodeDocument(GenericParser parser, String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org) {
+	public Document insertNodeDocument(GenericParser parser, String taskId, String project, String branch, String user, Document n, long time, Vector<KeyValuePair> org) {
+		incNoNodes(taskId);
 		return storage.insertNodeDocument(parser, project, branch, user, n, time, org);
 	}
 
@@ -190,11 +254,13 @@ public class ParserFactory {
 		return storage.insertManagementDocument(parser, project, branch, user, n, time, ref_elements, ref_relations, ref_views);
 	}
 
-	public Document insertRelationDocument(GenericParser parser,String project, String branch, String user, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
+	public Document insertRelationDocument(GenericParser parser,String taskId, String project, String branch, String user, Document rel, String sourceUUID, Document source, String targetUUID, Document target, long time, Vector<KeyValuePair> org) {
+		incNoRelations(taskId);
 		return storage.insertRelationDocument(parser, project, branch, user, rel, sourceUUID, source, targetUUID, target, time, org) ;
 	}
 
-	public Document insertViewDocument(GenericParser parser, String project, String branch, String user,String uuid, Document view, long time, Vector<KeyValuePair> org) {
+	public Document insertViewDocument(GenericParser parser, String taskId, String project, String branch, String user,String uuid, Document view, long time, Vector<KeyValuePair> org) {
+		incNoViews(taskId);
 		return storage.insertViewDocument(parser, project, branch, user, uuid, view, time, org);
 	}
 
@@ -293,7 +359,54 @@ public class ParserFactory {
 		return storage.checkModelCommit(parser, project, branch, model_id, version) ;
 	}
 
+	public void changeStatus(String taskId, TaskStatus taskStatus) {
+		statusMap.put(taskId, taskStatus);
+	}
 
+	public TaskStatus getStatus(String taskId) {
+		return statusMap.get(taskId);
+	}
+
+	public void incNoNodes(String taskId) {
+		TaskStatus ts = getTaskStatus(taskId);
+		if(ts!=null) ts.incNoNodes();
+		statusMap.put(taskId, ts);
+	}
+	
+	public void incNoRelations(String taskId) {
+		TaskStatus ts = getTaskStatus(taskId);
+		if(ts!=null) ts.incNoRelations();
+		statusMap.put(taskId, ts);
+	}
+	
+	public void incNoViews(String taskId) {
+		TaskStatus ts = getTaskStatus(taskId);
+		if(ts!=null) ts.incNoViews();
+		statusMap.put(taskId, ts);
+	}
+	public void setNoRelations(String taskId, int noRelations) {
+		TaskStatus ts = getTaskStatus(taskId);
+		if(ts!=null) ts.setNoRelations(noRelations);
+		statusMap.put(taskId, ts);
+	}
+	
+	public void setNoViews(String taskId, int noViews) {
+		TaskStatus ts = getTaskStatus(taskId);
+		if(ts!=null) ts.setNoViews(noViews);
+		statusMap.put(taskId, ts);
+	}
+	
+	public void setMsg(String taskId, String msg) {
+		TaskStatus ts = getTaskStatus(taskId);
+		if(ts!=null) ts.setMsg(msg);
+		statusMap.put(taskId, ts);
+	}
+	
+	public void setState(String taskId, TaskState state) {
+		TaskStatus ts = getTaskStatus(taskId);
+		if(ts!=null) ts.setState(state);
+		statusMap.put(taskId, ts);
+	}
 
 //	public Document insertOrganizationDocument(Archimate3Parser archimate3Parser, String project, String branch, String user, String organizationsTypeLabel,
 //			JSONObject item, Vector<String> level, String value, long time) {

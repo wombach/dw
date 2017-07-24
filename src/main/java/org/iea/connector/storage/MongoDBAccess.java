@@ -98,7 +98,7 @@ public class MongoDBAccess {
 		MongoCollection<Document> collection = getCollection(project, col);
 		//LOGGER.info("collection count before insert: "+collection.count());
 		collection.insertOne(doc);
-		LOGGER.info("collection count count after insert: "+collection.count());
+		//LOGGER.info("collection count count after insert: "+collection.count());
 	}
 
 	public void updateDocument(String col, String searchKey, String searchValue, String setKey, long time){
