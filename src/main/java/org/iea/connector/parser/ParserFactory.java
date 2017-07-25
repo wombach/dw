@@ -35,10 +35,9 @@ public class ParserFactory {
 	private HashMap<String,GenericParser> parsers = new HashMap<String,GenericParser>();
 //	private HashMap<String,Class<? extends GenericParser>> parserClasses = new HashMap<String,Class<? extends GenericParser>>();
 	private StorageFactory storage = new StorageFactory();
-	public ConcurrentHashMap<String, TaskStatus> statusMap; 
+	public ConcurrentHashMap<String, TaskStatus> statusMap= new ConcurrentHashMap<String, TaskStatus>(); 
 	
 	public ParserFactory(){
-		statusMap = new ConcurrentHashMap<String, TaskStatus>();
 	}
 
 	public void registerParser(String parserName, GenericParser gp){
@@ -48,7 +47,7 @@ public class ParserFactory {
 	}
 
 	public void addTaskStatus(String taskId, TaskStatus taskStatus){
-		statusMap.put(taskId,  taskStatus);
+			statusMap.put(taskId,  taskStatus);
 	}
 	
 	public TaskStatus getTaskStatus(String taskId){
@@ -413,4 +412,21 @@ public class ParserFactory {
 //		return storage.insertOrganizationDocument(archimate3Parser, project, branch, user, organizationsTypeLabel, item, level, value, time);
 //	}
 
+	public String convertXMLtoJSON(String taskId, String parserName, String xml){
+		String ret = null;
+		if(parsers.containsKey(parserName)){
+			GenericParser parser = parsers.get(parserName);
+			ret = parser.convertXMLtoJSON(taskId, xml);
+		}
+		return ret;
+	}
+
+	public String convertJSONtoXML(String taskId, String parserName, String json){
+		String ret = null;
+		if(parsers.containsKey(parserName)){
+			GenericParser parser = parsers.get(parserName);
+			ret = parser.convertJSONtoXML(taskId, json);
+		}
+		return ret;
+	}
 }

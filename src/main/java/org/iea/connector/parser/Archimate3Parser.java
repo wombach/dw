@@ -769,7 +769,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	protected String convertXMLtoJSON(String taskId, String xml) {
+	public String convertXMLtoJSON(String taskId, String xml) {
 		JAXBContext jaxbContext;
 		String ret = null;
 		try {
@@ -777,7 +777,7 @@ public class Archimate3Parser extends GenericParser {
 
 			Map<String, String> namespaces = new HashMap<String, String>();
 			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
-			//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
 			//		File file = new File("test3_output.json");
@@ -789,10 +789,12 @@ public class Archimate3Parser extends GenericParser {
 			//		unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 			//		unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
-			JAXBElement<ModelType> result = (JAXBElement<ModelType>) unmarshaller2.unmarshal(reader);
-			ModelType model = (ModelType) result.getValue();
+			Object obj = unmarshaller2.unmarshal(reader);
+			//JAXBElement<ModelType> result = (JAXBElement<ModelType>) obj;
+			ModelType model = (ModelType) obj;
 
 			namespaces = new HashMap<String, String>();
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
 			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 			//		jaxbContext =  JAXBContext.newInstance(ModelType.class);
@@ -820,7 +822,7 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 	@Override
-	protected String convertJSONtoXML(String taskId, String json) {
+	public String convertJSONtoXML(String taskId, String json) {
 		JAXBContext jaxbContext;
 		String ret = null;
 		try {
@@ -828,7 +830,7 @@ public class Archimate3Parser extends GenericParser {
 
 			Map<String, String> namespaces = new HashMap<String, String>();
 			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
-			//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 			namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
 			//		File file = new File("test3_output.json");
@@ -840,8 +842,9 @@ public class Archimate3Parser extends GenericParser {
 			unmarshaller2.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 			unmarshaller2.setProperty(UnmarshallerProperties.JSON_ATTRIBUTE_PREFIX, "@") ;
 			unmarshaller2.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, true);
-			JAXBElement<ModelType> result = (JAXBElement<ModelType>) unmarshaller2.unmarshal(reader);
-			ModelType model = (ModelType) result.getValue();
+			//JAXBElement<ModelType> result = (JAXBElement<ModelType>) 
+			Object obj = unmarshaller2.unmarshal(reader);
+			ModelType model = (ModelType) obj;
 
 			namespaces = new HashMap<String, String>();
 			namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");

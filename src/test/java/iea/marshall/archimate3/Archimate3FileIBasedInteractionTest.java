@@ -97,8 +97,9 @@ public class Archimate3FileIBasedInteractionTest {
 
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
-		givenXMLFile_unmarshalJson_marshalXML();
-		givenJsonFile_processJsonString_expectTrue();
+		givenXmlFile_UnmarshalJson_InParserFactory();
+		//givenXMLFile_unmarshalJson_marshalXML();
+		//givenJsonFile_processJsonString_expectTrue();
 //		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
 //				givenJsonFile_unmarshalJson_marshalXML();
 //		givenJsonFile_processJsonString_no_updates_expectTrue();
@@ -163,6 +164,11 @@ public class Archimate3FileIBasedInteractionTest {
 	}
 
 
+	public void givenXmlFile_UnmarshalJson_InParserFactory() throws JAXBException, IOException{
+		String xml = readFile("demo_archimate3.xml");
+		String res = pf.convertXMLtoJSON("this is a test", "archimate3", xml);
+	}
+	
 	public void givenJsonFile_unmarshalJson_marshalXML() throws JAXBException, IOException{
 		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);
 
@@ -205,11 +211,12 @@ public class Archimate3FileIBasedInteractionTest {
 
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
-//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 
-		File file = new File("test_w_properties.xml");
-//		File file = new File("test3_output.json");
+		//File file = new File("test_w_properties.xml");
+//		File file = new File("test3_output.xml");
+		File file = new File("demo_archimate3.xml");
 		StreamSource source = new StreamSource(file);
 		Unmarshaller unmarshaller2 = jaxbContext.createUnmarshaller();
 		unmarshaller2.setProperty(UnmarshallerProperties.JSON_NAMESPACE_PREFIX_MAPPER, namespaces);
@@ -221,6 +228,7 @@ public class Archimate3FileIBasedInteractionTest {
 		ModelType model = (ModelType) result.getValue();
 
 		namespaces = new HashMap<String, String>();
+		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
 		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
 		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 		//		jaxbContext =  JAXBContext.newInstance(ModelType.class);

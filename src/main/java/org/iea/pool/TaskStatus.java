@@ -12,6 +12,8 @@ public class TaskStatus {
 	private long time = 0;
 	private TaskState state = TaskState.CREATED;
 	
+	public TaskStatus(){};
+	
 	public TaskStatus(int noNodes, int noRelations, int noViews, String msg){
 		this.noNodes = noNodes;
 		this.noRelations = noRelations;

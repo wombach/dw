@@ -30,14 +30,15 @@ public abstract class GenericParser {
 	protected String type = null;
 	protected String CONTEXT = null;
 	protected Class MODEL_CLASS = null;
-	protected Map<String, String> namespaces;
+//	protected Map<String, String> namespaces;
 	protected ParserFactory factory;
 //	protected String taskId;
 
 	public GenericParser(){
 //		namespaces = new HashMap<String, String>();
-//		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "ns1");
-//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ns0");
+//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "");
+//		namespaces.put("http://www.opengroup.org/xsd/archimate/3.0/", "ar3");
+//		namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
 	}
 
 	//	public abstract boolean parseFile(String project, String branch, String filename2);
@@ -78,9 +79,9 @@ public abstract class GenericParser {
 		return ret;
 	}
 
-	protected abstract String convertXMLtoJSON(String taskId, String xml);
+	public abstract String convertXMLtoJSON(String taskId, String xml);
 
-	protected abstract String convertJSONtoXML(String taskId, String json);
+	public abstract String convertJSONtoXML(String taskId, String json);
 
 	public String getType(){
 		return type;
