@@ -86,6 +86,8 @@ public class TaskStatus {
 	}
 
 	public String getJsonObjectString(){
-		return "{'noNodes':"+noNodes+", 'noRelations:"+noRelations+", 'noViews':"+noViews+", message:\""+msg+"\", 'timestamp':"+time+", 'state':\""+state.toString()+"\"}";
+		return "{\"noNodes\":"+noNodes+", \"noRelations\":"+noRelations+", \"noViews\":"+
+				noViews+", \"message\":\""+msg+"\", \"timestamp\":"+time+
+				", \"state\": \""+state+"\"}";
 	}
 }
