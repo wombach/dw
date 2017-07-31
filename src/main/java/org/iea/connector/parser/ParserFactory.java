@@ -263,6 +263,13 @@ public class ParserFactory {
 		return storage.insertViewDocument(parser, project, branch, user, uuid, view, time, org);
 	}
 
+	public void insertMapping(GenericParser parser, String project, long time, HashMap<String,String> map){
+		storage.inserMapping(parser, project, time, map);
+	}
+	public HashMap<String,String> getMapping(GenericParser parser, String project, long time) {
+		return storage.getMapping(parser, project, time);
+	}
+	
 //	public String writeJSONtoXML(String parserName, String t) {
 //		String ret = null;
 //		if(parsers.containsKey(parserName)){
@@ -352,6 +359,9 @@ public class ParserFactory {
 	public int retrieveModelHash(GenericParser parser, String project, String branch, String user, String model_id, long time) {
 		return storage.retrieveModelHash(parser, project, branch, user, model_id, time) ;
 	}
+	public void retireMapping(GenericParser parser, String project, long time) {
+		storage.retireMapping(parser, project, time);
+	}
 
 	public boolean checkModelCommit(GenericParser parser, String project, String branch, String model_id,
 			String version) {
@@ -429,4 +439,5 @@ public class ParserFactory {
 		}
 		return ret;
 	}
+
 }

@@ -1,8 +1,11 @@
 package org.iea.connector.storage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -28,6 +31,7 @@ public class MongoDBAccess {
 	public final static String COLLECTION_FILES = "files";
 	public final static String COLLECTION_MANAGEMENT = "management";
 	public static final String COLLECTION_ORGANIZATIONS = "organizations";
+	public static final String COLLECTION_MAPPING = "mapping";
 
 	public MongoClient getClient(){
 		return MongoDBSingleton.getClient();
@@ -285,4 +289,42 @@ public class MongoDBAccess {
 		}
 		return ret;
 	}
+
+	public HashMap<String,String> getMapping(String project, long time) {
+		HashMap<String,String> ret = new HashMap<String,String>();
+		BasicDBList or = new BasicDBList();
+		or.add(new BasicDBObject("end_date",  new BasicDBObject("$gt", time)));
+		or.add(new BasicDBObject("end_date",  new BasicDBObject("$eq", -1)));
+		BasicDBObject query = new BasicDBObject("$or",  or)
+				.append("start_date", new BasicDBObject("$lt", time));
+//				append(Archimate3Parser.DOC_ID, model_id)
+//				.append(Archimate3MongoDBConnector.DOC_VERSION, version);
+		FindIterable<Document> docs = getCollection(project, COLLECTION_MAPPING).find(query);//.forEach(extractID);
+		if(docs !=null && docs.iterator()!=null ){
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document d = it.next();
+				ArrayList<Document> arr = (ArrayList<Document>) d.get("mapping");
+				for(Document d2: arr){
+					String s = d2.getString("s");
+					String t = d2.getString("t2");
+					ret.put(s, t);
+				}
+			}			
+		}
+		return ret;
+	}
+
+	public void insertMapping(String project, long time, HashMap<String,String> map) {
+		Document mapd = new Document();
+		ArrayList<Document> md = new ArrayList<Document>();
+		Set<Entry<String, String>> it = map.entrySet();
+		for(Entry<String, String>e : map.entrySet()){
+			Document d = new Document();
+			md.add(d.append("s", e.getKey()).append("t", e.getValue()));
+		}
+		mapd.append("end_date", -1).append("start_date",time).append("mapping", md);
+		insertDocument(project,COLLECTION_MAPPING, mapd);
+	}
+
 }

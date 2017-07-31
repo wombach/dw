@@ -272,6 +272,10 @@ implements GenericParserStorageConnectorManager {
 		ret.setStatusInserted();
 		return ret;
 	} 
+	
+	public HashMap<String,String> getMapping(String project, long time){
+		return mongo.getMapping(project, time);
+	}
 
 	public void updateNodeDocument(JSONObject jsonObject, long time) {
 		// TODO Auto-generated method stub
@@ -597,6 +601,18 @@ implements GenericParserStorageConnectorManager {
 	@Override
 	public boolean checkModelCommit(String project, String branch, String model_id, String version) {
 		return mongo.checkModelCommit(project,branch, model_id, version);
+	}
+
+	@Override
+	public void insertMapping(String project, long time, HashMap<String, String> map) {
+		mongo.insertMapping(project, time, map);
+	}
+
+	@Override
+	public void retireMapping(String project, long time) {
+		BasicDBObject query = new BasicDBObject(DOC_END_DATE,-1);
+		BasicDBObject set = new BasicDBObject("$set", new BasicDBObject(DOC_END_DATE, time));
+		mongo.retireDocument(project, MongoDBAccess.COLLECTION_MAPPING, query, set);
 	}
 
 }

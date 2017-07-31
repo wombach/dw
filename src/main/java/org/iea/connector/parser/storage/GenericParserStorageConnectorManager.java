@@ -2,6 +2,7 @@ package org.iea.connector.parser.storage;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 
@@ -83,6 +84,12 @@ public interface GenericParserStorageConnectorManager {
 	public void releaseBranch(String project, String branch, String user);
 
 	public boolean checkModelCommit(String project, String branch, String model_id, String version);
+
+	public void insertMapping(String project, long time, HashMap<String, String> map);
+
+	public HashMap<String, String> getMapping(String project, long time);
+
+	public void retireMapping(String project, long time);
 
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, String organizationsTypeLabel,

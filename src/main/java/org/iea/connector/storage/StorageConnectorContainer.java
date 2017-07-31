@@ -2,6 +2,7 @@ package org.iea.connector.storage;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -292,6 +293,25 @@ public class StorageConnectorContainer {
 			return ((GenericParserStorageConnectorManager) connector).checkModelCommit(project, branch, model_id, version);
 		}
 		return false;
+	}
+
+	public void insertMapping(String project, long time, HashMap<String, String> map) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).insertMapping(project, time, map);
+		}
+	}
+
+	public HashMap<String, String> getMapping(String project, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).getMapping(project, time);
+		}
+		return new HashMap<String,String>();
+	}
+
+	public void retireMapping(String project, long time) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			((GenericParserStorageConnectorManager) connector).retireMapping(project, time);
+		}		
 	}
 
 

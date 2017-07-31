@@ -201,17 +201,25 @@ public class Archimate3Parser extends GenericParser {
 		}
 		return ret;
 	}
-
+	/**
+	 * processJsonString: process a json string
+	 * 
+	 * @param overwrite: if true conflicts will be resolved based on the conflict mapping provided by the user
+	 * 					if false then the conflicts are reported back to the user
+	 * @param 
+	 */
 	@Override
 	public boolean processJsonString(String taskId, String project, String branch, String user, String str, boolean overwrite) {
 		boolean ret = false;
 		
-		HashMap<String,String> map = new HashMap<String,String>();
+		long time = System.currentTimeMillis();
+		
+		HashMap<String,String> map = factory.getMapping(this, project, time);
 		//		JSONObject xmlJSONObj = new JSONObject(str);
 		Document doc_all = Document.parse(str);
 		// check that the file is indeed an archimate file
-		long time = System.currentTimeMillis();
 		String retMsg = "";
+		factory.addTaskStatus(taskId, new TaskStatus());
 		HashMap<String,Document> nodeMap = new HashMap<String,Document>();
 		boolean overall_insert = false;
 		boolean overall_update = false;
@@ -582,8 +590,10 @@ public class Archimate3Parser extends GenericParser {
 					if(overall_insert || insert){
 						if(overall_update || update){
 							factory.retireManagementDocument(this, project, branch, user, model_id, time);
+							factory.retireMapping(this,project,time);
 						}
 						factory.insertManagementDocument(this, project, branch, user, obj, time, ref_elements, ref_relations, ref_views);
+						factory.insertMapping(this, project, time, map);
 					}
 				}
 				

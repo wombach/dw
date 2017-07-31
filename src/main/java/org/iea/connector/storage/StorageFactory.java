@@ -36,7 +36,7 @@ public class StorageFactory {
 	}
 
 	public void registerStorage(GenericParser parser, GenericParserStorageConnector gs, boolean managingIDs)
-	 throws StorageRegistrationException {
+			throws StorageRegistrationException {
 		Vector<StorageConnectorContainer> vec = storage.get(parser);
 		if(vec==null){ 
 			vec = new Vector<StorageConnectorContainer>();
@@ -94,20 +94,20 @@ public class StorageFactory {
 		return ret.getDoc();
 	}
 
-//	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String user, String organizationsTypeLabel,
-//			JSONObject item, Vector<String> level, String value, long time) {
-//		GenericStorageResult ret = null;
-//		Vector<StorageConnectorContainer> vec = storage.get(parser);
-//		for(StorageConnectorContainer v:vec){
-//			if(v.isManagingIDs()){
-//				ret = v.insertOrganizationsDocumentManager(project, branch, user, organizationsTypeLabel, item, level, value, time);
-////			} else { 
-////				v.insertRelationDocumentFollower(project, branch, user, uuid, jsonObject, sourceUUID, source, targetUUID, target, time);
-//			}
-//		}
-//		return ret.getDoc();
-//	} 	
-//	
+	//	public Document insertOrganizationDocument(GenericParser parser, String project, String branch, String user, String organizationsTypeLabel,
+	//			JSONObject item, Vector<String> level, String value, long time) {
+	//		GenericStorageResult ret = null;
+	//		Vector<StorageConnectorContainer> vec = storage.get(parser);
+	//		for(StorageConnectorContainer v:vec){
+	//			if(v.isManagingIDs()){
+	//				ret = v.insertOrganizationsDocumentManager(project, branch, user, organizationsTypeLabel, item, level, value, time);
+	////			} else { 
+	////				v.insertRelationDocumentFollower(project, branch, user, uuid, jsonObject, sourceUUID, source, targetUUID, target, time);
+	//			}
+	//		}
+	//		return ret.getDoc();
+	//	} 	
+	//	
 	public void dropDB() {
 		Collection<Vector<StorageConnectorContainer>> vec = storage.values();
 		for(Vector<StorageConnectorContainer> vv:vec){
@@ -138,7 +138,7 @@ public class StorageFactory {
 			}
 		}		
 	} 	
-	
+
 	public void dropBranch(String project, String branch) {
 		Collection<Vector<StorageConnectorContainer>> vec = storage.values();
 		for(Vector<StorageConnectorContainer> vv:vec){
@@ -352,16 +352,16 @@ public class StorageFactory {
 		return ret;
 	}
 
-//	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
-//		Set<String> ret = null;
-//		Vector<StorageConnectorContainer> vec = storage.get(parser);
-//		for(StorageConnectorContainer v:vec){
-//			if(v.isManagingIDs()){
-//				ret = v.retrieveFileOrganizationIDsManager(project, branch, fileID);
-//			}
-//		}
-//		return ret;
-//	}
+	//	public Set<String> retrieveFileOrganizationIDs(GenericParser parser, String project, String branch, String fileID) {
+	//		Set<String> ret = null;
+	//		Vector<StorageConnectorContainer> vec = storage.get(parser);
+	//		for(StorageConnectorContainer v:vec){
+	//			if(v.isManagingIDs()){
+	//				ret = v.retrieveFileOrganizationIDsManager(project, branch, fileID);
+	//			}
+	//		}
+	//		return ret;
+	//	}
 
 	public boolean lockBranch(GenericParser parser, String project, String branch, String user, String model_id, long time) {
 		boolean ret = false;
@@ -406,8 +406,34 @@ public class StorageFactory {
 			}
 		}
 		return ret;
+	}
+
+	public void inserMapping(GenericParser parser, String project, long time, HashMap<String, String> map) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.insertMapping(project, time, map);
+			}
 		}
+	}
 
+	public HashMap<String, String> getMapping(GenericParser parser, String project, long time) {
+		HashMap<String, String> ret = new HashMap<String, String>();
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.getMapping(project, time);
+			}
+		}
+		return ret;
+	}
 
-
+	public void retireMapping(GenericParser parser, String project, long time) {
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				v.retireMapping(project, time);
+			}
+		}
+	}
 }
