@@ -13,6 +13,7 @@ import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.parser.GenericParser;
 import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.parser.storage.GenericStorageResult;
+import org.iea.util.DifRecord;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 import org.json.JSONArray;
@@ -435,5 +436,16 @@ public class StorageFactory {
 				v.retireMapping(project, time);
 			}
 		}
+	}
+
+	public Vector<DifRecord> enrichDifList(GenericParser parser, String project, String branch, long time, HashMap<String, Document> difList) {
+		Vector<DifRecord> ret = null;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.enrichDifList(project, branch, parser.getType(), time, difList);
+			}
+		}
+		return ret;
 	}
 }

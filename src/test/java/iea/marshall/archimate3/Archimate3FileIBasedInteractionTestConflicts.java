@@ -12,10 +12,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -26,6 +29,8 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
+import org.bson.Document;
+import org.codehaus.plexus.logging.Logger;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.iea.connector.parser.Archimate3Parser;
@@ -43,16 +48,17 @@ import org.junit.Test;
 import org.opengroup.xsd.archimate._3.ModelType;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import com.mongodb.util.JSON;
+
 /**
  * @author wombach
  *
  */
-public class Archimate3FileIBasedInteractionTest {
+public class Archimate3FileIBasedInteractionTestConflicts {
 
 	public ParserFactory pf = new ParserFactory();
-	public String taskId = UUID.randomUUID().toString();
-
-	public Archimate3FileIBasedInteractionTest(){
+	
+	public Archimate3FileIBasedInteractionTestConflicts(){
 		super();
 		pf.registerParser("archimate3", new Archimate3Parser());
 		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
@@ -76,7 +82,7 @@ public class Archimate3FileIBasedInteractionTest {
 		//		pf.registerStorage("archimate3", new Archimate3MongoDBConnector(), true);
 		//		//		pf.registerStorage("archimate3", new Archimate3Neo4jConnector(), false);
 		//		//		pf.registerParser("archimate", new ArchimateParser());
-		//		pf.dropProject("archimate3_test_project");
+//		pf.dropProject("archimate3_test_project2");
 	}
 
 	/**
@@ -99,36 +105,108 @@ public class Archimate3FileIBasedInteractionTest {
 
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
+//		// initial load of the model
+//		givenJsonFile_processJsonString_expectTrue();
+//
+//		// retrieve model 
+//		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
+//		//givenJsonFile_processJsonString_no_updates_expectTrue();
+//		
+//		// make changes to the retrieved model file
+//		givenJsonFile_modifyJson();
+//		
+//		// retrieve model again 
+//		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile2();
+//		
+//		// make changes to the retrieved model file
+//		givenJsonFile_modifyJson2();
+		
+		// commit modified model
+//		givenJsonFile_processJsonString_expectTrue3();
+
+		// check conflicts of modified model
+		Vector<DifRecord> dif = givenJsonFile_processJsonString_expectTrue4();
+		Set<String> list = new HashSet<String>();
+		for(DifRecord di : dif){
+			Document d = di.getLeft();
+			String json = JSON.serialize( d );
+			System.out.println(json);
+			json = json.substring(json.indexOf("\"@identifier\" : \"")+"\"@identifier\" : \"".length());
+			String uuid = json.substring(0,json.indexOf("\" ,"));
+			System.out.println(uuid);
+			list.add(uuid);
+		}
+		
+		// commit modified model by keeping the node in the repository
+		givenJsonFile_processJsonString_expectTrue5(list);
+
+		// commit modified model by updating the node in the repository
+//		givenJsonFile_processJsonString_expectTrue6();
+
+		
 //		givenXmlFile_UnmarshalJson_InParserFactory();
 		//givenXMLFile_unmarshalJson_marshalXML();
-		givenJsonFile_processJsonString_expectTrue();
+		//givenJsonFile_processJsonString_expectTrue();
 //		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
 //				givenJsonFile_unmarshalJson_marshalXML();
 //		givenJsonFile_processJsonString_no_updates_expectTrue();
 	}
 
 	public void givenJsonFile_processJsonString_expectTrue() {		
-		pf.dropProject("archimate3_test_project2");
-		MongoDBSingleton.dropCollection();
 		String json = readFile("demo_archimate3.json");
-		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project","branch1","user1", json, false, null);
+		String taskId = UUID.randomUUID().toString();
+		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project2","branch1","user1", json, true, null);
 		assertTrue(ret == null);	
 	}
 
-	public void givenJsonFile_processJsonString_no_updates_expectTrue() {		
-		String json = readFile("test3_output.json");
-		MongoDBSingleton.dropCollection();
-		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project","branch1","user1",json, false, null);
+	public void givenJsonFile_processJsonString_expectTrue3() {		
+		String json = readFile("test5_output_mod.json");
+		String taskId = UUID.randomUUID().toString();
+		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project2","branch1","user1", json, false, null);
+	    System.out.println("resulting changes - conflicts "+ret.size());
+		assertTrue(ret == null || ret.size()==0);	
+		ret = pf.processJsonString(taskId, "archimate3_test_project2","branch1","user1", json, true, null);
 		assertTrue(ret == null);	
+	}
+
+	public Vector<DifRecord> givenJsonFile_processJsonString_expectTrue4() {		
+		String json = readFile("test6_output_mod.json");
+		String taskId = UUID.randomUUID().toString();
+		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project2","branch1","user1", json, false, null);
+		assertTrue(ret != null && ret.size()==1 );
+		return ret;
+	}
+
+	public void givenJsonFile_processJsonString_expectTrue5(Set<String> list) {		
+		String json = readFile("test6_output_mod.json");
+		String taskId = UUID.randomUUID().toString();
+		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project2","branch1","user1", json, true, list);
+		assertTrue(ret == null || ret.size()==0 );	
+	}
+
+	public Vector<DifRecord> givenJsonFile_processJsonString_expectTrue6() {		
+		String json = readFile("test6_output_mod.json");
+		String taskId = UUID.randomUUID().toString();
+		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project2","branch1","user1", json, true, null);
+		assertTrue(ret == null || ret.size()==0 );
+		return ret;
+	}
+
+
+	public void givenJsonFile_processJsonString_no_updates_expectTrue() {		
+		String json = readFile("test5_output.json");
+		MongoDBSingleton.dropCollection();
+		String taskId = UUID.randomUUID().toString();
+		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project2","branch1","user1",json, false, null);
+	    System.out.println("resulting changes - conflicts "+ret.size());
+		assertTrue(ret == null || ret.isEmpty());	
 	}
 
 	public void givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile() {		
-		//String json = readFile("demo_archimate3.json");
 		Date date = new Date(System.currentTimeMillis());
-		String t = pf.retrieveJsonString(taskId, "archimate3", "archimate3_test_project","branch1", "user1", date);
-		//pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
-		//Get the file reference
-		Path path = Paths.get("test3_output.json");
+		String taskId = UUID.randomUUID().toString();
+		String t = pf.retrieveJsonString(taskId, "archimate3", "archimate3_test_project2","branch1", "user1", date);
+		Path path = Paths.get("test5_output.json");
 
 		//Use try-with-resource to get auto-closeable writer instance
 		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
@@ -136,35 +214,65 @@ public class Archimate3FileIBasedInteractionTest {
 			writer.write(t);
 			writer.flush();
 			writer.close();
-			//			File file2 = new File("test3_output.json");
-			//			String content2 = new Scanner(file2).useDelimiter("\\Z").next();
-			//			try {
-			//				JSONAssert.assertEquals(json, content2, false);
-			//			} catch (JSONException e) {
-			//				fail("Should not have thrown any exception");
-			//			}
-			// transform to XML
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			fail("Exception "+e);
 		}
-//		String t_xml = pf.writeJSONtoXML("archimate3", t);
-//		path = Paths.get("test3_output.xml");
-//
-//		//Use try-with-resource to get auto-closeable writer instance
-//		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
-//		{
-//			writer.write(t);
-//			writer.flush();
-//			writer.close();
-//
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			fail("Exception "+e);
-//		}
+	}
 
+	public void givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile2() {		
+		Date date = new Date(System.currentTimeMillis());
+		String taskId = UUID.randomUUID().toString();
+		String t = pf.retrieveJsonString(taskId, "archimate3", "archimate3_test_project2","branch1", "user1", date);
+		Path path = Paths.get("test6_output.json");
+
+		//Use try-with-resource to get auto-closeable writer instance
+		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
+		{
+			writer.write(t);
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail("Exception "+e);
+		}
+	}
+
+	public void givenJsonFile_modifyJson() {
+		String json = readFile("test5_output.json");
+		
+		String t = json.replace("material deposition or modification", "material deposition or modification2");
+		Path path = Paths.get("test5_output_mod.json");
+
+		//Use try-with-resource to get auto-closeable writer instance
+		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
+		{
+			writer.write(t);
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail("Exception "+e);
+		}
+	}
+
+	public void givenJsonFile_modifyJson2() {
+		String json = readFile("test6_output.json");
+		
+		String t = json.replace("material deposition or modification", "material deposition or modification3").
+						replace("@target\" : \"id-4b6e289e-210b-4aff-8ba2-b96d61cbb4eb", "@target\" : \"id-e90e8781-63e5-4b56-9c15-95e2bd908e2f");
+		Path path = Paths.get("test6_output_mod.json");
+
+		//Use try-with-resource to get auto-closeable writer instance
+		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
+		{
+			writer.write(t);
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail("Exception "+e);
+		}
 	}
 
 

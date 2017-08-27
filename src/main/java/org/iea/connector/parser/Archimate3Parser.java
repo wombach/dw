@@ -61,6 +61,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.util.JSON;
 
+import org.iea.util.DifRecord;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 
@@ -112,60 +113,60 @@ public class Archimate3Parser extends GenericParser {
 	}
 
 
-//	private void addPropertyStandardTypeDefs(JSONObject jobj) {
-//		/**
-//		 * "propertyDefinitions": {"propertyDefinitions": [
-//        {
-//            "identifier": "propid-junctionType",
-//            "name": "JunctionType",
-//            "type": "string"
-//        },
-//		 */
-//		JSONObject defs = null;
-//		if(jobj.has("propertyDefinitions")){
-//			defs = jobj.getJSONObject("propertyDefinitions");
-//		} else {
-//			defs = new JSONObject();
-//			jobj.append("propertyDefinitions", defs);
-//		}
-//		JSONArray def = null;
-//		boolean flag = false;
-//		if(defs.has("propertyDefinition")){
-//			Object obj = defs.get("propertyDefinition");
-//			if(obj instanceof JSONObject){
-//				// if it is a single object it can not our definitions
-//				def = new JSONArray();
-//				def.put((JSONObject) obj);
-//				defs.append("propertyDefinition", def);
-//				flag = true;
-//			} else if(obj instanceof JSONArray){
-//				def = (JSONArray) obj;
-//				for(int i=0;i<def.length();i++){
-//					if(def.getJSONObject(i).get("identifier").toString().startsWith("propid_iea_")){
-//						flag = true;
-//						break;
-//					}
-//				}
-//			} else LOGGER.severe("Wrong object type!");
-//		} 
-//		if(!flag){
-//			defs.append("propertyDefinition", new JSONObject(" {\"identifier\": "+
-//					"\"propidIEAStartDate\", "+
-//					//					"\"propid_iea_start_date\", "+
-//					" \"type\": \"number\" }"));
-//			//		"\"name\": \"iea start date\", \"type\": \"number\" }"));
-//			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
-//					"\"propidIEAEndDate\", "+
-//					//					"\"propid_iea_end_date\", "+
-//					" 'type': number }"));
-//			//		"\"name\": \"iea end date\", \"type\": \"number\" }"));
-//			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
-//					"\"propidIEAIdentifier\", "+
-//					//					"\"propid_iea_identifier\", "+
-//					" 'type': string }"));
-//			//		"\"name\": \"iea identifier\", \"type\": \"string\" }"));
-//		}
-//	}
+	//	private void addPropertyStandardTypeDefs(JSONObject jobj) {
+	//		/**
+	//		 * "propertyDefinitions": {"propertyDefinitions": [
+	//        {
+	//            "identifier": "propid-junctionType",
+	//            "name": "JunctionType",
+	//            "type": "string"
+	//        },
+	//		 */
+	//		JSONObject defs = null;
+	//		if(jobj.has("propertyDefinitions")){
+	//			defs = jobj.getJSONObject("propertyDefinitions");
+	//		} else {
+	//			defs = new JSONObject();
+	//			jobj.append("propertyDefinitions", defs);
+	//		}
+	//		JSONArray def = null;
+	//		boolean flag = false;
+	//		if(defs.has("propertyDefinition")){
+	//			Object obj = defs.get("propertyDefinition");
+	//			if(obj instanceof JSONObject){
+	//				// if it is a single object it can not our definitions
+	//				def = new JSONArray();
+	//				def.put((JSONObject) obj);
+	//				defs.append("propertyDefinition", def);
+	//				flag = true;
+	//			} else if(obj instanceof JSONArray){
+	//				def = (JSONArray) obj;
+	//				for(int i=0;i<def.length();i++){
+	//					if(def.getJSONObject(i).get("identifier").toString().startsWith("propid_iea_")){
+	//						flag = true;
+	//						break;
+	//					}
+	//				}
+	//			} else LOGGER.severe("Wrong object type!");
+	//		} 
+	//		if(!flag){
+	//			defs.append("propertyDefinition", new JSONObject(" {\"identifier\": "+
+	//					"\"propidIEAStartDate\", "+
+	//					//					"\"propid_iea_start_date\", "+
+	//					" \"type\": \"number\" }"));
+	//			//		"\"name\": \"iea start date\", \"type\": \"number\" }"));
+	//			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
+	//					"\"propidIEAEndDate\", "+
+	//					//					"\"propid_iea_end_date\", "+
+	//					" 'type': number }"));
+	//			//		"\"name\": \"iea end date\", \"type\": \"number\" }"));
+	//			defs.append("propertyDefinition", new JSONObject(" {'identifier': "+
+	//					"\"propidIEAIdentifier\", "+
+	//					//					"\"propid_iea_identifier\", "+
+	//					" 'type': string }"));
+	//			//		"\"name\": \"iea identifier\", \"type\": \"string\" }"));
+	//		}
+	//	}
 
 	@Override
 	public int getNodeHash(Document jsonObject) {
@@ -204,16 +205,20 @@ public class Archimate3Parser extends GenericParser {
 	/**
 	 * processJsonString: process a json string
 	 * 
+	 * conflict resolution on views and the organization will NOT be realized. Views will simply be added in case of a conflict while the organization of 
+	 * the new version will be taken over since a roll back to the old structure is always possible. 
+	 * 
 	 * @param overwrite: if true conflicts will be resolved based on the conflict mapping provided by the user
 	 * 					if false then the conflicts are reported back to the user
-	 * @param 
+	 * @param keepList: if the overwrite is true, this list contains the UUIDs of the elements in the database which will NOT be overwritten
+	 * 					this list is created by the user as part of conflict resolution; this list contains only elements and relations
 	 */
 	@Override
-	public boolean processJsonString(String taskId, String project, String branch, String user, String str, boolean overwrite) {
-		boolean ret = false;
-		
+	public Vector<DifRecord> processJsonString(String taskId, String project, String branch, String user, String str, boolean overwrite, Set<String> keepList) {
+		Vector<DifRecord> ret = null;
+
 		long time = System.currentTimeMillis();
-		
+
 		HashMap<String,String> map = factory.getMapping(this, project, time);
 		//		JSONObject xmlJSONObj = new JSONObject(str);
 		Document doc_all = Document.parse(str);
@@ -221,6 +226,8 @@ public class Archimate3Parser extends GenericParser {
 		String retMsg = "";
 		factory.addTaskStatus(taskId, new TaskStatus());
 		HashMap<String,Document> nodeMap = new HashMap<String,Document>();
+		HashMap<String,Document> difList = null;
+		if(!overwrite) difList = new HashMap<String,Document>();
 		boolean overall_insert = false;
 		boolean overall_update = false;
 		Set<String> ref_elements = new HashSet<String>();
@@ -240,7 +247,7 @@ public class Archimate3Parser extends GenericParser {
 
 					//			String xmlns = obj.getString("xmlns");
 					//			if (xmlns!=null && !xmlns.isEmpty() && xmlns.equals(URI)) {
-					ret = true;
+					//ret = true;
 					// organizations
 					ArrayList<Document> orgs = (ArrayList<Document>) obj.remove(ORGANIZATIONS_TAG);
 					// call a recursion function to parse the tree and add one document per element into the organizations collection
@@ -258,7 +265,7 @@ public class Archimate3Parser extends GenericParser {
 					//
 					// elements
 					refs = factory.retrieveFileNodeIDs(this, project,branch, model_id, version);
-					
+
 					Document els = (Document) obj.get(ELEMENTS_TAG);
 					ArrayList<Document> l = (ArrayList<Document>) els.get(ELEMENT_TAG);
 					LOGGER.info("number of lements: "+l.size());
@@ -295,14 +302,18 @@ public class Archimate3Parser extends GenericParser {
 						ref_elements.add(uuid);
 						if(insert){
 							overall_insert = true;
-							if(update){ 
+							if(update && overwrite){ 
 								overall_update = true;
-								factory.retireNodeDocument(this, project, user, branch, uuid, time);
+								if (keepList==null || !keepList.contains(uuid))
+									factory.retireNodeDocument(this, project, branch, user, uuid, time);
 							}
-							factory.insertNodeDocument(this, taskId, project, branch, user, n, time, orgMap.get(identifier));
+							if(overwrite) {
+								if (keepList==null || !keepList.contains(uuid))
+									factory.insertNodeDocument(this, taskId, project, branch, user, n, time, orgMap.get(identifier));
+							} else difList.put(uuid, n);
 						}
 						//				String uuid = getUUID(doc);
-						ArrayList<Document> nameArr = (ArrayList<Document>) n.get("ar3_name");
+						ArrayList<Document> nameArr = (ArrayList<Document>) n.get(NAME_TAG);
 						Document nameObj = nameArr.get(0);
 						String name = nameObj.getString("value");
 						map.put(identifier, uuid);
@@ -313,16 +324,18 @@ public class Archimate3Parser extends GenericParser {
 						s.put("branch",branch);
 						nodeMap.put(uuid, s );
 					}
-					// delete deleted nodes by deleting the remaining elements in refs
-					LOGGER.info("#Elements to be deleted: "+refs.size());
-					for(String ref : refs){
-						factory.retireNodeDocument(this,project, branch, user, ref, time);
+					if(overwrite){
+						// delete deleted nodes by deleting the remaining elements in refs
+						LOGGER.info("#Elements to be deleted: "+refs.size());
+						for(String ref : refs){
+							factory.retireNodeDocument(this,project, branch, user, ref, time);
+						}
 					}
 
 					//
 					// relations
 					refs = factory.retrieveFileRelationshipIDs(this, project,branch, model_id, version);
-					
+
 					Document rels =  (Document) obj.get(RELATIONSHIPS_TAG);
 					l = (ArrayList<Document>) rels.get(RELATIONSHIP_TAG);
 					LOGGER.info("number of relationships: "+l.size());
@@ -440,12 +453,16 @@ public class Archimate3Parser extends GenericParser {
 								}
 								if(insert){
 									overall_insert = true;
-									if(update){ 
+									if(update && overwrite){ 
 										overall_update = true;
-										factory.retireRelationshipDocument(this, project, branch, user, identifier, time);
+										if (keepList==null || !keepList.contains(identifier))
+											factory.retireRelationshipDocument(this, project, branch, user, identifier, time);
 									}
 									//factory.insertNodeDocument(this, project, branch, rel, time, orgMap.get(identifier));
-									factory.insertRelationDocument(this, taskId, project, branch, user, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
+									if (overwrite){
+										if (keepList==null || !keepList.contains(identifier))
+											factory.insertRelationDocument(this, taskId, project, branch, user, rel, sourceUUID, nodeMap.get(sourceUUID), targetUUID, nodeMap.get(targetUUID), time, orgMap.get(identifier));
+									} else difList.put(map.get(identifier), rel);
 								}
 							}
 						}
@@ -454,7 +471,7 @@ public class Archimate3Parser extends GenericParser {
 					// views
 					if(obj.containsKey(VIEWS_TAG)){
 						refs = factory.retrieveFileViewIDs(this, project,branch, model_id, version);
-						
+
 						Document views =  (Document) obj.get(VIEWS_TAG);
 						Document diags = (Document) views.get(DIAGRAMS_TAG);
 						//			for( int ii=0;ii<diags.length();ii++){
@@ -540,11 +557,15 @@ public class Archimate3Parser extends GenericParser {
 
 							if(insert){
 								overall_insert = true;
-								if(update){ 
+								if(update && overwrite){ 
 									overall_update = true;
-									factory.retireViewDocument(this, project, branch, user, view_uuid, time);
+									if (keepList==null || !keepList.contains(view_uuid))
+										factory.retireViewDocument(this, project, branch, user, view_uuid, time);
 								}
-								factory.insertViewDocument(this, taskId, project, branch, user,  view_uuid, view, time, orgMap.get(view_id));
+								if (overwrite){
+									factory.insertViewDocument(this, taskId, project, branch, user,  view_uuid, view, time, orgMap.get(view_id));
+								} else difList.put(view_uuid, view);
+								
 							}
 							//uuid = view.getString(IDENTIFIER_TAG);
 							//					Document doc = factory.insertViewDocument(this, project, branch,  view_id, view, time, orgMap.get(view_id));
@@ -559,44 +580,49 @@ public class Archimate3Parser extends GenericParser {
 					}
 					//
 					// handle Management information
-					boolean insert = true; // false means no action required
-					boolean update = false; 
-					int model_hash_new = obj.hashCode();
-					String ver = "id-"+UUID.randomUUID().toString();
-					if(model_hash_old != 0){
-						// there is an entry in the database
-						update = true;
-						obj.replace(VERSION_TAG, ver);
-					} else {
-						// there is no entry in the database for this model yet.
-						// to make sure that the id is according to our expectation we overwrite the ID
-						String old_id = (String) obj.remove(Archimate3Parser.IDENTIFIER_TAG);
-						// this is necssary since the JAXB is not compliant with specification; it expects the attributes to be at the beginning of the document
-						Set<Entry<String, Object>> entryset = obj.entrySet();
-						Document obj2 = new Document();
-						obj2.put(Archimate3Parser.IDENTIFIER_TAG, "id-"+UUID.randomUUID().toString());
-						obj2.put(Archimate3Parser.VERSION_TAG, ver);
-						for(Entry<String,Object> e : entryset){
-							if(!e.getKey().equals(Archimate3Parser.IDENTIFIER_TAG) &&
-									!e.getKey().equals(Archimate3Parser.VERSION_TAG)){
-								obj2.append(e.getKey(), e.getValue());
+					if(overwrite){
+						boolean insert = true; // false means no action required
+						boolean update = false; 
+						int model_hash_new = obj.hashCode();
+						String ver = "id-"+UUID.randomUUID().toString();
+						if(model_hash_old != 0){
+							// there is an entry in the database
+							update = true;
+							obj.replace(VERSION_TAG, ver);
+						} else {
+							// there is no entry in the database for this model yet.
+							// to make sure that the id is according to our expectation we overwrite the ID
+							String old_id = (String) obj.remove(Archimate3Parser.IDENTIFIER_TAG);
+							// this is necessary since the JAXB is not compliant with specification; it expects the attributes to be at the beginning of the document
+							Set<Entry<String, Object>> entryset = obj.entrySet();
+							Document obj2 = new Document();
+							obj2.put(Archimate3Parser.IDENTIFIER_TAG, "id-"+UUID.randomUUID().toString());
+							obj2.put(Archimate3Parser.VERSION_TAG, ver);
+							for(Entry<String,Object> e : entryset){
+								if(!e.getKey().equals(Archimate3Parser.IDENTIFIER_TAG) &&
+										!e.getKey().equals(Archimate3Parser.VERSION_TAG)){
+									obj2.append(e.getKey(), e.getValue());
+								}
 							}
+							obj = obj2;
 						}
-						obj = obj2;
-					}
-					if (model_hash_new == model_hash_old) {
-						insert = false; // no update or insert needed
-					}
-					if(overall_insert || insert){
-						if(overall_update || update){
-							factory.retireManagementDocument(this, project, branch, user, model_id, time);
-							factory.retireMapping(this,project,time);
+						if (model_hash_new == model_hash_old) {
+							insert = false; // no update or insert needed
 						}
-						factory.insertManagementDocument(this, project, branch, user, obj, time, ref_elements, ref_relations, ref_views);
-						factory.insertMapping(this, project, time, map);
+						if(overall_insert || insert){
+							if(overall_update || update){
+								factory.retireManagementDocument(this, project, branch, user, model_id, time);
+								factory.retireMapping(this,project,time);
+							}
+							factory.insertManagementDocument(this, project, branch, user, obj, time, ref_elements, ref_relations, ref_views);
+							factory.insertMapping(this, project, time, map);
+						}
+					} else {
+						// it is not overwrite, thus provide the relevant information to show conflicts
+						ret = factory.enrichDifList(taskId, this, project, branch, time, difList);
 					}
 				}
-				
+
 			} // end of if(lock_successull
 		}
 		factory.releaseBranch(this, project, branch, user);

@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import org.bson.Document;
 import org.iea.pool.TaskState;
 import org.iea.pool.TaskStatus;
+import org.iea.util.DifRecord;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -56,13 +59,13 @@ public abstract class GenericParser {
 	//		return ret;	
 	//	};
 
-	public boolean processXmlString(String taskId, String project, String branch, String user, String str, boolean overwrite){
-		boolean ret = false;
+	public Vector<DifRecord> processXmlString(String taskId, String project, String branch, String user, String str, boolean overwrite, Set<String> keepList){
+		Vector<DifRecord> ret = null;
 		String json_str= convertXMLtoJSON(taskId, str);
-		ret = processJsonString(taskId, project, branch, user, json_str, overwrite);
+		ret = processJsonString(taskId, project, branch, user, json_str, overwrite, keepList);
 		return ret;
 	}
-	public abstract  boolean processJsonString(String taskId, String project, String branch, String user, String json, boolean overwrite);
+	public abstract  Vector<DifRecord> processJsonString(String taskId, String project, String branch, String user, String json, boolean overwrite, Set<String> keepList);
 	public abstract int getNodeHash(Document jsonObject);
 
 	public abstract int getRelationHash(Document jsonObject);
@@ -98,6 +101,8 @@ public abstract class GenericParser {
 	public abstract int getViewHash(Document jsonObject);
 
 	public abstract int getManagmentHash(Document jsonObject);
+
+	//public abstract Vector<DifRecord> enrichDifList(String taskId, HashMap<String, Document> difList);
 
 //	protected TaskStatus getTaskStatus(String taskId){
 //		return factory.getTaskStatus(taskId);

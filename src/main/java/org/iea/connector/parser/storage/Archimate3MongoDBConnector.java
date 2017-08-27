@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import org.bson.BsonArray;
 import org.bson.Document;
 import org.iea.connector.parser.Archimate3Parser;
 import org.iea.connector.storage.MongoDBAccess;
+import org.iea.util.DifRecord;
 import org.iea.util.KeyValuePair;
 import org.iea.util.MapUtil;
 import org.iea.util.Organization;
@@ -62,15 +64,15 @@ implements GenericParserStorageConnectorManager {
 	public static final String PROPID_IEA_START_DATE = "propidIEAStartDate";
 	public static final String PROPID_IEA_IDENTIFIER = "propidIEAIdentifier";
 	public static final ImmutableMap<String,String> PROPID_MAP = ImmutableMap.of(PROPID_IEA_HASH,"string",
-																				  PROPID_IEA_END_DATE,"number",
-																				  PROPID_IEA_START_DATE,"number",
-																				  PROPID_IEA_IDENTIFIER, "string" );
+			PROPID_IEA_END_DATE,"number",
+			PROPID_IEA_START_DATE,"number",
+			PROPID_IEA_IDENTIFIER, "string" );
 
 	private final static Logger LOGGER = Logger.getLogger(Archimate3MongoDBConnector.class.getName());
 	private static final String DOC_ELEMENTS_LIST = "element_list";
 	private static final String DOC_RELATIONS_LIST = "relationship_list";
 	private static final String DOC_VIEWS_LIST = "view_list";
-	
+
 	private MongoDBAccess mongo ;
 
 	public Archimate3MongoDBConnector(){
@@ -228,7 +230,7 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public GenericStorageResult insertRelationDocument(String project, String branch, String user, Document jsonObject, String sourceUUID, Document sourceJson, String targetUUID, Document targetJson, long time, Vector<KeyValuePair> org) {
-//		String compStr = parser.getRelationComparisonString(jsonObject);
+		//		String compStr = parser.getRelationComparisonString(jsonObject);
 		int hash = parser.getRelationHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
@@ -237,7 +239,7 @@ implements GenericParserStorageConnectorManager {
 		.append("targetUUID", targetUUID);
 		//		.append("source", sourceJson)
 		//		.append("target", targetJson);
-		
+
 		mongo.insertDocument(project, MongoDBAccess.COLLECTION_RELATIONS, doc);
 		ret.setDoc(doc);
 		ret.setStatusInserted();
@@ -246,7 +248,7 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, Vector<KeyValuePair> level, ArrayList<Document> labelArr, long time) {
-//		String compStr = parser.getOrganizationComparisonString(labelArr);
+		//		String compStr = parser.getOrganizationComparisonString(labelArr);
 		int hash = parser.getOrganizationHash(labelArr);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(level, branch);
@@ -262,7 +264,7 @@ implements GenericParserStorageConnectorManager {
 
 	@Override
 	public GenericStorageResult insertViewDocument(String project, String branch, String user, Document jsonObject, long time, Vector<KeyValuePair> org) {
-//		String compStr = parser.getViewComparisonString(jsonObject);
+		//		String compStr = parser.getViewComparisonString(jsonObject);
 		int hash = parser.getViewHash(jsonObject);
 		GenericStorageResult ret = new GenericStorageResult();
 		ArrayList<Document> orgJson = createOrganizationPath(org, branch);
@@ -272,7 +274,7 @@ implements GenericParserStorageConnectorManager {
 		ret.setStatusInserted();
 		return ret;
 	} 
-	
+
 	public HashMap<String,String> getMapping(String project, long time){
 		return mongo.getMapping(project, time);
 	}
@@ -423,7 +425,7 @@ implements GenericParserStorageConnectorManager {
 			item.setLabel(label);
 		}		
 	}
-		
+
 	@Override
 	public Document retrieveOrganizationDocument(String project, String branch, String user, long time, Organization org) {
 		retrieveOrganization(project, branch, user, time, org);
@@ -473,15 +475,15 @@ implements GenericParserStorageConnectorManager {
 	public void retireNodeDocument(String project, String branch, String user, String uuid, long time){
 		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_NODES, uuid, time);
 	}
-	
+
 	public void retireRelationshipDocument(String project, String branch, String user, String uuid, long time){
 		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_RELATIONS, uuid, time);
 	}
-	
+
 	public void retireViewDocument(String project, String branch, String user, String uuid, long time){
 		retireDocument(project, branch, user, MongoDBAccess.COLLECTION_VIEWS, uuid, time);
 	}
-	
+
 	protected void retireDocument(String project, String branch, String user, String col, String uuid, long time){
 		//	String query_retire = "db."+MongoDBAccess.COLLECTION_NODES+".update({'"+DOC_ID+"': {$eq: \""+uuid+"\"},"+ 
 		//	"'"+DOC_BRANCH+"':\""+branch+"\","+
@@ -508,9 +510,9 @@ implements GenericParserStorageConnectorManager {
 			if(it.hasNext()){
 				Document doc = it.next();
 				ret = (Document) doc.get(DOC_RAW);
-//				if(it.hasNext()){
-//					LOGGER.severe("Inconsistency with the management documents of project:"+project+"   branch:"+branch+"    user:"+user+"    time:"+time);
-//				}
+				//				if(it.hasNext()){
+				//					LOGGER.severe("Inconsistency with the management documents of project:"+project+"   branch:"+branch+"    user:"+user+"    time:"+time);
+				//				}
 			}
 		}
 		return ret;
@@ -552,7 +554,7 @@ implements GenericParserStorageConnectorManager {
 		list.addAll(ref_views);
 		doc.append(DOC_VIEWS_LIST,list);
 		mongo.insertDocument(project,MongoDBAccess.COLLECTION_MANAGEMENT, doc);
-		
+
 		ret.setDoc(doc);
 		ret.setStatusInserted();
 		return ret;
@@ -567,7 +569,7 @@ implements GenericParserStorageConnectorManager {
 	public Set<String> retrieveAllOrganizationIDs(String project, String branch) {
 		return mongo.queryDocumentFindAllIds(project, branch, MongoDBAccess.COLLECTION_ORGANIZATIONS);	
 	}
-	
+
 	@Override
 	public Set<String> retrieveFileNodeIDs(String project, String branch, String fileID, String version) {
 		return mongo.queryDocumentFindFileIds(project, branch, DOC_ELEMENTS_LIST, fileID, version);	
@@ -613,6 +615,73 @@ implements GenericParserStorageConnectorManager {
 		BasicDBObject query = new BasicDBObject(DOC_END_DATE,-1);
 		BasicDBObject set = new BasicDBObject("$set", new BasicDBObject(DOC_END_DATE, time));
 		mongo.retireDocument(project, MongoDBAccess.COLLECTION_MAPPING, query, set);
+	}
+
+	@Override
+	/**
+	 * this function check also whether the conflict is a real conflict or an update. If the node in teh database and the node in the file have the same
+	 * start_date then it is NOT a conflict and therefore the modified node can be taken of the conflict list.
+	 * Thus, it can happen that the files might require a conflict resolution, but that the parallel changes were not overlapping and therefore actually
+	 * no conflict resolution is necessary
+	 */
+	public Vector<DifRecord> enrichDifList(String project, String branch, String type, long time, HashMap<String, Document> difList) {
+		if (difList == null || difList.isEmpty()) return null;
+		Vector<DifRecord> ret = new Vector<DifRecord>();
+		Set<String> values = difList.keySet();
+		FindIterable<Document> docs = mongo.retrieveDocumentInList(project, branch, MongoDBAccess.COLLECTION_NODES, type, DOC_ID , values, time);
+		if(docs !=null && docs.iterator()!=null){
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+				String id = doc.getString(DOC_ID);
+				LOGGER.info(id);
+				long start = doc.getLong(DOC_START_DATE);
+				Document d = difList.remove(id);
+				if(d!=null && d.containsKey(Archimate3Parser.PROPERTIES_TAG)){
+					Document propies = (Document) d.get(Archimate3Parser.PROPERTIES_TAG);
+					ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
+					Iterator<Document> it2 = props.iterator();
+					while(it2.hasNext()){
+						Document prop = it2.next();
+						if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
+							Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+							//					val.remove(Archimate3Parser.VALUE_TAG);
+							long st = Long.parseLong(val.getString(Archimate3Parser.VALUE_TAG));
+							if(st!=start)
+								ret.add(new DifRecord((Document) doc.get(DOC_RAW), d, MongoDBAccess.COLLECTION_NODES));
+							break;
+						} 
+					}
+				}   
+			}
+		}
+		docs = mongo.retrieveDocumentInList(project, branch, MongoDBAccess.COLLECTION_RELATIONS, type, DOC_ID , values, time);
+		if(docs !=null && docs.iterator()!=null){
+			MongoCursor<Document> it = docs.iterator();
+			while(it.hasNext()){
+				Document doc = it.next();
+				String id = doc.getString(DOC_ID);
+				long start = doc.getLong(DOC_START_DATE);
+				Document d = difList.remove(id);
+				if(d.containsKey(Archimate3Parser.PROPERTIES_TAG)){
+					Document propies = (Document) d.get(Archimate3Parser.PROPERTIES_TAG);
+					ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
+					Iterator<Document> it2 = props.iterator();
+					while(it2.hasNext()){
+						Document prop = it2.next();
+						if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
+							Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+							//					val.remove(Archimate3Parser.VALUE_TAG);
+							long st = val.getLong(Archimate3Parser.VALUE_TAG);
+							if(st!=start)
+								ret.add(new DifRecord((Document) doc.get(DOC_RAW), d, MongoDBAccess.COLLECTION_RELATIONS));
+							break;
+						} 
+					}
+				}   
+			}
+		}
+		return ret;
 	}
 
 }

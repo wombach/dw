@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.bson.Document;
+import org.iea.util.DifRecord;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 import org.json.JSONArray;
@@ -90,6 +91,10 @@ public interface GenericParserStorageConnectorManager {
 	public HashMap<String, String> getMapping(String project, long time);
 
 	public void retireMapping(String project, long time);
+
+	//public Vector<DifRecord> enrichDifList(HashMap<String, Document> difList);
+
+	public Vector<DifRecord> enrichDifList(String project, String branch, String type, long time, HashMap<String, Document> difList);
 
 
 //	public GenericStorageResult insertOrganizationDocument(String project, String branch, String user, String organizationsTypeLabel,

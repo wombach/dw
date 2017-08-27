@@ -12,6 +12,7 @@ import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.parser.storage.GenericParserStorageConnectorFollower;
 import org.iea.connector.parser.storage.GenericParserStorageConnectorManager;
 import org.iea.connector.parser.storage.GenericStorageResult;
+import org.iea.util.DifRecord;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 import org.json.JSONArray;
@@ -312,6 +313,13 @@ public class StorageConnectorContainer {
 		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
 			((GenericParserStorageConnectorManager) connector).retireMapping(project, time);
 		}		
+	}
+
+	public Vector<DifRecord> enrichDifList(String project, String branch, String type, long time, HashMap<String, Document> difList) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).enrichDifList(project, branch, type, time, difList);
+		}		
+		return null;
 	}
 
 

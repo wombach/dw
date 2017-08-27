@@ -61,6 +61,10 @@ public class MongoDBAccess {
 		getAllDocuments(DATABASE);
 	}
 
+	/**
+	 * TODO: update the collections
+	 * @param db
+	 */
 	public void getAllDocuments(String db){
 		MongoCollection<Document> collection = getCollection(db, COLLECTION_NODES);
 		MongoCursor<Document> cursor = collection.find().iterator();
@@ -122,24 +126,24 @@ public class MongoDBAccess {
 		LOGGER.info("update completed: matched:"+res.getMatchedCount()+"   updated:"+res.getModifiedCount());
 	}
 
-	public FindIterable<Document> queryDocument(String col, String key, String value, Date date){
-		return queryDocument(DATABASE, "none", col, key, value, date);
-	}
+//	public FindIterable<Document> queryDocument(String col, String key, String value, Date date){
+//		return queryDocument(DATABASE, "none", col, key, value, date);
+//	}
 
-	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, Date date){
-		return queryDocument(project, branch, col, key, value, date.getTime());
-	}
+//	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, Date date){
+//		return queryDocument(project, branch, col, key, value, date.getTime());
+//	}
 
-	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, long time){
-		BasicDBObject query = new BasicDBObject(key, new BasicDBObject("$eq", value)).
-				append("start_date",  new BasicDBObject("$gt", time)).
-				append("branch",  branch).
-				append("$or", new BasicDBObject("end_date",  new BasicDBObject("$lt", time)).
-						append("end_date",  new BasicDBObject("$eq", -1)));
-		//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
-		FindIterable<Document> iterable = getCollection(project, col).find(query);
-		return iterable;
-	}
+//	public FindIterable<Document> queryDocument(String project, String branch, String col, String key, String value, long time){
+//		BasicDBObject query = new BasicDBObject(key, new BasicDBObject("$eq", value)).
+//				append("start_date",  new BasicDBObject("$gt", time)).
+//				append("branch",  branch).
+//				append("$or", new BasicDBObject("end_date",  new BasicDBObject("$lt", time)).
+//						append("end_date",  new BasicDBObject("$eq", -1)));
+//		//		FindIterable<Document> iterable = getCollection(project, col).find(eq(key, value));
+//		FindIterable<Document> iterable = getCollection(project, col).find(query);
+//		return iterable;
+//	}
 
 	/**
 	 * "db."+MongoDBAccess.COLLECTION_NODES+".find({"+
@@ -215,6 +219,28 @@ public class MongoDBAccess {
 				append("branch",  branch).
 				append("type", type).
 				append("$or", or);
+
+		FindIterable<Document> iterable = getCollection(project, col).find(query);
+		return iterable;
+	}
+
+	public FindIterable<Document> retrieveDocumentInList(String project, String branch, String col, String type, String key, Set<String> values, long time) {
+		// db.getCollection('nodes').find({'branch':"branch1", 
+		//            'start_date': {$lt: 1494859350395}, 
+		//            $or : [{'end_date': {$eq: -1}},
+		//                    {'end_date': {$gt: 1494859350395}}]
+		//           })
+		BasicDBList or = new BasicDBList();
+		or.add(new BasicDBObject("end_date",  new BasicDBObject("$gt", time)));
+		or.add(new BasicDBObject("end_date",  new BasicDBObject("$eq", -1)));
+		BasicDBList in_ = new BasicDBList();
+		for(String val : values){
+			in_.add(val);
+		}
+		BasicDBObject query = new BasicDBObject("start_date",  new BasicDBObject("$lt", time)).
+				append("branch",  branch).
+				append("type", type).
+				append("$or", or).append(key, new BasicDBObject("$in",in_));
 
 		FindIterable<Document> iterable = getCollection(project, col).find(query);
 		return iterable;
