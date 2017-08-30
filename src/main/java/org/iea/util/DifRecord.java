@@ -24,4 +24,8 @@ public class DifRecord {
 	public String type(){
 		return type;
 	}
+
+	public String getJsonObjectString() {
+		return "{\"left\":"+left.toJson()+", \"right\":"+right.toJson()+", \"type\":"+type+"}";
+	}
 }

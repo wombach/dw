@@ -33,6 +33,7 @@ import org.iea.connector.parser.ParserFactory;
 import org.iea.connector.parser.storage.Archimate3MongoDBConnector;
 import org.iea.connector.storage.MongoDBSingleton;
 import org.iea.util.DifRecord;
+import org.iea.util.DifResult;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -100,8 +101,10 @@ public class Archimate3FileIBasedInteractionTest {
 	@Test
 	public void givenJsonFile_store_retrieve_subtests() throws JAXBException, IOException{
 //		givenXmlFile_UnmarshalJson_InParserFactory();
+//		givenXmlFile_UnmarshalJson_InParserFactory2();
 		//givenXMLFile_unmarshalJson_marshalXML();
-		givenJsonFile_processJsonString_expectTrue();
+		givenJsonFile_processJsonString_expectTrue2();
+//		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile2();
 //		givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile();
 //				givenJsonFile_unmarshalJson_marshalXML();
 //		givenJsonFile_processJsonString_no_updates_expectTrue();
@@ -111,14 +114,23 @@ public class Archimate3FileIBasedInteractionTest {
 		pf.dropProject("archimate3_test_project2");
 		MongoDBSingleton.dropCollection();
 		String json = readFile("demo_archimate3.json");
-		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project","branch1","user1", json, false, null);
+		DifResult ret = pf.processJsonString(taskId, "archimate3_test_project","branch1","user1", json, false, null, -1);
 		assertTrue(ret == null);	
+	}
+
+	public void givenJsonFile_processJsonString_expectTrue2() {		
+		//pf.dropProject("archimate3_test_project2");
+		//MongoDBSingleton.dropCollection();
+		String json = readFile("version3_a.json");
+//		String json = readFile("demo_model1.json");
+		DifResult ret = pf.processJsonString(taskId, "demo_model","MASTER","user1", json, false, null, -1);
+		assertTrue(ret.isCommitted());	
 	}
 
 	public void givenJsonFile_processJsonString_no_updates_expectTrue() {		
 		String json = readFile("test3_output.json");
 		MongoDBSingleton.dropCollection();
-		Vector<DifRecord> ret = pf.processJsonString(taskId, "archimate3_test_project","branch1","user1",json, false, null);
+		DifResult ret = pf.processJsonString(taskId, "archimate3_test_project","branch1","user1",json, false, null, 0);
 		assertTrue(ret == null);	
 	}
 
@@ -167,11 +179,51 @@ public class Archimate3FileIBasedInteractionTest {
 
 	}
 
+	public void givenProjectBranchInMongoDB_retrieveJsonString_expectContentMatchesFile2() {		
+		//String json = readFile("demo_archimate3.json");
+		Date date = new Date(System.currentTimeMillis());
+		String t = pf.retrieveJsonString(taskId, "archimate3", "demo_model","MASTER", "user1", date);
+		System.out.println(t);
+		//pf.deriveFile("archimate3","test_project","branch2", "test3_retrieved.xml", date);
+		//Get the file reference
+//		Path path = Paths.get("test3_output.json");
+//
+//		//Use try-with-resource to get auto-closeable writer instance
+//		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
+//		{
+//			writer.write(t);
+//			writer.flush();
+//			writer.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			fail("Exception "+e);
+//		}
+
+	}
+
 
 	public void givenXmlFile_UnmarshalJson_InParserFactory() throws JAXBException, IOException{
 		String xml = readFile("demo_archimate3.xml");
 		String res = pf.convertXMLtoJSON("this is a test", "archimate3", xml);
 	}
+	
+	public void givenXmlFile_UnmarshalJson_InParserFactory2() throws JAXBException, IOException{
+		String xml = readFile("version3_a.xml");
+		String res = pf.convertXMLtoJSON("this is a test", "archimate3", xml);
+		FileWriter out = new FileWriter( "version3_a.json");
+		out.write(res);
+		out.flush();
+		out.close();
+	}
+//	public void givenXmlFile_UnmarshalJson_InParserFactory2() throws JAXBException, IOException{
+//		String xml = readFile("version3_a.xml");
+//		String res = pf.convertXMLtoJSON("this is a test", "archimate3", xml);
+//		FileWriter out = new FileWriter( "version3_a.json");
+//		out.write(res);
+//		out.flush();
+//		out.close();
+//	}
 	
 	public void givenJsonFile_unmarshalJson_marshalXML() throws JAXBException, IOException{
 		JAXBContext jaxbContext =  JAXBContext.newInstance(ModelType.class);

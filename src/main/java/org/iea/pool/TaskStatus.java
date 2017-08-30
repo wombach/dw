@@ -3,6 +3,8 @@ package org.iea.pool;
 
 import java.util.logging.Logger;
 
+import org.iea.util.DifResult;
+
 public class TaskStatus {
 	private final static Logger LOGGER = Logger.getLogger(TaskStatus.class.getName());
 	private int noNodes = 0;
@@ -11,7 +13,16 @@ public class TaskStatus {
 	private String msg = "";
 	private long time = 0;
 	private TaskState state = TaskState.CREATED;
+	private DifResult difResult = null;  
 	
+	public DifResult getDifResult() {
+		return difResult;
+	}
+
+	public void setDifResult(DifResult difResult) {
+		this.difResult = difResult;
+	}
+
 	public TaskStatus(){};
 	
 	public TaskStatus(int noNodes, int noRelations, int noViews, String msg){
@@ -86,8 +97,12 @@ public class TaskStatus {
 	}
 
 	public String getJsonObjectString(){
-		return "{\"noNodes\":"+noNodes+", \"noRelations\":"+noRelations+", \"noViews\":"+
+		String str = "{\"noNodes\":"+noNodes+", \"noRelations\":"+noRelations+", \"noViews\":"+
 				noViews+", \"message\":\""+msg+"\", \"timestamp\":"+time+
-				", \"state\": \""+state+"\"}";
+				", \"state\": \""+state+"\", \"difResult\": ";
+		if(difResult!=null) str +=difResult.getJsonObjectString();
+		else str += "null ";
+		str+="}";
+		return str;
 	}
 }

@@ -296,6 +296,14 @@ public class MongoDBAccess {
 		MongoDBSingleton.releaseLock(project, branch, user);
 	}
 
+	/**
+	 * check whether the current version of a file is still valid
+	 * @param project
+	 * @param branch
+	 * @param model_id
+	 * @param version
+	 * @return
+	 */
 	public boolean checkModelCommit(String project, String branch, String model_id, String version) {
 		boolean ret = false;
 		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
@@ -333,7 +341,7 @@ public class MongoDBAccess {
 				ArrayList<Document> arr = (ArrayList<Document>) d.get("mapping");
 				for(Document d2: arr){
 					String s = d2.getString("s");
-					String t = d2.getString("t2");
+					String t = d2.getString("t");
 					ret.put(s, t);
 				}
 			}			
@@ -351,6 +359,25 @@ public class MongoDBAccess {
 		}
 		mapd.append("end_date", -1).append("start_date",time).append("mapping", md);
 		insertDocument(project,COLLECTION_MAPPING, mapd);
+	}
+
+	public boolean checkModelComparisonValidity(String project, String branch, long compareTS) {
+		boolean ret = false;
+		// TODO the query is not correct yet....
+		BasicDBObject query = new BasicDBObject(Archimate3MongoDBConnector.DOC_BRANCH,  branch).
+				//append(Archimate3Parser.DOC_ID, model_id).
+				append(Archimate3MongoDBConnector.DOC_START_DATE, new BasicDBObject("$gt",compareTS));
+		FindIterable<Document> docs = getCollection(project, COLLECTION_MANAGEMENT).find(query);//.forEach(extractID);
+		if(docs !=null && docs.iterator()!=null ){
+			if( docs.iterator().hasNext()== false){
+				ret = true;
+			} else {
+				Document doc = docs.iterator().next();
+				long end = doc.getLong(Archimate3MongoDBConnector.DOC_END_DATE);
+				ret = end==-1;
+			}			
+		}
+		return ret;
 	}
 
 }

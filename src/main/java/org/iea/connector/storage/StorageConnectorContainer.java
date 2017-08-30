@@ -13,6 +13,7 @@ import org.iea.connector.parser.storage.GenericParserStorageConnectorFollower;
 import org.iea.connector.parser.storage.GenericParserStorageConnectorManager;
 import org.iea.connector.parser.storage.GenericStorageResult;
 import org.iea.util.DifRecord;
+import org.iea.util.DifResult;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 import org.json.JSONArray;
@@ -320,6 +321,13 @@ public class StorageConnectorContainer {
 			return ((GenericParserStorageConnectorManager) connector).enrichDifList(project, branch, type, time, difList);
 		}		
 		return null;
+	}
+
+	public boolean checkModelComparisonValidity(String project, String branch, long compareTS) {
+		if(GenericParserStorageConnectorManager.class.isAssignableFrom(connector.getClass())){
+			return ((GenericParserStorageConnectorManager) connector).checkModelComparisonValidity(project, branch, compareTS);
+		}
+		return false;
 	}
 
 

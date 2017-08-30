@@ -12,6 +12,7 @@ import org.bson.Document;
 import org.iea.pool.TaskState;
 import org.iea.pool.TaskStatus;
 import org.iea.util.DifRecord;
+import org.iea.util.DifResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -59,13 +60,13 @@ public abstract class GenericParser {
 	//		return ret;	
 	//	};
 
-	public Vector<DifRecord> processXmlString(String taskId, String project, String branch, String user, String str, boolean overwrite, Set<String> keepList){
-		Vector<DifRecord> ret = null;
+	public DifResult processXmlString(String taskId, String project, String branch, String user, String str, boolean overwrite, Set<String> keepList, long compareTS){
+		DifResult ret = null;
 		String json_str= convertXMLtoJSON(taskId, str);
-		ret = processJsonString(taskId, project, branch, user, json_str, overwrite, keepList);
+		ret = processJsonString(taskId, project, branch, user, json_str, overwrite, keepList, compareTS);
 		return ret;
 	}
-	public abstract  Vector<DifRecord> processJsonString(String taskId, String project, String branch, String user, String json, boolean overwrite, Set<String> keepList);
+	public abstract  DifResult processJsonString(String taskId, String project, String branch, String user, String json, boolean overwrite, Set<String> keepList, long compareTS);
 	public abstract int getNodeHash(Document jsonObject);
 
 	public abstract int getRelationHash(Document jsonObject);

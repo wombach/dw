@@ -95,60 +95,60 @@ implements GenericParserStorageConnectorManager {
 		jsonObject.remove(Archimate3Parser.TYPE_TAG);
 		raw.putAll(jsonObject);
 		//		jsonObject.put(Archimate3Parser.IDENTIFIER_TAG, uuid);
-		if(jsonObject.containsKey(Archimate3Parser.PROPERTIES_TAG)){
-			Document propies = (Document) jsonObject.get(Archimate3Parser.PROPERTIES_TAG);
-			ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
-			Iterator<Document> it = props.iterator();
-			while(it.hasNext()){
-				Document prop = it.next();
-				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
-					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
-					//					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put(Archimate3Parser.VALUE_TAG, String.valueOf(time));
-				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_END_DATE)){
-					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
-					//					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put(Archimate3Parser.VALUE_TAG, String.valueOf((long)-1));
-				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_IDENTIFIER)){
-					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
-					//					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put("value", uuid);
-				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_HASH)){
-					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
-					//					val.remove(Archimate3Parser.VALUE_TAG);
-					val.put("value", hash);
-				} 
-			}
-		} else {
-			ArrayList<Document> props = new ArrayList<Document>();
-			Document prop = new Document();
-			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_START_DATE);
-			Document val = new Document("@xml_lang", "en");
-			String start = String.valueOf(time);
-			val.put(Archimate3Parser.VALUE_TAG, start);
-			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
-			props.add(prop);
-			prop = new Document();
-			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_END_DATE);
-			val = new Document("@xml_lang", "en");
-			String end = String.valueOf((long)-1);
-			val.put(Archimate3Parser.VALUE_TAG, end);
-			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
-			props.add(prop);
-			prop = new Document();
-			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_IDENTIFIER);
-			val = new Document("@xml_lang", "en");
-			val.put(Archimate3Parser.VALUE_TAG, uuid);
-			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
-			props.add(prop);
-			prop = new Document();
-			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_HASH);
-			val = new Document("@xml_lang", "en");
-			val.put(Archimate3Parser.VALUE_TAG, hash);
-			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
-			props.add(prop);
-			raw.put(Archimate3Parser.PROPERTIES_TAG, new Document(Archimate3Parser.PROPERTY_TAG,props));
-		}
+//		if(jsonObject.containsKey(Archimate3Parser.PROPERTIES_TAG)){
+//			Document propies = (Document) jsonObject.get(Archimate3Parser.PROPERTIES_TAG);
+//			ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
+//			Iterator<Document> it = props.iterator();
+//			while(it.hasNext()){
+//				Document prop = it.next();
+//				if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
+//					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+//					//					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.put(Archimate3Parser.VALUE_TAG, String.valueOf(time));
+//				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_END_DATE)){
+//					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+//					//					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.put(Archimate3Parser.VALUE_TAG, String.valueOf((long)-1));
+//				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_IDENTIFIER)){
+//					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+//					//					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.put("value", uuid);
+//				} else if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_HASH)){
+//					Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+//					//					val.remove(Archimate3Parser.VALUE_TAG);
+//					val.put("value", hash);
+//				} 
+//			}
+//		} else {
+//			ArrayList<Document> props = new ArrayList<Document>();
+//			Document prop = new Document();
+//			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_START_DATE);
+//			Document val = new Document("@xml_lang", "en");
+//			String start = String.valueOf(time);
+//			val.put(Archimate3Parser.VALUE_TAG, start);
+//			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+//			props.add(prop);
+//			prop = new Document();
+//			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_END_DATE);
+//			val = new Document("@xml_lang", "en");
+//			String end = String.valueOf((long)-1);
+//			val.put(Archimate3Parser.VALUE_TAG, end);
+//			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+//			props.add(prop);
+//			prop = new Document();
+//			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_IDENTIFIER);
+//			val = new Document("@xml_lang", "en");
+//			val.put(Archimate3Parser.VALUE_TAG, uuid);
+//			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+//			props.add(prop);
+//			prop = new Document();
+//			prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_HASH);
+//			val = new Document("@xml_lang", "en");
+//			val.put(Archimate3Parser.VALUE_TAG, hash);
+//			prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+//			props.add(prop);
+//			raw.put(Archimate3Parser.PROPERTIES_TAG, new Document(Archimate3Parser.PROPERTY_TAG,props));
+//		}
 
 		//JSONArray branchArr = new JSONArray();
 		//branchArr.put(branch);
@@ -308,6 +308,8 @@ implements GenericParserStorageConnectorManager {
 			Document doc = it.next();
 			//				LOGGER.severe("next instance: "+doc.toJson().toString());
 			Document raw = (Document) doc.get("raw");
+			addProperties(raw, doc.getString(DOC_ID), doc.getInteger(DOC_HASH) ,
+					doc.getLong(DOC_START_DATE), doc.getLong(DOC_END_DATE) );
 			ArrayList<Document> nameArr = (ArrayList<Document>) raw.get(Archimate3Parser.NAME_TAG);
 			String name = "";
 			if(nameArr!=null && !nameArr.isEmpty()){
@@ -334,6 +336,37 @@ implements GenericParserStorageConnectorManager {
 		return ret;
 	}
 
+	protected void addProperties(Document doc, String id, int hash, long start_date, long end_date){
+		ArrayList<Document> props = new ArrayList<Document>();
+		Document prop = new Document();
+		prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_START_DATE);
+		Document val = new Document("@xml_lang", "en");
+		String start = String.valueOf(start_date);
+		val.put(Archimate3Parser.VALUE_TAG, start);
+		prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+		props.add(prop);
+		prop = new Document();
+		prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_END_DATE);
+		val = new Document("@xml_lang", "en");
+		String end = String.valueOf(end_date);
+		val.put(Archimate3Parser.VALUE_TAG, end);
+		prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+		props.add(prop);
+		prop = new Document();
+		prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_IDENTIFIER);
+		val = new Document("@xml_lang", "en");
+		val.put(Archimate3Parser.VALUE_TAG, id);
+		prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+		props.add(prop);
+		prop = new Document();
+		prop.put(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG, PROPID_IEA_HASH);
+		val = new Document("@xml_lang", "en");
+		val.put(Archimate3Parser.VALUE_TAG, hash);
+		prop.put(Archimate3Parser.PROPERTY_VALUE_TAG, val);
+		props.add(prop);
+		doc.put(Archimate3Parser.PROPERTIES_TAG, new Document(Archimate3Parser.PROPERTY_TAG,props));
+	}
+	
 	@Override
 	public Document retrieveNodeDocument(String project, String branch, String user, long time, Organization org) {
 		FindIterable<Document> docs = mongo.retrieveDocument(project, branch, MongoDBAccess.COLLECTION_NODES, parser.getType(), time);
@@ -349,6 +382,8 @@ implements GenericParserStorageConnectorManager {
 				Document nameObj = nameArr.get(0);
 				name = nameObj.getString("value");
 			}
+			addProperties(raw, doc.getString(DOC_ID), doc.getInteger(DOC_HASH) ,
+					doc.getLong(DOC_START_DATE), doc.getLong(DOC_END_DATE) );
 			ArrayList<Document> oDoc = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
 			Organization item  = org;
 			for(int ii=0;ii<oDoc.size();ii++){
@@ -378,6 +413,8 @@ implements GenericParserStorageConnectorManager {
 			Document doc = it.next();
 			//				LOGGER.severe("next instance: "+doc.toJson().toString());
 			Document raw = (Document) doc.get("raw");
+			addProperties(raw, doc.getString(DOC_ID), doc.getInteger(DOC_HASH) ,
+					doc.getLong(DOC_START_DATE), doc.getLong(DOC_END_DATE) );
 			ArrayList<Document> oDoc = (ArrayList<Document>) doc.get(DOC_ORGANIZATION);
 			Organization item  = org;
 			for(int ii=0;ii<oDoc.size();ii++){
@@ -493,10 +530,10 @@ implements GenericParserStorageConnectorManager {
 		//	"'"+DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+".$."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG+"': \""+String.valueOf(time)+"\" }} )";
 		BasicDBObject query = new BasicDBObject(DOC_ID, uuid).
 				append(DOC_BRANCH, branch).
-				append(DOC_END_DATE,-1).
-				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+"."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG,String.valueOf(-1) );
+				append(DOC_END_DATE,-1); //.
+//				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+"."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG,String.valueOf(-1) );
 		BasicDBObject set = new BasicDBObject("$set", new BasicDBObject(DOC_END_DATE, time).
-				append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+".$."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG, String.valueOf(time)).
+				// append(DOC_RAW+"."+Archimate3Parser.PROPERTIES_TAG+"."+Archimate3Parser.PROPERTY_TAG+".$."+Archimate3Parser.PROPERTY_VALUE_TAG+"."+Archimate3Parser.VALUE_TAG, String.valueOf(time)).
 				append(DOC_END_USER, user));
 		mongo.retireDocument(project, col, query, set);
 	}
@@ -553,6 +590,8 @@ implements GenericParserStorageConnectorManager {
 		list = new ArrayList<String>();
 		list.addAll(ref_views);
 		doc.append(DOC_VIEWS_LIST,list);
+		// TODO handle properties explicitly
+		doc.remove(Archimate3Parser.PROPERTY_DEFINITIONS_TAG);
 		mongo.insertDocument(project,MongoDBAccess.COLLECTION_MANAGEMENT, doc);
 
 		ret.setDoc(doc);
@@ -637,22 +676,23 @@ implements GenericParserStorageConnectorManager {
 				LOGGER.info(id);
 				long start = doc.getLong(DOC_START_DATE);
 				Document d = difList.remove(id);
-				if(d!=null && d.containsKey(Archimate3Parser.PROPERTIES_TAG)){
-					Document propies = (Document) d.get(Archimate3Parser.PROPERTIES_TAG);
-					ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
-					Iterator<Document> it2 = props.iterator();
-					while(it2.hasNext()){
-						Document prop = it2.next();
-						if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
-							Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
-							//					val.remove(Archimate3Parser.VALUE_TAG);
-							long st = Long.parseLong(val.getString(Archimate3Parser.VALUE_TAG));
+//				if(d!=null && d.containsKey(Archimate3Parser.PROPERTIES_TAG)){
+//					Document propies = (Document) d.get(Archimate3Parser.PROPERTIES_TAG);
+//					ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
+//					Iterator<Document> it2 = props.iterator();
+//					while(it2.hasNext()){
+//						Document prop = it2.next();
+//						if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
+//							Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+//							//					val.remove(Archimate3Parser.VALUE_TAG);
+//							long st = Long.parseLong(val.getString(Archimate3Parser.VALUE_TAG));
+							long st = d.getLong(DOC_START_DATE);
 							if(st!=start)
 								ret.add(new DifRecord((Document) doc.get(DOC_RAW), d, MongoDBAccess.COLLECTION_NODES));
 							break;
-						} 
-					}
-				}   
+//						} 
+//					}
+//				}   
 			}
 		}
 		docs = mongo.retrieveDocumentInList(project, branch, MongoDBAccess.COLLECTION_RELATIONS, type, DOC_ID , values, time);
@@ -663,25 +703,31 @@ implements GenericParserStorageConnectorManager {
 				String id = doc.getString(DOC_ID);
 				long start = doc.getLong(DOC_START_DATE);
 				Document d = difList.remove(id);
-				if(d.containsKey(Archimate3Parser.PROPERTIES_TAG)){
-					Document propies = (Document) d.get(Archimate3Parser.PROPERTIES_TAG);
-					ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
-					Iterator<Document> it2 = props.iterator();
-					while(it2.hasNext()){
-						Document prop = it2.next();
-						if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
-							Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
-							//					val.remove(Archimate3Parser.VALUE_TAG);
-							long st = val.getLong(Archimate3Parser.VALUE_TAG);
+//				if(d.containsKey(Archimate3Parser.PROPERTIES_TAG)){
+//					Document propies = (Document) d.get(Archimate3Parser.PROPERTIES_TAG);
+//					ArrayList<Document> props = (ArrayList<Document>) propies.get(Archimate3Parser.PROPERTY_TAG);
+//					Iterator<Document> it2 = props.iterator();
+//					while(it2.hasNext()){
+//						Document prop = it2.next();
+//						if(prop.getString(Archimate3Parser.PROPERTY_DEFINITIONREF_TAG).equals(PROPID_IEA_START_DATE)){
+//							Document val = (Document) prop.get(Archimate3Parser.PROPERTY_VALUE_TAG);
+//							//					val.remove(Archimate3Parser.VALUE_TAG);
+//							long st = val.getLong(Archimate3Parser.VALUE_TAG);
+							long st = d.getLong(DOC_START_DATE);
 							if(st!=start)
 								ret.add(new DifRecord((Document) doc.get(DOC_RAW), d, MongoDBAccess.COLLECTION_RELATIONS));
 							break;
-						} 
-					}
-				}   
+//						} 
+//					}
+//				}   
 			}
 		}
 		return ret;
+	}
+
+	@Override
+	public boolean checkModelComparisonValidity(String project, String branch, long compareTS) {
+		return mongo.checkModelComparisonValidity(project,branch, compareTS);
 	}
 
 }

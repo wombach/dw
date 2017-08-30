@@ -16,6 +16,7 @@ import org.iea.connector.storage.StorageRegistrationException;
 import org.iea.pool.TaskState;
 import org.iea.pool.TaskStatus;
 import org.iea.util.DifRecord;
+import org.iea.util.DifResult;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 import org.json.JSONArray;
@@ -105,17 +106,17 @@ public class ParserFactory {
 	 * @param filename
 	 * @return
 	 */
-	public Vector<DifRecord> processJsonString(String taskId, String project, String branch, String user, String json, boolean overwrite, Set<String> keepList){
-		Vector<DifRecord> ret = null;
+	public DifResult processJsonString(String taskId, String project, String branch, String user, String json, boolean overwrite, Set<String> keepList, long compareTS){
+		DifResult ret = null;
 		for(GenericParser gp: parsers.values()){
-			ret = gp.processJsonString(taskId, project, branch, user, json, overwrite, keepList);
+			ret = gp.processJsonString(taskId, project, branch, user, json, overwrite, keepList, compareTS);
 			if (ret!=null) break;
 		}
 		return ret;
 	}
 
-	public Vector<DifRecord> processJsonString(String taskId, String parserName, String project, String branch, String user, String json, boolean overwrite, Set<String> keepList) throws InstantiationException, IllegalAccessException{
-		Vector<DifRecord> ret = null;
+	public DifResult processJsonString(String taskId, String parserName, String project, String branch, String user, String json, boolean overwrite, Set<String> keepList, long compareTS) throws InstantiationException, IllegalAccessException{
+		DifResult ret = null;
 		//		Class<? extends GenericParser> klass = parserClasses.get(parserName);
 		GenericParser gp = parsers.get(parserName);
 		if(gp==null) {
@@ -133,7 +134,7 @@ public class ParserFactory {
 			taskStatus.setMsg("start json processing");
 			statusMap.put(taskId, taskStatus);
 		}
-		ret = gp.processJsonString(taskId, project, branch, user, json, overwrite, keepList);
+		ret = gp.processJsonString(taskId, project, branch, user, json, overwrite, keepList, compareTS);
 		if(taskStatus!=null){
 			taskStatus.setMsg("ended json processing");
 			statusMap.put(taskId, taskStatus);
@@ -455,6 +456,10 @@ public class ParserFactory {
 			ret = parser.convertJSONtoXML(taskId, json);
 		}
 		return ret;
+	}
+
+	public boolean checkModelComparisonValidity(GenericParser parser, String project, String branch, long compareTS) {
+		return storage.checkModelComparisonValidity(parser, project, branch, compareTS) ;
 	}
 
 	

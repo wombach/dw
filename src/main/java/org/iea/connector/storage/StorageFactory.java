@@ -14,6 +14,7 @@ import org.iea.connector.parser.GenericParser;
 import org.iea.connector.parser.storage.GenericParserStorageConnector;
 import org.iea.connector.parser.storage.GenericStorageResult;
 import org.iea.util.DifRecord;
+import org.iea.util.DifResult;
 import org.iea.util.KeyValuePair;
 import org.iea.util.Organization;
 import org.json.JSONArray;
@@ -444,6 +445,17 @@ public class StorageFactory {
 		for(StorageConnectorContainer v:vec){
 			if(v.isManagingIDs()){
 				ret = v.enrichDifList(project, branch, parser.getType(), time, difList);
+			}
+		}
+		return ret;
+	}
+
+	public boolean checkModelComparisonValidity(GenericParser parser, String project, String branch, long compareTS) {
+		boolean ret = false;
+		Vector<StorageConnectorContainer> vec = storage.get(parser);
+		for(StorageConnectorContainer v:vec){
+			if(v.isManagingIDs()){
+				ret = v.checkModelComparisonValidity(project, branch, compareTS);
 			}
 		}
 		return ret;
